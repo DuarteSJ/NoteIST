@@ -1,16 +1,12 @@
-# secure_document/cli.py
 import argparse
 import sys
-from .crypto_utils import SecureDocumentHandler
+from secure_document.crypto_utils import SecureDocumentHandler
 
 def main():
     parser = argparse.ArgumentParser(description="Secure Document Encryption Tool")
     
     # Subparsers for different commands
     subparsers = parser.add_subparsers(dest='command', help='Available commands')
-    
-    # Help command (default)
-    parser.add_argument('--help', action='help', help='Show this help message and exit')
     
     # Protect command
     protect_parser = subparsers.add_parser('protect', help='Protect a document')
@@ -35,6 +31,11 @@ def main():
     handler = SecureDocumentHandler()
     
     try:
+        # If no command is provided, show help
+        if not args.command:
+            parser.print_help()
+            return 0
+        
         if args.command == 'protect':
             result = handler.protect(args.input_file, args.password, args.output_file)
             print(f"Document successfully protected. Saved to {args.output_file}")
@@ -47,12 +48,11 @@ def main():
             result = handler.unprotect(args.input_file, args.password, args.output_file)
             print(f"Document successfully decrypted. Saved to {args.output_file}")
         
-        else:
-            parser.print_help()
+        return 0
     
     except Exception as e:
         print(f"Error: {e}")
-        sys.exit(1)
+        return 1
 
 if __name__ == '__main__':
-    main()
+    sys.exit(main())
