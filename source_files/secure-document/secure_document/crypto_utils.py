@@ -55,8 +55,6 @@ class SecureDocumentHandler:
             "previousHash": previous_hash
         }
 
-        
-
         # Generate HMAC
         note_data["hmac"] = self._generate_hmac(json.dumps(note_data))
 
@@ -77,7 +75,7 @@ class SecureDocumentHandler:
         hmac_value = note_data.pop("hmac")
         if not self._verify_hmac(json.dumps(note_data), hmac_value):
             return {"status": "tampered", "message": f"Note {note_data['id']} has been altered or is corrupted."}
-        
+
         return {"status": "ok", "message": f"Note {note_data['id']} is intact and verified."}
 
     def unprotect(self, encrypted_note, key_file, output_file):
@@ -95,5 +93,5 @@ class SecureDocumentHandler:
         hmac_value = note_data.pop("hmac")
         if not self._verify_hmac(json.dumps(note_data), hmac_value):
             return {"status": "error", "message": "Integrity verification failed. Cannot unprotect."}
-        
+
         return {"status": "ok", "note": note_data}
