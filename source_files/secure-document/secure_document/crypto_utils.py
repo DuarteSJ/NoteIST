@@ -1,97 +1,160 @@
-from Crypto.Cipher import AES
-from Crypto.Util.Padding import pad, unpad
-from hashlib import pbkdf2_hmac
-import hmac
-import hashlib
-import base64
-import json
 import os
+import base64
+import hashlib
+import argparse
+from typing import List, Optional
+from Crypto.Cipher import AES
+from Crypto.Random import get_random_bytes
+from Crypto.Util.Padding import pad, unpad
+from Crypto.Protocol.KDF import PBKDF2
+
+class MerkleTree:
+    """
+    Merkle Tree implementation for integrity verification
+    """
+    def __init__(self, file_paths: List[str]):
+        self.file_paths = file_paths
+        self.leaves = self._compute_leaves()
+        self.root = self._build_tree()
+
+    def _compute_leaves(self) -> List[bytes]:
+        """
+        Compute hash of each file to create Merkle tree leaves
+        """
+        leaves = []
+        for file_path in self.file_paths:
+            with open(file_path, 'rb') as f:
+                file_hash = hashlib.sha256(f.read()).digest()
+                leaves.append(file_hash)
+        return leaves
+
+    def _build_tree(self) -> bytes:
+        """
+        Build Merkle tree and return root hash
+        """
+        if not self.leaves:
+            return hashlib.sha256(b'').digest()
+
+        # Copy leaves to work with
+        current_layer = self.leaves.copy()
+
+        # Build tree bottom-up
+        while len(current_layer) > 1:
+            next_layer = []
+            
+            # Process leaves in pairs
+            for i in range(0, len(current_layer), 2):
+                left = current_layer[i]
+                right = current_layer[i+1] if i+1 < len(current_layer) else left
+                
+                # Concatenate and hash
+                combined_hash = hashlib.sha256(left + right).digest()
+                next_layer.append(combined_hash)
+            
+            current_layer = next_layer
+
+        return current_layer[0]
+
+    def verify(self, other_root: bytes) -> bool:
+        """
+        Verify if the current tree matches another root hash
+        """
+        return self.root == other_root
 
 class SecureDocumentHandler:
+    """
+    Secure document encryption and integrity verification handler
+    """
     def __init__(self):
         pass
 
-    def _load_key(key_file):
-        """Loads the encryption key from the received file"""
-        if not os.path.isfile(key_file):
-            raise FileNotFoundError(f"Key file '{key_file}' not found.")
+    def protect(self, input_file: str, key: str, output_file: str) -> bytes:
+        """
+        Encrypt a file and add integrity protection
+        
+        Steps:
+        1. Read input file
+        2. Encrypt file contents
+        3. Compute Merkle tree root hash
+        4. Write encrypted file with hash and salt
+        """
+        with open(input_file, 'rb') as f:
+            file_contents = f.read()
+        
+        # Create cipher with random IV
+        cipher = AES.new(key, AES.MODE_CBC)
+        
+        # Encrypt file contents
+        encrypted_contents = cipher.encrypt(pad(file_contents, AES.block_size))
+        
+        # Compute Merkle tree (single file case)
+        merkle_tree = MerkleTree([input_file])
+        
+        # Prepare protected contents: 
+        # [salt (16 bytes)][root hash (32 bytes)][IV (16 bytes)][encrypted data]
+        protected_contents = (
+            salt + 
+            merkle_tree.root + 
+            cipher.iv + 
+            encrypted_contents
+        )
+        
+        # Write protected file
+        with open(output_file, 'wb') as f:
+            f.write(protected_contents)
+        
+        return merkle_tree.root
 
-        with open(key_file, 'rb') as f:
-            key = f.read()
-            if not key:
-                raise ValueError("Key file is empty.")
-            return key
-
-    def _encrypt(self, data):
-        """Encrypts the data using AES-CBC."""
-        cipher = AES.new(self.key, AES.MODE_CBC)
-        iv = cipher.iv
-        encrypted_data = cipher.encrypt(pad(data.encode(), AES.block_size))
-        return base64.b64encode(iv + encrypted_data).decode()
-
-    def _decrypt(self, encrypted_data):
-        """Decrypts the data using AES-CBC."""
-        raw_data = base64.b64decode(encrypted_data)
-        iv = raw_data[:AES.block_size]
-        cipher = AES.new(self.key, AES.MODE_CBC, iv)
-        decrypted_data = unpad(cipher.decrypt(raw_data[AES.block_size:]), AES.block_size)
-        return decrypted_data.decode()
-
-    def _generate_hmac(self, data):
-        """Generates an HMAC for the data."""
-        return base64.b64encode(hmac.new(self.key, data.encode(), hashlib.sha256).digest()).decode()
-
-    def _verify_hmac(self, data, hmac_value):
-        """Verifies the HMAC for the data."""
-        return hmac.compare_digest(self._generate_hmac(data), hmac_value)
-
-    def protect(self, note, key_file, output_file, previous_hash="0"):
-        """Protects a single note (encrypt and add integrity)."""
-        key = self._load_key(key_file) 
-        # Prepare note metadata
-        note_data = {
-            "id": note["id"],
-            "content": note["content"],
-            "previousHash": previous_hash
-        }
-
-        # Generate HMAC
-        note_data["hmac"] = self._generate_hmac(json.dumps(note_data))
-
-        # Encrypt the note
-        encrypted_note = self._encrypt(json.dumps(note_data))
-        return encrypted_note
-
-    def check(self, encrypted_note):
-        """Verifies the integrity of a single encrypted note."""
-        # Decrypt the note
+    def unprotect(self, input_file: str, output_file: str) -> bool:
+        """
+        Decrypt a protected file and verify integrity
+        
+        Returns True if successful, False otherwise
+        """
+        with open(input_file, 'rb') as f:
+            file_contents = f.read()
+        
+        # Extract components
+        salt = file_contents[:16]
+        original_root_hash = file_contents[16:48]
+        iv = file_contents[48:64]
+        encrypted_contents = file_contents[64:]
+        
         try:
-            decrypted_note = self._decrypt(encrypted_note)
+            # Create cipher
+            cipher = AES.new(self.key, AES.MODE_CBC, iv)
+            
+            # Decrypt
+            decrypted_contents = unpad(cipher.decrypt(encrypted_contents), AES.block_size)
+            
+            # Write decrypted file
+            with open(output_file, 'wb') as f:
+                f.write(decrypted_contents)
+            
+            return True
         except Exception as e:
-            return {"status": "error", "message": "Decryption failed. Invalid data or corrupted content."}
+            print(f"Decryption failed: {e}")
+            return False
 
-        # Verify HMAC
-        note_data = json.loads(decrypted_note)
-        hmac_value = note_data.pop("hmac")
-        if not self._verify_hmac(json.dumps(note_data), hmac_value):
-            return {"status": "tampered", "message": f"Note {note_data['id']} has been altered or is corrupted."}
-
-        return {"status": "ok", "message": f"Note {note_data['id']} is intact and verified."}
-
-    def unprotect(self, encrypted_note, key_file, output_file):
-        """Reverts a single protected note to its original state (decrypt and verify)."""
-        key = self._load_key(key_file) 
-
-        # Decrypt the note
+    def check(self, input_file: str) -> bool:
+        """
+        Check file integrity without decrypting
+        """
+        with open(input_file, 'rb') as f:
+            file_contents = f.read()
+        
+        # Basic integrity checks
         try:
-            decrypted_note = self._decrypt(encrypted_note)
-        except Exception as e:
-            return {"status": "error", "message": "Decryption failed. Invalid data or corrupted content."}
-
-        # Verify HMAC
-        note_data = json.loads(decrypted_note)
-        hmac_value = note_data.pop("hmac")
-        if not self._verify_hmac(json.dumps(note_data), hmac_value):
-            return {"status": "error", "message": "Integrity verification failed. Cannot unprotect."}
-
-        return {"status": "ok", "note": note_data}
+            # Extract components
+            salt = file_contents[:16]
+            original_root_hash = file_contents[16:48]
+            iv = file_contents[48:64]
+            encrypted_contents = file_contents[64:]
+            
+            return (
+                len(salt) == 16 and 
+                len(original_root_hash) == 32 and 
+                len(iv) == 16
+            )
+        except Exception:
+            return False
