@@ -1,130 +1,86 @@
-# secure_document/crypto_utils.py
-import json
+from Crypto.Cipher import AES
+from Crypto.Util.Padding import pad, unpad
+from hashlib import pbkdf2_hmac
+import hmac
+import hashlib
 import base64
-from cryptography.fernet import Fernet
-from cryptography.hazmat.primitives import hashes
-from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
+import json
 import os
-import datetime
 
-class SecureDocumentHandler:
-    def __init__(self, salt=None):
-        """
-        Initialize the secure document handler with an optional salt.
-        
-        Args:
-            salt (bytes, optional): Salt for key derivation. Generated if not provided.
-        """
-        self.salt = salt or os.urandom(16)
+class SecureNoteHandler:
+    def __init__(self, key):
+        self.key = key
 
-    def _derive_key(self, password):
-        """
-        Derive a secure encryption key from a password.
-        
-        Args:
-            password (str): User-provided password
-        
-        Returns:
-            bytes: Derived encryption key
-        """
-        kdf = PBKDF2HMAC(
-            algorithm=hashes.SHA256(),
-            length=32,
-            salt=self.salt,
-            iterations=100000
-        )
-        return base64.urlsafe_b64encode(kdf.derive(password.encode()))
+    def _encrypt(self, data):
+        """Encrypts the data using AES-CBC."""
+        cipher = AES.new(self.key, AES.MODE_CBC)
+        iv = cipher.iv
+        encrypted_data = cipher.encrypt(pad(data.encode(), AES.block_size))
+        return base64.b64encode(iv + encrypted_data).decode()
 
-    def protect(self, input_file, password, output_file=None):
-        """
-        Encrypt a JSON document.
+    def _decrypt(self, encrypted_data):
+        """Decrypts the data using AES-CBC."""
+        raw_data = base64.b64decode(encrypted_data)
+        iv = raw_data[:AES.block_size]
+        cipher = AES.new(self.key, AES.MODE_CBC, iv)
+        decrypted_data = unpad(cipher.decrypt(raw_data[AES.block_size:]), AES.block_size)
+        return decrypted_data.decode()
+
+    def _generate_hmac(self, data):
+        """Generates an HMAC for the data."""
+        return base64.b64encode(hmac.new(self.key, data.encode(), hashlib.sha256).digest()).decode()
+
+    def _verify_hmac(self, data, hmac_value):
+        """Verifies the HMAC for the data."""
+        return hmac.compare_digest(self._generate_hmac(data), hmac_value)
+
+    def protect(self, note, previous_hash="0"):
+        """Protects a single note (encrypt and add integrity)."""
         
-        Args:
-            input_file (str): Path to input JSON file
-            password (str): Encryption password
-            output_file (str, optional): Path to output encrypted file
-        
-        Returns:
-            dict: Encrypted document
-        """
-        # Read input document
-        with open(input_file, 'r') as f:
-            document = json.load(f)
-        
-        # Derive encryption key
-        key = self._derive_key(password)
-        fernet = Fernet(key)
-        
-        # Encrypt document content
-        encrypted_doc = {
-            'salt': base64.b64encode(self.salt).decode(),
-            'encrypted_content': fernet.encrypt(json.dumps(document).encode()).decode(),
-            'timestamp': datetime.datetime.now().isoformat()
+        # Prepare note metadata
+        note_data = {
+            "id": note["id"],
+            "content": note["content"],
+            "previousHash": previous_hash
         }
-        
-        # Write to output file if specified
-        if output_file:
-            with open(output_file, 'w') as f:
-                json.dump(encrypted_doc, f)
-        
-        return encrypted_doc
 
-    def check(self, input_file):
-        """
-        Check if a document is encrypted.
         
-        Args:
-            input_file (str): Path to input file
-        
-        Returns:
-            bool: Whether the document appears to be encrypted
-        """
-        try:
-            with open(input_file, 'r') as f:
-                doc = json.load(f)
-            
-            # Check for key encryption markers
-            return all(key in doc for key in ['salt', 'encrypted_content', 'timestamp'])
-        except Exception:
-            return False
 
-    def unprotect(self, input_file, password, output_file=None):
-        """
-        Decrypt a JSON document.
-        
-        Args:
-            input_file (str): Path to input encrypted file
-            password (str): Decryption password
-            output_file (str, optional): Path to output decrypted file
-        
-        Returns:
-            dict: Decrypted document
-        """
-        # Read encrypted document
-        with open(input_file, 'r') as f:
-            encrypted_doc = json.load(f)
-        
-        # Derive key using stored salt
-        salt = base64.b64decode(encrypted_doc['salt'])
-        kdf = PBKDF2HMAC(
-            algorithm=hashes.SHA256(),
-            length=32,
-            salt=salt,
-            iterations=100000
-        )
-        key = base64.urlsafe_b64encode(kdf.derive(password.encode()))
-        
-        # Decrypt document
-        fernet = Fernet(key)
+        # Generate HMAC
+        note_data["hmac"] = self._generate_hmac(json.dumps(note_data))
+
+        # Encrypt the note
+        encrypted_note = self._encrypt(json.dumps(note_data))
+        return encrypted_note
+
+    def check(self, encrypted_note):
+        """Verifies the integrity of a single encrypted note."""
+        # Decrypt the note
         try:
-            decrypted_content = fernet.decrypt(encrypted_doc['encrypted_content'].encode())
-            decrypted_doc = json.loads(decrypted_content)
-            
-            # Write to output file if specified
-            if output_file:
-                with open(output_file, 'w') as f:
-                    json.dump(decrypted_doc, f, indent=2)
-            
-            return decrypted_doc
+            decrypted_note = self._decrypt(encrypted_note)
         except Exception as e:
-            raise ValueError("Decryption failed. Incorrect password or corrupted file.") from e
+            return {"status": "error", "message": "Decryption failed. Invalid data or corrupted content."}
+
+        # Verify HMAC
+        note_data = json.loads(decrypted_note)
+        hmac_value = note_data.pop("hmac")
+        if not self._verify_hmac(json.dumps(note_data), hmac_value):
+            return {"status": "tampered", "message": f"Note {note_data['id']} has been altered or is corrupted."}
+        
+        return {"status": "ok", "message": f"Note {note_data['id']} is intact and verified."}
+
+    def unprotect(self, encrypted_note):
+        """Reverts a single protected note to its original state (decrypt and verify)."""
+        # Decrypt the note
+        try:
+            decrypted_note = self._decrypt(encrypted_note)
+        except Exception as e:
+            return {"status": "error", "message": "Decryption failed. Invalid data or corrupted content."}
+
+        # Verify HMAC
+        note_data = json.loads(decrypted_note)
+        hmac_value = note_data.pop("hmac")
+        if not self._verify_hmac(json.dumps(note_data), hmac_value):
+            return {"status": "error", "message": "Integrity verification failed. Cannot unprotect."}
+        
+        return {"status": "ok", "note": note_data}
