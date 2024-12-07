@@ -8,19 +8,8 @@ import json
 import os
 
 class SecureDocumentHandler:
-    def __init__(self):
-        pass
-
-    def _load_key(key_file):
-        """Loads the encryption key from the received file"""
-        if not os.path.isfile(key_file):
-            raise FileNotFoundError(f"Key file '{key_file}' not found.")
-
-        with open(key_file, 'rb') as f:
-            key = f.read()
-            if not key:
-                raise ValueError("Key file is empty.")
-            return key
+    def __init__(self, key):
+        self.key = key
 
     def _encrypt(self, data):
         """Encrypts the data using AES-CBC."""
@@ -45,9 +34,9 @@ class SecureDocumentHandler:
         """Verifies the HMAC for the data."""
         return hmac.compare_digest(self._generate_hmac(data), hmac_value)
 
-    def protect(self, note, key_file, output_file, previous_hash="0"):
+    def protect(self, note, previous_hash="0"):
         """Protects a single note (encrypt and add integrity)."""
-        key = self._load_key(key_file) 
+        
         # Prepare note metadata
         note_data = {
             "id": note["id"],
@@ -80,10 +69,8 @@ class SecureDocumentHandler:
         
         return {"status": "ok", "message": f"Note {note_data['id']} is intact and verified."}
 
-    def unprotect(self, encrypted_note, key_file, output_file):
+    def unprotect(self, encrypted_note):
         """Reverts a single protected note to its original state (decrypt and verify)."""
-        key = self._load_key(key_file) 
-
         # Decrypt the note
         try:
             decrypted_note = self._decrypt(encrypted_note)
