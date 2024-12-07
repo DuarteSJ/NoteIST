@@ -25,7 +25,7 @@ pip install .
 secure-document protect input.json password output_encrypted.json
 ```
 
-### Check Document Protection
+### Check Document Integrity
 ```bash
 secure-document check input.json
 ```

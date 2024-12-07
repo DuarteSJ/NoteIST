@@ -7,7 +7,7 @@ import base64
 import json
 import os
 
-class SecureNoteHandler:
+class SecureDocumentHandler:
     def __init__(self, key):
         self.key = key
 
