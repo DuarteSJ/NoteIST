@@ -1,0 +1,120 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+# Ensure this Project is for Virtualbox Provider
+ENV['VAGRANT_DEFAULT_PROVIDER'] = "virtualbox"
+
+# Ensure the required plugins are globally installed
+VAGRANT_PLUGINS = [
+  "vagrant-vbguest",
+  "vagrant-reload",
+]
+VAGRANT_PLUGINS.each do |plugin|
+  unless Vagrant.has_plugin?("#{plugin}")
+    system("vagrant plugin install #{plugin}")
+    exit system('vagrant', *ARGV)
+  end
+end
+
+# Start the process  
+Vagrant.configure("2") do |config|
+
+  config.ssh.insert_key = false
+  config.vbguest.auto_update = false
+  config.vm.box_check_update = false
+
+  # Database Server Configuration with MongoDB
+  config.vm.define "team-db-server" do |db|
+    db.vm.box = "ubuntu/focal64"
+    db.vm.hostname = "team-db-server"
+    db.vm.network "private_network", type: "dhcp"
+    db.vm.network "forwarded_port", guest: 27017, host: 27018
+    
+    # Provider Virtualbox
+    db.vm.provider "virtualbox" do |vb|
+      vb.name = "team-db-server"
+      vb.memory = "2048"
+      vb.cpus = 1
+    end # of vb
+    
+    # Shared folders
+    if Vagrant::Util::Platform.windows?
+      db.vm.synced_folder "setup/", "/home/vagrant/setup",
+        owner: "vagrant", group: "vagrant",
+        mount_options: ["dmode=775","fmode=755"]
+      db.vm.synced_folder "scripts/", "/home/vagrant/scripts",
+        owner: "vagrant", group: "vagrant",
+        mount_options: ["dmode=775","fmode=755"]
+    else
+      db.vm.synced_folder "setup/", "/home/vagrant/setup",
+        mount_options: ["dmode=775", "fmode=755"]
+      db.vm.synced_folder "scripts/", "/home/vagrant/scripts",
+        mount_options: ["dmode=775", "fmode=755"]
+    end # of shared folders
+    
+    # Provisioning
+    db.vm.provision :shell, path: "scripts/setup_db.sh"
+    db.vm.provision :reload
+  end # of db
+
+  # Application Server Configuration
+  config.vm.define "team-app-server" do |app|
+    app.vm.box = "ubuntu/focal64"
+    app.vm.hostname = "team-app-server"
+    app.vm.network "private_network", type: "dhcp"
+    app.vm.network "forwarded_port", guest: 8000, host: 8001
+    
+    # Provider Virtualbox
+    app.vm.provider "virtualbox" do |vb|
+      vb.name = "team-app-server"
+      vb.memory = "2048"
+      vb.cpus = 2
+    end # of vb
+    
+    # Shared folders
+    if Vagrant::Util::Platform.windows?
+      app.vm.synced_folder "scripts/", "/home/vagrant/scripts",
+        owner: "vagrant", group: "vagrant",
+        mount_options: ["dmode=775","fmode=755"]
+    else
+        app.vm.synced_folder "setup/", "/home/vagrant/setup",
+          mount_options: ["dmode=775", "fmode=755"]
+        app.vm.synced_folder "scripts/", "/home/vagrant/scripts",
+          mount_options: ["dmode=775", "fmode=755"]
+    end # of shared folders
+    
+    # Provisioning
+    app.vm.provision :shell, path: "scripts/setup_app.sh"
+    app.vm.provision :reload
+  end # of app
+
+  # Client Machine (Optional)
+  config.vm.define "team-client" do |client|
+    client.vm.box = "ubuntu/focal64"
+    client.vm.hostname = "team-client"
+    client.vm.network "private_network", type: "dhcp"
+    
+    # Provider Virtualbox
+    client.vm.provider "virtualbox" do |vb|
+      vb.name = "team-client"
+      vb.memory = "1024"
+      vb.cpus = 1
+    end # of vb
+    
+    # Shared folders
+    if Vagrant::Util::Platform.windows?
+      client.vm.synced_folder "scripts/", "/home/vagrant/scripts",
+        owner: "vagrant", group: "vagrant",
+        mount_options: ["dmode=775","fmode=755"]
+    else
+        client.vm.synced_folder "setup/", "/home/vagrant/setup",
+          mount_options: ["dmode=775", "fmode=755"]
+        client.vm.synced_folder "scripts/", "/home/vagrant/scripts",
+          mount_options: ["dmode=775", "fmode=755"]
+    end # of shared folders
+    
+    # Provisioning
+    client.vm.provision :shell, path: "scripts/setup_client.sh"
+    client.vm.provision :reload
+  end # of client
+end # of config
