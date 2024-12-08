@@ -81,11 +81,27 @@ class SecureDocumentHandler:
         3. Compute Merkle tree root hash
         4. Write encrypted file with hash and salt
         """
-        with open(input_file, "rb") as f:
-            file_contents = f.read()
 
-        with open(key_file, "rb") as f:
-            key = f.read()
+        try:
+            with open(input_file, "rb") as f:
+                file_contents = f.read()
+        except FileNotFoundError:
+            print(f"Error: Input file '{input_file}' not found.")
+            return False
+        except Exception as e:
+            print(f"Error: Unable to read input file '{input_file}'. Details: {e}")
+            return False
+
+        try:
+            with open(key_file, "rb") as f:
+                key = f.read()
+        except FileNotFoundError:
+            print(f"Error: Key file '{key_file}' not found.")
+            return False
+        except Exception as e:
+            print(f"Error: Unable to read key file '{key_file}'. Details: {e}")
+            return False
+
 
         # Create cipher with random IV
         cipher = AES.new(key, AES.MODE_CBC)
@@ -118,11 +134,26 @@ class SecureDocumentHandler:
 
         Returns True if successful, False otherwise
         """
-        with open(input_file, "rb") as f:
-            file_contents = f.read()
 
-        with open(key_file, "rb") as f:
-            key = f.read()
+        try:
+            with open(input_file, "rb") as f:
+                file_contents = f.read()
+        except FileNotFoundError:
+            print(f"Error: Input file '{input_file}' not found.")
+            return False
+        except Exception as e:
+            print(f"Error: Unable to read input file '{input_file}'. Details: {e}")
+            return False
+
+        try:
+            with open(key_file, "rb") as f:
+                key = f.read()
+        except FileNotFoundError:
+            print(f"Error: Key file '{key_file}' not found.")
+            return False
+        except Exception as e:
+            print(f"Error: Unable to read key file '{key_file}'. Details: {e}")
+            return False
 
         # Extract components
         original_root_hash = file_contents[
