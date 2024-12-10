@@ -101,12 +101,14 @@ def main() -> int:
         execute_unprotect(handler, args.input_file, args.key_file, args.output_file)
     elif args.command == "help":
         parser.print_help()
+        return 0
     else:
         print("Unknown command.")
         parser.print_help()
         return 1
 
     return 0
+
 
 if __name__ == "__main__":
     sys.exit(main())
