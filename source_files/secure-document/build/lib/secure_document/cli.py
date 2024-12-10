@@ -1,11 +1,11 @@
 import argparse
 import sys
-from typing import List, Union
+from typing import List
 
 from secure_document.crypto_utils import SecureDocumentHandler
 
 
-def initialize_handler(key_file: str = None) -> SecureDocumentHandler:
+def initialize_handler() -> SecureDocumentHandler:
     """
     Initialize the SecureDocumentHandler with the key read from the file.
     """
@@ -33,18 +33,18 @@ def execute_check_single(
     handler: SecureDocumentHandler, input_file: str, key_file: str
 ):
     """
-    Handles the 'check' command logic for a single file with key file.
+    Handles the 'check' command logic for a single file.
     """
     try:
         is_protected = handler.checkSingleFile(input_file, key_file)
         print(
-            f"Document protection status: {'Protected' if is_protected else 'Unprotected'}"
+            f"Document integrity status: {'Verified' if is_protected else 'No integrity'}"
         )
     except Exception as e:
-        print(f"Failed to check document status: {e}")
+        print(f"Failed to check document's integrity status: {e}")
 
 
-def execute_check_multiple(
+def execute_check_missing(
     handler: SecureDocumentHandler, input_files: List[str], digest_of_macs: str
 ):
     """
@@ -101,7 +101,7 @@ def main() -> int:
 
     # Check multiple files parser
     check_multiple_parser = subparsers.add_parser(
-        "check-multiple", help="Check protection status of multiple files"
+        "check-missing", help="Check if there are missing files for the user"
     )
     check_multiple_parser.add_argument(
         "directory", help="Directory of all files to check"
@@ -132,8 +132,8 @@ def main() -> int:
         execute_protect(handler, args.input_file, args.key_file, args.output_file)
     elif args.command == "check-single":
         execute_check_single(handler, args.input_file, args.key_file)
-    elif args.command == "check-multiple":
-        execute_check_multiple(handler, args.input_files, args.digest_of_macs)
+    elif args.command == "check-missing":
+        execute_check_missing(handler, args.input_files, args.digest_of_macs)
     elif args.command == "unprotect":
         execute_unprotect(handler, args.input_file, args.key_file, args.output_file)
     elif args.command == "help":

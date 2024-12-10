@@ -38,10 +38,10 @@ def execute_check_single(
     try:
         is_protected = handler.checkSingleFile(input_file, key_file)
         print(
-            f"Document protection status: {'Protected' if is_protected else 'Unprotected'}"
+            f"Document integrity status: {'Verified' if is_protected else 'No integrity'}"
         )
     except Exception as e:
-        print(f"Failed to check document status: {e}")
+        print(f"Failed to check document's integrity status: {e}")
 
 
 def execute_check_missing(
