@@ -18,7 +18,25 @@ sudo apt-get update -y
 sudo apt-get install -y mongodb-org
 
 # Configure MongoDB for remote access
-if [ -f /etc/mongod.conf ]; then
+if [ -f /etc/mongod.conf ]; then#!/bin/bash
+# scripts/setup_client.sh
+
+# Update package lists
+sudo apt-get update
+
+# Install Python and pip
+sudo apt-get install -y python3 python3-pip
+
+# Create a virtual environment
+sudo apt-get install -y python3-venv
+python3 -m venv /home/vagrant/venv
+source /home/vagrant/venv/bin/activate
+
+# Install testing dependencies
+pip install requests pytest
+
+# Make tests executable
+chmod +x /home/vagrant/tests/test_api.py
     sudo sed -i 's/bindIp: 127.0.0.1/bindIp: 0.0.0.0/' /etc/mongod.conf
 else
     echo "Error: MongoDB configuration file not found!"
@@ -34,12 +52,12 @@ sleep 5
 
 # Create initial database and user
 mongosh <<EOF
-use teamdb
+use test
 db.createUser({
-    user: "teamuser",
-    pwd: "teampassword",
+    user: "admin",
+    pwd: "admin",
     roles: [
-        { role: "readWrite", db: "teamdb" }
+        { role: "readWrite", db: "test" }
     ]
 })
 EOF

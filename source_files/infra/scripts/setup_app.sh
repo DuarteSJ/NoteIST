@@ -1,36 +1,26 @@
 #!/bin/bash
-# scripts/setup_app.sh
 
-# Update package lists
+# Update system and install necessary packages
 sudo apt-get update
+sudo apt-get install -y python3 python3-pip python3-dev build-essential
 
-# Install Python and pip
-sudo apt-get install -y python3 python3-pip
+# Install MongoDB client (if needed for app to communicate with the DB)
+sudo apt-get install -y mongodb-clients
 
-# Create a virtual environment (optional but recommended)
-sudo apt-get install -y python3-venv
-python3 -m venv /home/vagrant/venv
-source /home/vagrant/venv/bin/activate
+# Install the required Python packages
+pip3 install pymongo pydantic
 
-# Install project dependencies
-pip install fastapi uvicorn pymongo pydantic
+# Install any other dependencies
+# pip3 install requests flask ... (etc. based on your app requirements)
 
-# Set up systemd service for the application
-cat << EOF | sudo tee /etc/systemd/system/team-app.service
-[Unit]
-Description=Team Application Server
-After=network.target
+# Optionally configure your application (set environment variables, copy config files)
+# Example: Create a directory for your app and set environment variables
+mkdir -p /opt/secure_app
+cp /vagrant/app/* /opt/secure_app/
 
-[Service]
-User=vagrant
-WorkingDirectory=/home/vagrant/setup
-ExecStart=/home/vagrant/venv/bin/uvicorn api:app --host 0.0.0.0 --port 8000
-Restart=always
+# Change working directory for your app
+cd /opt/secure_app
 
-[Install]
-WantedBy=multi-user.target
-EOF
-
-# Enable and start the service
-sudo systemctl enable team-app
-sudo systemctl start team-app
+# Set up your app to run (e.g., start the server)
+# Example: Starting the Python server
+# python3 tls_socket_server.py

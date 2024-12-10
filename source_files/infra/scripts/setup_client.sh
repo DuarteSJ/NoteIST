@@ -1,19 +1,20 @@
 #!/bin/bash
-# scripts/setup_client.sh
 
-# Update package lists
+# Update system and install necessary packages
 sudo apt-get update
+sudo apt-get install -y python3 python3-pip python3-dev build-essential
 
-# Install Python and pip
-sudo apt-get install -y python3 python3-pip
+# Install necessary Python libraries for secure communication
+pip3 install pymongo pydantic
 
-# Create a virtual environment
-sudo apt-get install -y python3-venv
-python3 -m venv /home/vagrant/venv
-source /home/vagrant/venv/bin/activate
+# Optionally configure the client (set environment variables, copy config files)
+# Example: Create a directory for the client and set environment variables
+mkdir -p /opt/secure_client
+cp /vagrant/client/* /opt/secure_client/
 
-# Install testing dependencies
-pip install requests pytest
+# Change working directory for your client
+cd /opt/secure_client
 
-# Make tests executable
-chmod +x /home/vagrant/tests/test_api.py
+# Set up the client to run (e.g., initiate the client script)
+# Example: Running the client
+# python3 tls_socket_client.py
