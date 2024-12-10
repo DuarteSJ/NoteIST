@@ -2,6 +2,7 @@ from pydantic import BaseModel, Field, GetCoreSchemaHandler
 from typing import Optional
 from bson import ObjectId
 from pydantic_core import CoreSchema, core_schema
+import datetime
 
 class PyObjectId(ObjectId):
     """Custom type for handling MongoDB ObjectId in Pydantic models"""
@@ -31,10 +32,20 @@ class PyObjectId(ObjectId):
             core_schema.is_instance_schema(ObjectId)
         ])
 
-class DocumentModel(BaseModel):
+class UsersModel(BaseModel):
+    id: Optional[PyObjectId] = Field(default_factory=PyObjectId, alias="_id")
+    username: str = Field(...)
+    password: str = Field(...)
+    hash_of_digest: str = Field(...)
+    owned_notes: list[int] = Field(...)
+    editor_notes: list[int] = Field(...)
+    viewer_notes: list[int] = Field(...)
+
+class NotesModel(BaseModel):
     """Pydantic model for documents"""
 
     id: Optional[PyObjectId] = Field(default_factory=PyObjectId, alias="_id")
+    hmac: str = Field(...)
     title: str = Field(...)
     note: str = Field(alias="content")
     date_created: Optional[datetime] = Field(
