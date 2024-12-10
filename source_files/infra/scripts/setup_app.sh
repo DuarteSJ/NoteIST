@@ -23,7 +23,7 @@ After=network.target
 
 [Service]
 User=vagrant
-WorkingDirectory=/home/vagrant/app
+WorkingDirectory=/home/vagrant/setup
 ExecStart=/home/vagrant/venv/bin/uvicorn api:app --host 0.0.0.0 --port 8000
 Restart=always
 

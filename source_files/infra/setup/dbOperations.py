@@ -13,6 +13,7 @@ class DocumentCRUD:
     def create(self, document: DocumentModel) -> DocumentModel:
         """Create a new document"""
         # Convert to dictionary, excluding the ID if it's None
+        print("create")
         document_dict = document.dict(exclude_unset=True)
         if 'id' in document_dict:
             del document_dict['id']

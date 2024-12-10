@@ -9,7 +9,7 @@ class DatabaseConnection:
     def __new__(cls, uri=None):
         if not cls._instance:
             cls._instance = super(DatabaseConnection, cls).__new__(cls)
-            cls._instance.uri = uri or "mongodb://teamuser:teampassword@team-db-server:27017/teamdb"
+            cls._instance.uri = uri or "mongodb://teamuser:teampassword@192.168.56.9:27017/teamdb"
             cls._instance.client = None
             cls._instance.db = None
             cls._instance.connect()
