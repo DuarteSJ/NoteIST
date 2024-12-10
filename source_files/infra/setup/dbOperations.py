@@ -4,9 +4,10 @@ from typing import List, Optional
 from database import DatabaseConnection
 from models import DocumentModel
 
-class DocumentCRUD:
+class SaraPareceCRUD:
     """CRUD operations for documents"""
-    def __init__(self, collection_name='documents'):
+    def __init__(self, collection_name='notes'):
+        # Vamos ter notes, users
         self.db_connection = DatabaseConnection()
         self.collection = self.db_connection.get_collection(collection_name)
     

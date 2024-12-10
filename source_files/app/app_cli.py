@@ -17,7 +17,6 @@ def generate_key() -> bytes:
 def store_key(key: bytes) -> None:
     """Stores the encryption key in a file."""
 
-    print(len(key))
     os.makedirs(os.path.dirname(KEY_FILE), exist_ok=True)
     with open(KEY_FILE, 'wb') as f:
         f.write(key)
