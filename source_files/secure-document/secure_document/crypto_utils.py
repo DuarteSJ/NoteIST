@@ -1,4 +1,6 @@
-from typing import List, Tuple
+import os
+
+from typing import Tuple
 
 from Crypto.Cipher import AES
 from Crypto.Util.Padding import pad, unpad
@@ -148,15 +150,15 @@ class SecureDocumentHandler:
                 f"Error: Unable to write to output file '{output_file}'. Details: {e}"
             )
 
-    def checkMissingFiles(self, fileList: List[str], digestOfHmacs: str) -> bool:
+    def checkMissingFiles(self, directoryPath: str, digestOfHmacs: str) -> bool:
         """
-        Check if any files in the list are missing or if any new files have been added.
+        Check if any files in the directory are missing or if any new files have been added.
 
-        This method computes a hash of the HMACs of all files in the list and compares it with
+        This method computes a hash of the HMACs of all files in the directory and compares it with
         a provided hash to detect any discrepancies.
 
         Args:
-            fileList (List[str]): List of file paths to check.
+            directoryPath (str): Path to the directory containing files to check.
             digestOfHmacs (str): Expected hash of the concatenated HMACs.
 
         Returns:
@@ -165,11 +167,14 @@ class SecureDocumentHandler:
         Raises:
             Exception: If any file cannot be read or parsed.
         """
-        currDigestofHmacs = b""  # Initialize as bytes
+        currDigestofHmacs = b""
 
-        for file in fileList:
-            fileHmac, _, _ = self._parseEncryptedFile(file)  # Read the first 32 bytes
-            currDigestofHmacs += fileHmac  # Concatenate bytes
+        # Iterate over all files in the directory
+        for root, _, files in os.walk(directoryPath):
+            for fileName in files:
+                filePath = os.path.join(root, fileName)
+                fileHmac, _, _ = self._parseEncryptedFile(filePath)
+                currDigestofHmacs += fileHmac  # Concatenate bytes
 
         # Hash the concatenated HMACs
         hash = SHA256.new()

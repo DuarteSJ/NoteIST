@@ -33,7 +33,7 @@ def execute_check_single(
     handler: SecureDocumentHandler, input_file: str, key_file: str
 ):
     """
-    Handles the 'check' command logic for a single file with key file.
+    Handles the 'check' command logic for a single file.
     """
     try:
         is_protected = handler.checkSingleFile(input_file, key_file)

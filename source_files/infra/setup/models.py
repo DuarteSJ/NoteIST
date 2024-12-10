@@ -36,14 +36,36 @@ class DocumentModel(BaseModel):
 
     id: Optional[PyObjectId] = Field(default_factory=PyObjectId, alias="_id")
     title: str = Field(...)
-    content: str = Field(...)
+    note: str = Field(alias="content")
+    date_created: Optional[datetime] = Field(
+        default_factory=datetime.utcnow, alias="data_created"
+    )
+    date_modified: Optional[datetime] = None
+    last_modified_by: Optional[int] = None
+    version: Optional[int] = 1
+    owner: Optional[UserReference] = None
+    editors: Optional[List[UserReference]] = []
+    viewers: Optional[List[UserReference]] = []
 
     class Config:
         arbitrary_types_allowed = True
-        json_encoders = {ObjectId: str}
+        json_encoders = {ObjectId: str, datetime: lambda dt: dt.isoformat() + "Z"}
         schema_extra = {
             "example": {
-                "title": "Sample Document",
-                "content": "This is a sample document content",
+                "title": "Example Document",
+                "note": "This is an example document.",
+                "date_created": "2022-01-01T12:00:00Z",
+                "date_modified": "2022-01-02T12:00:00Z",
+                "last_modified_by": 456,
+                "version": 3,
+                "owner": {"id": 456, "username": "john"},
+                "editors": [
+                    {"id": 789, "username": "jane"},
+                    {"id": 1011, "username": "bob"},
+                ],
+                "viewers": [
+                    {"id": 1213, "username": "alice"},
+                    {"id": 1415, "username": "charlie"},
+                ],
             }
         }
