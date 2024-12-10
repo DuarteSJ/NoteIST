@@ -33,18 +33,17 @@ class PyObjectId(ObjectId):
 
 class DocumentModel(BaseModel):
     """Pydantic model for documents"""
+
     id: Optional[PyObjectId] = Field(default_factory=PyObjectId, alias="_id")
     title: str = Field(...)
     content: str = Field(...)
 
     class Config:
         arbitrary_types_allowed = True
-        json_encoders = {
-            ObjectId: str
-        }
+        json_encoders = {ObjectId: str}
         schema_extra = {
             "example": {
                 "title": "Sample Document",
-                "content": "This is a sample document content"
+                "content": "This is a sample document content",
             }
         }

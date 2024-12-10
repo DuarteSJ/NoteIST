@@ -18,7 +18,7 @@ def store_key(key: bytes) -> None:
     """Stores the encryption key in a file."""
 
     os.makedirs(os.path.dirname(KEY_FILE), exist_ok=True)
-    with open(KEY_FILE, 'wb') as f:
+    with open(KEY_FILE, "wb") as f:
         f.write(key)
     print(f"Key stored at: {KEY_FILE}")
 
@@ -26,9 +26,11 @@ def store_key(key: bytes) -> None:
 def load_key() -> bytes:
     """Loads the encryption key from the predefined file, or prompts the user to generate one."""
     if not os.path.exists(KEY_FILE):
-        user_input = input(
-            "Key file not found. Do you want to generate a new key? (yes/no): "
-        ).strip().lower()
+        user_input = (
+            input("Key file not found. Do you want to generate a new key? (yes/no): ")
+            .strip()
+            .lower()
+        )
         if user_input in ["yes", "y", "Yes"]:
             key = generate_key()
             store_key(key)
@@ -39,7 +41,7 @@ def load_key() -> bytes:
                 "Key file not found. Please generate a key using the 'generate-key' command."
             )
 
-    with open(KEY_FILE, 'rb') as f:
+    with open(KEY_FILE, "rb") as f:
         return f.read()
 
 

@@ -1,11 +1,11 @@
 import argparse
 import sys
-from typing import List, Union
+from typing import List
 
 from secure_document.crypto_utils import SecureDocumentHandler
 
 
-def initialize_handler(key_file: str = None) -> SecureDocumentHandler:
+def initialize_handler() -> SecureDocumentHandler:
     """
     Initialize the SecureDocumentHandler with the key read from the file.
     """

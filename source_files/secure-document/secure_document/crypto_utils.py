@@ -1,9 +1,7 @@
-import hashlib
-from typing import List, Union, Optional, Tuple
+from typing import List, Tuple
 
 from Crypto.Cipher import AES
 from Crypto.Util.Padding import pad, unpad
-from Crypto.Protocol.KDF import PBKDF2
 from Crypto.Hash import SHA256, HMAC
 
 
@@ -107,7 +105,9 @@ class SecureDocumentHandler:
             with open(output_file, "wb") as f:
                 f.write(protected_contents)
         except Exception as e:
-            raise Exception(f"Error: Unable to write to output file '{output_file}'. Details: {e}")
+            raise Exception(
+                f"Error: Unable to write to output file '{output_file}'. Details: {e}"
+            )
 
     def unprotect(self, input_file: str, key_file: str, output_file: str) -> None:
         """
@@ -134,7 +134,9 @@ class SecureDocumentHandler:
 
         try:  # Decrypt contents
             cipher = AES.new(key, AES.MODE_CBC, iv)
-            decrypted_contents = unpad(cipher.decrypt(encrypted_contents), AES.block_size)
+            decrypted_contents = unpad(
+                cipher.decrypt(encrypted_contents), AES.block_size
+            )
         except Exception as e:
             raise Exception(f"Decryption failed: {e}")
 
@@ -142,7 +144,9 @@ class SecureDocumentHandler:
             with open(output_file, "wb") as f:
                 f.write(decrypted_contents)
         except Exception as e:
-            raise Exception(f"Error: Unable to write to output file '{output_file}'. Details: {e}")
+            raise Exception(
+                f"Error: Unable to write to output file '{output_file}'. Details: {e}"
+            )
 
     def checkMissingFiles(self, fileList: List[str], digestOfHmacs: str) -> bool:
         """

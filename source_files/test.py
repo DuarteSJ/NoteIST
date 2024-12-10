@@ -19,7 +19,7 @@ class SecureNotesLibrary:
             length=length,
             salt=salt,
             iterations=100000,
-            backend=self.backend
+            backend=self.backend,
         )
         return kdf.derive(password.encode())
 
@@ -50,7 +50,7 @@ class SecureNotesLibrary:
     def protect(self, input_file, key, output_file, config_file):
         """Encrypts the file, generates a file hash, and saves config."""
         # Read the input file
-        with open(input_file, 'rb') as f:
+        with open(input_file, "rb") as f:
             data = f.read()
 
         # Generate the file hash
@@ -62,27 +62,25 @@ class SecureNotesLibrary:
         iv, ciphertext = self._encrypt(data, derived_key)
 
         # Save the encrypted file
-        with open(output_file, 'wb') as f:
+        with open(output_file, "wb") as f:
             f.write(salt + iv + ciphertext)
 
         # Save the file hash in the config file
-        config_data = {
-            "file_hash": urlsafe_b64encode(file_hash).decode()
-        }
-        with open(config_file, 'w') as f:
+        config_data = {"file_hash": urlsafe_b64encode(file_hash).decode()}
+        with open(config_file, "w") as f:
             json.dump(config_data, f)
 
     def check(self, input_file, config_file):
         """Checks the integrity of an unprotected file using its hash."""
         # Read the unprotected file
-        with open(input_file, 'rb') as f:
+        with open(input_file, "rb") as f:
             data = f.read()
 
         # Compute the hash of the unprotected file
         file_hash = hashlib.sha256(data).digest()
 
         # Read the stored hash from the config file
-        with open(config_file, 'r') as f:
+        with open(config_file, "r") as f:
             config_data = json.load(f)
 
         # Validate the file hash
@@ -94,7 +92,7 @@ class SecureNotesLibrary:
     def unprotect(self, input_file, key, output_file):
         """Decrypts the file."""
         # Read the encrypted file
-        with open(input_file, 'rb') as f:
+        with open(input_file, "rb") as f:
             data = f.read()
 
         # Extract salt, iv, and ciphertext
@@ -109,7 +107,7 @@ class SecureNotesLibrary:
         plaintext = self._decrypt(iv, ciphertext, derived_key)
 
         # Save the decrypted file
-        with open(output_file, 'wb') as f:
+        with open(output_file, "wb") as f:
             f.write(plaintext)
 
 
