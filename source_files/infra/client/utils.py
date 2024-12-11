@@ -1,52 +1,138 @@
 import json
 from secure_document import SecureDocumentHandler
-from datetime import datetime
 from uuid import uuid4
 import os
+from typing import List, Optional
 
-def writeToFile(filePath, keyFile, title, content, version, editors=[], viewers=[]):
+
+class SecureDocumentError(Exception):
+    """Base exception for SecureDocument-related errors."""
+
+    pass
+
+
+class KeyFileNotFoundError(SecureDocumentError):
+    """Raised when the key file is not found."""
+
+    pass
+
+
+class IntegrityError(SecureDocumentError):
+    """Raised when file integrity or authenticity cannot be verified."""
+
+    pass
+
+
+class EncryptionError(SecureDocumentError):
+    """Raised when there is an issue during encryption or decryption."""
+
+    pass
+
+
+def generate_key() -> bytes:
+    """Generates a new random 256-bit encryption key."""
+    key = os.urandom(32)  # 256-bit long
+    return key
+
+
+def store_key(key: bytes, key_file: str) -> None:
+    """Stores the encryption key in a file."""
+    try:
+        os.makedirs(os.path.dirname(key_file), exist_ok=True)
+        with open(key_file, "wb") as f:
+            f.write(key)
+        print(f"Key stored at: {key_file}")
+    except Exception as e:
+        raise SecureDocumentError(f"Failed to store key: {e}")
+
+
+def load_key(key_file: str) -> bytes:
+    """Loads the encryption key from the predefined file, or prompts the user to generate one."""
+    try:
+        if not os.path.exists(key_file):
+            user_input = (
+                input(
+                    "Key file not found. Do you want to generate a new key? (yes/no): "
+                )
+                .strip()
+                .lower()
+            )
+            if user_input in ["yes", "y"]:
+                key = generate_key()
+                store_key(key, key_file)
+                print("New encryption key generated and stored.")
+                return key
+            else:
+                raise KeyFileNotFoundError(
+                    "Key file not found. Please generate a key using the 'generate-key' command."
+                )
+
+        with open(key_file, "rb") as f:
+            return f.read()
+    except FileNotFoundError:
+        raise KeyFileNotFoundError(f"Key file not found at {key_file}.")
+    except Exception as e:
+        raise SecureDocumentError(f"Failed to load key: {e}")
+
+
+def writeToFile(
+    filePath: str,
+    keyFile: str,
+    title: str,
+    content: str,
+    version: int,
+    editors: Optional[List[str]] = None,
+    viewers: Optional[List[str]] = None,
+) -> None:
     """Writes content to a file in the specified format."""
-
+    editors = editors or []
+    viewers = viewers or []
     uuid = str(uuid4())
-    tempFilePath = "/tmp/notist_temp_" + uuid + ".json"
+    tempFilePath = f"/tmp/notist_temp_{uuid}.json"
 
-    #TODO: Change data
     note_data = {
         "title": title,
         "note": content,
+        "version": version,
+        "editors": editors,
+        "viewers": viewers,
     }
 
-    # Write the note data to the file in JSON format
-    with open(tempFilePath, "w") as f:
-        json.dump(note_data, f, indent=4)
-    
-    SecureDocumentHandler().protect(tempFilePath, keyFile, filePath)
+    try:
+        with open(tempFilePath, "w") as f:
+            json.dump(note_data, f, indent=4)
 
-    # Remove the temporary file
-    os.remove(tempFilePath)
+        handler = SecureDocumentHandler()
+        handler.protect(tempFilePath, keyFile, filePath)
+    except Exception as e:
+        raise EncryptionError(f"Failed to write and encrypt file: {e}")
+    finally:
+        if os.path.exists(tempFilePath):
+            os.remove(tempFilePath)
 
 
-
-def readFromFile(filePath, keyFile):
+def readFromFile(filePath: str, keyFile: str) -> str:
     """Reads content (note) from a file after verification and decryption."""
     tempFilePath = "/tmp/notist_temp_read.json"
 
-    handler = SecureDocumentHandler()
-    
-    # Verify the file integrity and authenticity
-    if not handler.checkSingleFile(filePath, keyFile):
-        raise ValueError("The file integrity or authenticity cannot be verified.")
-    
-    # Decrypt and unprotect the file
-    handler.unprotect(filePath, keyFile, tempFilePath)
-    
-    # Read the decrypted content
-    with open(tempFilePath, "r") as f:
-        note_data = json.load(f)
-    
-    # Remove the temporary file
-    os.remove(tempFilePath)
-    
-    # Return only the note content
-    return note_data["note"]
+    try:
+        handler = SecureDocumentHandler()
 
+        if not handler.checkSingleFile(filePath, keyFile):
+            raise IntegrityError(
+                "The file integrity or authenticity cannot be verified."
+            )
+
+        handler.unprotect(filePath, keyFile, tempFilePath)
+
+        with open(tempFilePath, "r") as f:
+            note_data = json.load(f)
+
+        return note_data["note"]
+    except IntegrityError as e:
+        raise e
+    except Exception as e:
+        raise EncryptionError(f"Failed to read and decrypt file: {e}")
+    finally:
+        if os.path.exists(tempFilePath):
+            os.remove(tempFilePath)
