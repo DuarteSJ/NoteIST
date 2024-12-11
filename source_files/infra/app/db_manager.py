@@ -1,5 +1,5 @@
 import logging
-from typing import Optional, Dict, Any
+from typing import Optional, Dict, Any, List
 from pymongo import MongoClient
 from bson import ObjectId
 
@@ -80,7 +80,7 @@ class DatabaseManager:
                        collection_name: str, 
                        query: Dict[str, Any], 
                        projection: Optional[Dict[str, Any]] = None,
-                       limit: Optional[int] = None) -> list[Dict[str, Any]]:
+                       limit: Optional[int] = None) -> List[Dict[str, Any]]:
         """
         Find multiple documents matching the query
         

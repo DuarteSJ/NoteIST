@@ -1,5 +1,5 @@
 import logging
-from typing import Optional, Dict, Any
+from typing import Optional, Dict, Any, Tuple
 import hashlib
 import secrets
 import re
@@ -21,7 +21,7 @@ class UsersService:
         self.db_manager = database_manager
         self.logger = logging.getLogger(__name__)
 
-    def _hash_password(self, password: str, salt: Optional[str] = None) -> tuple[str, str]:
+    def _hash_password(self, password: str, salt: Optional[str] = None) -> Tuple[str, str]:
         """
         Generate a secure hash for the password
         

@@ -1,5 +1,5 @@
 from pydantic import BaseModel
-from typing import Optional
+from typing import Optional, List
 from enum import Enum
 
 class OperationType(str, Enum):
@@ -64,9 +64,9 @@ class UsersModel(BaseModel):
     username: str = Field(...)
     password: str = Field(...)
     hash_of_digest: str = Field(...)
-    owned_notes: list[int] = Field(...)
-    editor_notes: list[int] = Field(...)
-    viewer_notes: list[int] = Field(...)
+    owned_notes: List[int] = Field(...)
+    editor_notes: List[int] = Field(...)
+    viewer_notes: List[int] = Field(...)
 
 class NotesModel(BaseModel):
     """Pydantic model for documents"""
@@ -76,8 +76,8 @@ class NotesModel(BaseModel):
     title: str = Field(...)
     content: str = Field(...)
     owner: int = Field(...)
-    editors: list[int] = Field(...)
-    viewers: list[int] = Field(...)
+    editors: List[int] = Field(...)
+    viewers: List[int] = Field(...)
     date_created: datetime.datetime = Field(...)
     date_modified: datetime.datetime = Field(...)
     last_modified_by: int = Field(...)

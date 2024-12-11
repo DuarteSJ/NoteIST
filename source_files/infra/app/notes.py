@@ -1,5 +1,5 @@
 import logging
-from typing import Optional, Dict, Any
+from typing import Optional, Dict, Any, List
 import datetime
 
 from db_manager import DatabaseManager, get_database_manager
@@ -24,8 +24,8 @@ class NotesService:
                     title: str, 
                     content: str, 
                     owner_id: int, 
-                    editors: Optional[list[int]] = None, 
-                    viewers: Optional[list[int]] = None,
+                    editors: Optional[List[int]] = None, 
+                    viewers: Optional[List[int]] = None,
                     hmac: Optional[str] = None) -> Dict[str, Any]:
         """
         Create a new note with comprehensive validation
@@ -221,7 +221,7 @@ class NotesService:
             self.logger.error(f"Error deleting note: {e}")
             raise
 
-    def get_user_notes(self, user_id: int) -> list[Dict[str, Any]]:
+    def get_user_notes(self, user_id: int) -> List[Dict[str, Any]]:
         """
         Retrieve all notes a user has access to
         
