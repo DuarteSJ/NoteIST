@@ -2,13 +2,11 @@ import socket
 import ssl
 import json
 import logging
-from typing import Dict, Any
 from pymongo import MongoClient
-from bson import ObjectId
 from pydantic import ValidationError
-
+    
 # Import the Pydantic models
-from models import RequestModel, ResponseModel
+from models import RequestModel, ResponseModel, OperationType
 
 class Server:
     def __init__(self, 
@@ -16,15 +14,18 @@ class Server:
                  port=5000, 
                  cert_path='/home/vagrant/setup/certs/server.crt', 
                  key_path='/home/vagrant/setup/certs/server.key',
-                 mongo_uri='mongodb://192.168.56.17:27017'):
+                 mongo_uri='mongodb://192.168.56.17:27017',
+                 user_service=None,
+                 notes_service=None):
         # Setup logging
         logging.basicConfig(level=logging.INFO)
         self.logger = logging.getLogger(__name__)
 
-        # MongoDB connection
+        # MongoDB connection for additional operations if needed
         self.client = MongoClient(mongo_uri)
         self.db = self.client['secure_document_db']
         self.collection = self.db['documents']
+        
         # Check if connection
         if self.client:
             self.logger.info("Connected to MongoDB")
@@ -36,44 +37,45 @@ class Server:
         self.port = port
         self.context = ssl.create_default_context(ssl.Purpose.CLIENT_AUTH)
         self.context.load_cert_chain(certfile=cert_path, keyfile=key_path)
+        self.context.verify_mode = ssl.CERT_NONE
 
-        # Disable client certificate verification by setting CERT_NONE
-        self.context.verify_mode = ssl.CERT_NONE  # No client certificate verification
-
-        # Optionally, load CA certificate if needed for server certificate validation
-        # self.context.load_verify_locations(cafile='/home/vagrant/setup/certs/ca.crt')  # Not required now
+        # Inject services
+        self.user_service = user_service
+        self.notes_service = notes_service
 
     def handle_request(self, request: RequestModel) -> ResponseModel:
         """
-        Handle different document operations with Pydantic validation
+        Handle different document operations by delegating to the appropriate service.
         """
         try:
-            # Implement the request handling logic here
             if request.operation == OperationType.CREATE:
-                document = DocumentModel(**request.document)
-                result = self.collection.insert_one(document.dict(by_alias=True))
-                return ResponseModel(status='success', message='Document created', document={'_id': str(result.inserted_id)})
+                result = self.notes_service.create_note(request.document)
+                return ResponseModel(status='success', message='Document created', document={'_id': str(result)})
+
             elif request.operation == OperationType.READ:
-                document = self.collection.find_one({'_id': ObjectId(request.document_id)})
+                document = self.notes_service.read_note_by_id(request.document_id)
                 if document:
                     return ResponseModel(status='success', message='Document found', document=document)
                 else:
                     return ResponseModel(status='error', message='Document not found')
+
             elif request.operation == OperationType.UPDATE:
-                document = DocumentModel(**request.document)
-                result = self.collection.update_one({'_id': ObjectId(request.document_id)}, {'$set': document.dict(by_alias=True)})
-                if result.modified_count > 0:
+                result = self.notes_service.update_note_by_id(request.document_id, request.document)
+                if result:
                     return ResponseModel(status='success', message='Document updated')
                 else:
                     return ResponseModel(status='error', message='Document not found')
+
             elif request.operation == OperationType.DELETE:
-                result = self.collection.delete_one({'_id': ObjectId(request.document_id)})
-                if result.deleted_count > 0:
+                result = self.notes_service.delete_note_by_id(request.document_id)
+                if result:
                     return ResponseModel(status='success', message='Document deleted')
                 else:
                     return ResponseModel(status='error', message='Document not found')
-            
-            pass
+
+            else:
+                return ResponseModel(status='error', message='Unsupported operation')
+
         except ValidationError as ve:
             self.logger.error(f"Validation Error: {ve}")
             return ResponseModel(status='error', message=str(ve))
@@ -95,24 +97,30 @@ class Server:
                     try:
                         client_socket, address = secure_sock.accept()
                         self.logger.info(f"Connection from {address}")
-                        
+
                         # Receive data
                         data = client_socket.recv(4096)
                         request_dict = json.loads(data.decode('utf-8'))
-                        
+
                         # Validate request
                         request = RequestModel(**request_dict)
-                        
+
                         # Process request
                         response = self.handle_request(request)
-                        
+
                         # Send response
                         client_socket.send(response.json().encode('utf-8'))
                         client_socket.close()
-                    
+
                     except Exception as e:
                         self.logger.error(f"Server error: {e}")
 
 if __name__ == '__main__':
-    server = Server()
+    # Initialize services
+    from users import get_users_service
+    from notes import get_notes_service
+    user_service = get_users_service()
+    notes_service = get_notes_service()
+
+    server = Server(user_service=user_service, notes_service=notes_service)
     server.start()
