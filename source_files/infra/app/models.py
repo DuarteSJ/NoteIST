@@ -2,14 +2,15 @@ from pydantic import BaseModel
 from typing import Optional, List
 from enum import Enum
 
-class OperationType(str, Enum):
-    CREATE = "create"
-    READ = "read"
-    UPDATE = "update"
-    DELETE = "delete"
+class RequestType(Enum):
+    CREATE_NOTE = 1
+    GET_NOTE = 2
+    GET_USER_NOTES = 3
+    EDIT_NOTE = 4
+    DELETE_NOTE = 5
 
 class RequestModel(BaseModel):
-    operation: OperationType
+    operation: RequestType
     document: Optional[dict] = None
     document_id: Optional[str] = None
 

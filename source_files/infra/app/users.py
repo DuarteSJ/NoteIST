@@ -266,18 +266,18 @@ class UsersService:
             raise
 
 # Factory function for creating UsersService
-def get_users_service(mongo_uri='mongodb://localhost:27017', db_name='secure_document_db'):
+def get_users_service(db_manager):
     """
-    Context manager for UsersService to ensure proper connection handling
-
-    Usage:
-    with get_users_service() as users_service:
-        users_service.create_user(...)
+    Create a UsersService using the provided DatabaseManager
+    
+    Args:
+        db_manager (DatabaseManager): An instance of the DatabaseManager
+    
+    Returns:
+        NotesService: A UsersService instance
     """
     try:
-        with get_database_manager(mongo_uri, db_name) as db_manager:
-            users_service = UsersService(db_manager)
-            yield users_service
+        return UsersService(db_manager)
     except Exception as e:
-        logging.error(f"Error in users service: {e}")
+        logging.error(f"Error in notes service: {e}")
         raise

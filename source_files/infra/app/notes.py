@@ -115,7 +115,7 @@ class NotesService:
             self.logger.error(f"Error retrieving note: {e}")
             raise
 
-    def update_note(self, 
+    def edit_note(self, 
                     note_id: str, 
                     user_id: int, 
                     title: Optional[str] = None, 
@@ -247,19 +247,19 @@ class NotesService:
             self.logger.error(f"Error retrieving user notes: {e}")
             raise
 
-# Factory function for creating NotesService
-def get_notes_service(mongo_uri='mongodb://localhost:27017', db_name='secure_document_db'):
+
+def get_notes_service(db_manager):
     """
-    Context manager for NotesService to ensure proper connection handling
+    Create a NotesService using the provided DatabaseManager
     
-    Usage:
-    with get_notes_service() as notes_service:
-        notes_service.create_note(...)
+    Args:
+        db_manager (DatabaseManager): An instance of the DatabaseManager
+    
+    Returns:
+        NotesService: A NotesService instance
     """
     try:
-        with get_database_manager(mongo_uri, db_name) as db_manager:
-            notes_service = NotesService(db_manager)
-            yield notes_service
+        return NotesService(db_manager)
     except Exception as e:
         logging.error(f"Error in notes service: {e}")
         raise

@@ -3,31 +3,7 @@ from secure_document import SecureDocumentHandler
 from uuid import uuid4
 import os
 from typing import List, Optional
-
-
-class SecureDocumentError(Exception):
-    """Base exception for SecureDocument-related errors."""
-
-    pass
-
-
-class KeyFileNotFoundError(SecureDocumentError):
-    """Raised when the key file is not found."""
-
-    pass
-
-
-class IntegrityError(SecureDocumentError):
-    """Raised when file integrity or authenticity cannot be verified."""
-
-    pass
-
-
-class EncryptionError(SecureDocumentError):
-    """Raised when there is an issue during encryption or decryption."""
-
-    pass
-
+from exceptions import *
 
 def generate_key() -> bytes:
     """Generates a new random 256-bit encryption key."""

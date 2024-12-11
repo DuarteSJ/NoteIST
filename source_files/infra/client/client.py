@@ -1,6 +1,7 @@
 import socket
 import ssl
 import json
+from exceptions import *
 
 # Test data
 test_request = {

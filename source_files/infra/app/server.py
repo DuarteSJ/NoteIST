@@ -6,17 +6,17 @@ from pymongo import MongoClient
 from pydantic import ValidationError
     
 # Import the Pydantic models
-from models import RequestModel, ResponseModel, OperationType
+from models import RequestModel, ResponseModel, RequestType
 
 class Server:
     def __init__(self, 
+                 user_service,
+                 notes_service,
                  host='0.0.0.0', 
                  port=5000, 
                  cert_path='/home/vagrant/setup/certs/server.crt', 
                  key_path='/home/vagrant/setup/certs/server.key',
-                 mongo_uri='mongodb://192.168.56.17:27017',
-                 user_service=None,
-                 notes_service=None):
+                 mongo_uri='mongodb://192.168.56.17:27017',):
         # Setup logging
         logging.basicConfig(level=logging.INFO)
         self.logger = logging.getLogger(__name__)
@@ -48,30 +48,25 @@ class Server:
         Handle different document operations by delegating to the appropriate service.
         """
         try:
-            if request.operation == OperationType.CREATE:
+            if request.operation == RequestType.CREATE_NOTE:
                 result = self.notes_service.create_note(request.document)
                 return ResponseModel(status='success', message='Document created', document={'_id': str(result)})
 
-            elif request.operation == OperationType.READ:
-                document = self.notes_service.read_note_by_id(request.document_id)
-                if document:
-                    return ResponseModel(status='success', message='Document found', document=document)
-                else:
-                    return ResponseModel(status='error', message='Document not found')
+            elif request.operation == RequestType.GET_NOTE:
+                pass
+                document = self.notes_service.get_note(request.document_id)
 
-            elif request.operation == OperationType.UPDATE:
-                result = self.notes_service.update_note_by_id(request.document_id, request.document)
-                if result:
-                    return ResponseModel(status='success', message='Document updated')
-                else:
-                    return ResponseModel(status='error', message='Document not found')
+            elif request.operation == RequestType.GET_USER_NOTES:
+                pass
+                #result = self.notes_service.update_note_by_id(request.document_id, request.document)
 
-            elif request.operation == OperationType.DELETE:
-                result = self.notes_service.delete_note_by_id(request.document_id)
-                if result:
-                    return ResponseModel(status='success', message='Document deleted')
-                else:
-                    return ResponseModel(status='error', message='Document not found')
+            elif request.operation == RequestType.EDIT_NOTE:
+                pass
+                #result = self.notes_service.delete_note_by_id(request.document_id)
+
+            elif request.operation == RequestType.DELETE_NOTE:
+                pass
+            
 
             else:
                 return ResponseModel(status='error', message='Unsupported operation')
@@ -116,11 +111,19 @@ class Server:
                         self.logger.error(f"Server error: {e}")
 
 if __name__ == '__main__':
-    # Initialize services
     from users import get_users_service
     from notes import get_notes_service
-    user_service = get_users_service()
-    notes_service = get_notes_service()
-
-    server = Server(user_service=user_service, notes_service=notes_service)
-    server.start()
+    from db_manager import get_database_manager
+    
+    MONGO_URI = 'mongodb://localhost:27017'
+    DB_NAME = 'secure_document_db'
+    
+    try:
+        with get_database_manager(MONGO_URI, DB_NAME) as db_manager:
+            user_service = get_users_service()
+            notes_service = get_notes_service(db_manager)
+            server = Server(user_service=user_service, notes_service=notes_service)
+            server.start()
+    except Exception as e:
+        logging.error(f"Error initializing the server: {e}")
+        raise
