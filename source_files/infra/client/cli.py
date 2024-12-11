@@ -1,4 +1,4 @@
-import os
+import os, shutil
 from utils import *
 
 NOTES_DIR_PATH = os.path.expanduser("~/.local/share/notist/notes")
@@ -103,12 +103,9 @@ def viewNoteContent():
 
     displayNotesList()
 
-    try:
-        choice = int(input("Select a note by number to view its content: "))
-        selectedNote = noteDirs[choice - 1]
-    except Exception:
-        print("invalid option")
-        return
+    choice = input("Select a note by number to view its content: ")
+    choice = int(choice)
+    selectedNote = noteDirs[choice - 1]
     noteDir = os.path.join(NOTES_DIR_PATH, selectedNote)
 
     KeyFile = os.path.join(noteDir, "key")
@@ -139,12 +136,13 @@ def selectVersion(noteDir: str) -> Optional[str]:
         versionDisplay = version.replace(".notist", "")
         print(f"{idx}. {versionDisplay}")
 
-    try:
-        choice = int(input("Select a version by number: "))
-        version = versions[choice - 1]
-    except Exception:
-        print("invalid option")
-        return
+    choice = input("Select a version to view: ").strip()
+    choice = int(choice)
+    if 1 <= choice <= len(versions):
+        return versions[choice - 1]
+    else:
+        print("Invalid selection.")
+        return None
 
 def editNote():
     if not os.path.exists(NOTES_DIR_PATH):
@@ -162,13 +160,9 @@ def editNote():
 
     displayNotesList()
 
-    try:
-        choice = input("Select a note by number to edit: ")
-        choice = int(choice)
-        selectedNote = noteDirs[choice - 1]
-    except Exception:
-        print("invalid option")
-        return
+    choice = input("Select a note by number to edit: ")
+    choice = int(choice)
+    selectedNote = noteDirs[choice - 1]
     noteDir = os.path.join(NOTES_DIR_PATH, selectedNote)
     version = selectVersion(noteDir)
     if version is None:
@@ -215,12 +209,18 @@ def deleteNote():
     selectedNote = noteDirs[choice - 1]
     noteDir = os.path.join(NOTES_DIR_PATH, selectedNote)
 
+    versions = [f for f in os.listdir(noteDir) if f.endswith(".notist")]
+
+    if len(versions) <= 1:
+        shutil.rmtree(noteDir)
+        print(f"All versions of note '{selectedNote}' deleted successfully!")
+        return
+
     deleteAll = input("Delete all versions of the note? (yes/no): ").strip().lower()
     if deleteAll == "yes":
-        for version in os.listdir(noteDir):
-            os.remove(os.path.join(noteDir, version))
-        os.rmdir(noteDir)
+        shutil.rmtree(noteDir)
         print(f"All versions of note '{selectedNote}' deleted successfully!")
+
     else:
         version = selectVersion(noteDir)
         if version is None:
