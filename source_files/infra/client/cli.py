@@ -26,17 +26,17 @@ def createNote():
             raise ValueError("Title cannot be empty.")
         
         noteDir = os.path.join(NOTES_DIR_PATH, title)
-        if not os.path.exists(noteDir):
-            os.makedirs(noteDir)
+        if os.path.exists(noteDir):
+            raise ValueError("A note with this title already exists.")
 
-        newVersion = getNextVersion(noteDir)
-        notePath = os.path.join(noteDir, f"v{newVersion}.notist")
+        os.makedirs(noteDir)
+        notePath = os.path.join(noteDir, "v1.notist")
         
         content = input("Enter note content: ")
         
-        writeToFile(notePath, os.path.expanduser("~/.config/secure_document/key"), title, content, newVersion)
+        writeToFile(notePath, os.path.expanduser("~/.config/secure_document/key"), title, content, 1)
 
-        print(f"Note '{title}' version {newVersion} created successfully!")
+        print(f"Note '{title}' created successfully!")
     except Exception as e:
         print(f"Error creating note: {e}")
 
@@ -110,7 +110,7 @@ def viewNoteContent():
                 return
 
             filepath = os.path.join(noteDir, version)
-            content = readFromFile(filepath,os.path.expanduser("~/.config/secure_document/key"))
+            content = readFromFile(filepath, os.path.expanduser("~/.config/secure_document/key"))
 
             print("\nContent of the selected note version:")
             print(content)
@@ -168,14 +168,16 @@ def editNote():
                 return
 
             filepath = os.path.join(noteDir, version)
-
-            content = readFromFile(filepath)
+            content = readFromFile(filepath, os.path.expanduser("~/.config/secure_document/key"))
             print("\nCurrent Content:")
             print(content)
 
-            newContent = input("\nEnter new content: ")
-            writeToFile(filepath, newContent)
-            print(f"Note '{selectedNote}' version '{version}' updated successfully!")
+            newContent = input("\nEnter new content (THIS WILL OVERWRITE OLD CONTENT): ")
+            newVersion = getNextVersion(noteDir)
+            newFilepath = os.path.join(noteDir, f"v{newVersion}.notist")
+
+            writeToFile(newFilepath, os.path.expanduser("~/.config/secure_document/key"), selectedNote, newContent, newVersion)
+            print(f"Note '{selectedNote}' version {newVersion} updated successfully!")
         except (ValueError, IndexError):
             print("Invalid selection.")
             return

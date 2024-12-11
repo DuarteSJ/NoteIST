@@ -12,19 +12,8 @@ def writeToFile(filePath, keyFile, title, content, version, editors=[], viewers=
 
     #TODO: Change data
     note_data = {
-        "id": version,  # Assuming the version is used as an id for simplicity, but this could be changed
         "title": title,
         "note": content,
-        "data_created": datetime.now().strftime("%Y-%m-%dT%H:%M:%SZ"),  # Current timestamp in ISO format
-        "date_modified": datetime.now().strftime("%Y-%m-%dT%H:%M:%SZ"),
-        "last_modified_by": 1,
-        "version": version,
-        "owner": {
-            "id": 1,
-            "username": "massas"
-        },
-        "editors": [{"id": editor["id"], "username": editor["username"]} for editor in editors],
-        "viewers": [{"id": viewer["id"], "username": viewer["username"]} for viewer in viewers]
     }
 
     # Write the note data to the file in JSON format

@@ -8,9 +8,9 @@ from bson import ObjectId
 from pydantic import ValidationError
 
 # Import the Pydantic models
-from models import RequestModel, ResponseModel, DocumentModel, OperationType, convert_objectid
+from models import RequestModel, ResponseModel
 
-class SecureDocumentServer:
+class Server:
     def __init__(self, 
                  host='0.0.0.0', 
                  port=5000, 
@@ -50,7 +50,7 @@ class SecureDocumentServer:
             self.logger.error(f"Error processing request: {e}")
             return ResponseModel(status='error', message=str(e))
 
-    def start_server(self):
+    def start(self):
         """
         Start the secure TLS socket server
         """
@@ -83,5 +83,5 @@ class SecureDocumentServer:
                         self.logger.error(f"Server error: {e}")
 
 if __name__ == '__main__':
-    server = SecureDocumentServer()
-    server.start_server()
+    server = Server()
+    server.start()
