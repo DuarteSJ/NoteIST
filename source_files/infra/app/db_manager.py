@@ -196,3 +196,4 @@ def get_database_manager(mongo_uri='mongodb://localhost:27017', db_name='secure_
     finally:
         if manager:
             manager.close_connection()
+

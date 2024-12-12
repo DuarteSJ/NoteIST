@@ -1,6 +1,10 @@
-from pydantic import BaseModel
 from typing import Optional, List
 from enum import Enum
+
+from pydantic import BaseModel, Field, GetCoreSchemaHandler
+from bson import ObjectId
+from pydantic_core import CoreSchema, core_schema
+import datetime
 
 class RequestType(Enum):
     CREATE_NOTE = 1
@@ -25,12 +29,6 @@ class DocumentModel(BaseModel):
 
 def convert_objectid(value):
     return str(value) if isinstance(value, ObjectId) else value
-
-from pydantic import BaseModel, Field, GetCoreSchemaHandler
-from typing import Optional
-from bson import ObjectId
-from pydantic_core import CoreSchema, core_schema
-import datetime
 
 class PyObjectId(ObjectId):
     """Custom type for handling MongoDB ObjectId in Pydantic models"""
@@ -63,8 +61,7 @@ class PyObjectId(ObjectId):
 class UsersModel(BaseModel):
     id: Optional[PyObjectId] = Field(default_factory=PyObjectId, alias="_id")
     username: str = Field(...)
-    password: str = Field(...)
-    hash_of_digest: str = Field(...)
+    public_key: bytes = Field(...) #TODO: temos de mudar isto? Acho que é chill, mas n sei
     owned_notes: List[int] = Field(...)
     editor_notes: List[int] = Field(...)
     viewer_notes: List[int] = Field(...)
@@ -87,22 +84,38 @@ class NotesModel(BaseModel):
     class Config:
         arbitrary_types_allowed = True
         json_encoders = {ObjectId: str, datetime: lambda dt: dt.isoformat() + "Z"}
+
+        # TODO: podemos apagar este garbage por favor?????
         schema_extra = {
-            "example": {
-                "title": "Example Document",
-                "note": "This is an example document.",
-                "date_created": "2022-01-01T12:00:00Z",
-                "date_modified": "2022-01-02T12:00:00Z",
-                "last_modified_by": 456,
-                "version": 3,
-                "owner": {"id": 456, "username": "john"},
-                "editors": [
-                    {"id": 789, "username": "jane"},
-                    {"id": 1011, "username": "bob"},
-                ],
-                "viewers": [
-                    {"id": 1213, "username": "alice"},
-                    {"id": 1415, "username": "charlie"},
-                ],
-            }
+            "id": 123,
+            "title": "Example Document",
+            "note": "This is an example document.",
+            "data_created": "2022-01-01T12:00:00Z",
+            "date_modified": "2022-01-02T12:00:00Z",
+            "last_modified_by": 456,
+            "version": 3,
+            "owner": {
+                "id": 456,
+                "username": "john"
+            },
+            "editors": [
+                {
+                "id": 789,
+                "username": "jane"
+                },
+                {
+                "id": 1011,
+                "username": "bob"
+                }
+            ],
+            "viewers": [
+                {
+                "id": 1213,
+                "username": "alice"
+                },
+                {
+                "id": 1415,
+                "username": "charlie"
+                }
+            ]
         }
