@@ -1,3 +1,5 @@
+# Note secret key management + reading and writing to local files
+
 import json
 from secure_document import SecureDocumentHandler
 from uuid import uuid4
@@ -21,27 +23,13 @@ def store_key(key: bytes, key_file: str) -> None:
     except Exception as e:
         raise SecureDocumentError(f"Failed to store key: {e}")
 
-
 def load_key(key_file: str) -> bytes:
-    """Loads the encryption key from the predefined file, or prompts the user to generate one."""
+    """Loads the encryption key from the predefined file. Raises an error if the key file is not found."""
     try:
         if not os.path.exists(key_file):
-            user_input = (
-                input(
-                    "Key file not found. Do you want to generate a new key? (yes/no): "
-                )
-                .strip()
-                .lower()
+            raise KeyFileNotFoundError(
+                f"Key file not found at {key_file}. Please ensure the key file exists."
             )
-            if user_input in ["yes", "y"]:
-                key = generate_key()
-                store_key(key, key_file)
-                print("New encryption key generated and stored.")
-                return key
-            else:
-                raise KeyFileNotFoundError(
-                    "Key file not found. Please generate a key using the 'generate-key' command."
-                )
 
         with open(key_file, "rb") as f:
             return f.read()
