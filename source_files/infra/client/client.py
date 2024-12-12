@@ -36,6 +36,7 @@ def test_secure_server(host, port, cert_path, private_key_path):
         context.check_hostname = True
         context.verify_mode = ssl.CERT_REQUIRED  # We don't need client certificate
 
+
         with socket.create_connection((host, port)) as sock:
             with context.wrap_socket(sock, server_hostname=host) as secure_sock:
                 print(f"Connected to server at {host}:{port}")

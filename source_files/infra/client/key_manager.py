@@ -38,9 +38,8 @@ def store_private_key(private_key: rsa.RSAPrivateKey, private_key_path: str) -> 
         private_key (rsa.RSAPrivateKey): The private key to store.
         private_key_path (str): The file path to store the private key.
     """
-    # Ensure the directory for the private key file exists
     if not os.path.exists(os.path.dirname(private_key_path)):
-        os.makedirs(os.path.dirname(private_key_path))  # Create directory if it doesn't exist
+        os.makedirs(os.path.dirname(private_key_path))
     
     with open(private_key_path, "wb") as key_file:
         key_file.write(
@@ -60,9 +59,8 @@ def store_public_key(public_key: rsa.RSAPublicKey, public_key_path: str) -> None
         public_key (rsa.RSAPublicKey): The public key to store.
         public_key_path (str): The file path to store the public key.
     """
-    # Ensure the directory for the public key file exists
     if not os.path.exists(os.path.dirname(public_key_path)):
-        os.makedirs(os.path.dirname(public_key_path))  # Create directory if it doesn't exist
+        os.makedirs(os.path.dirname(public_key_path))
     
     with open(public_key_path, "wb") as key_file:
         key_file.write(
