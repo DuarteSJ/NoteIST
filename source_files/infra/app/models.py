@@ -52,6 +52,8 @@ class DeleteNoteRequest(BaseRequestModel):
     type: RequestType = RequestType.DELETE_NOTE
     note_id: str
 
+#TODO: create actual request ("list of requests" to note service)
+
 # Union type for all possible request models
 RequestModelType = Union[
     CreateNoteRequest,

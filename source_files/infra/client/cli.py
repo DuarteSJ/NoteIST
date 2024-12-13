@@ -3,9 +3,11 @@ from utils import *
 
 NOTES_DIR_PATH = os.path.expanduser("~/.local/share/notist/notes")
 
+
 def init():
     if not os.path.exists(NOTES_DIR_PATH):
         os.makedirs(NOTES_DIR_PATH)
+
 
 def mainMenu():
     print("\n=== NotIST ===")
@@ -18,6 +20,7 @@ def mainMenu():
 
     choice = input("Choose an option: ")
     return choice
+
 
 def createNote():
     title = input("Enter note title: ")
@@ -48,6 +51,7 @@ def createNote():
 
     print(f"Note '{title}' created successfully!")
 
+
 def getNextVersion(noteDir):
     """Returns the next available version number for the note."""
     versions = [f for f in os.listdir(noteDir) if f.endswith(".notist")]
@@ -59,6 +63,7 @@ def getNextVersion(noteDir):
         except ValueError:
             continue
     return max(versionNumbers, default=0) + 1
+
 
 def displayNotesList():
     """Displays the list of notes with their latest version."""
@@ -86,6 +91,7 @@ def displayNotesList():
             print(f"{idx}. {note} ({latestVersionDisplay})")
         else:
             print(f"{idx}. {note} (No versions available)")
+
 
 def viewNoteContent():
     if not os.path.exists(NOTES_DIR_PATH):
@@ -121,6 +127,7 @@ def viewNoteContent():
     print("\nContent of the selected note version:")
     print(content)
 
+
 def selectVersion(noteDir: str) -> Optional[str]:
     """Helper function to allow selecting a version for a note."""
     versions = sorted([f for f in os.listdir(noteDir) if f.endswith(".notist")])
@@ -143,6 +150,7 @@ def selectVersion(noteDir: str) -> Optional[str]:
     else:
         print("Invalid selection.")
         return None
+
 
 def editNote():
     if not os.path.exists(NOTES_DIR_PATH):
@@ -187,6 +195,7 @@ def editNote():
         newVersion,
     )
     print(f"Note '{selectedNote}' version {newVersion} updated successfully!")
+
 
 def deleteNote():
     if not os.path.exists(NOTES_DIR_PATH):
@@ -233,6 +242,7 @@ def deleteNote():
         if not os.listdir(noteDir):
             os.rmdir(noteDir)
 
+
 def main():
     init()
 
@@ -252,6 +262,7 @@ def main():
             break
         else:
             print("Invalid choice. Please try again.")
+
 
 if __name__ == "__main__":
     main()

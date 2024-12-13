@@ -7,6 +7,7 @@ import os
 from typing import List, Optional
 from exceptions import *
 
+
 def generate_key() -> bytes:
     """Generates a new random 256-bit encryption key."""
     key = os.urandom(32)  # 256-bit long
@@ -22,6 +23,7 @@ def store_key(key: bytes, key_file: str) -> None:
         print(f"Key stored at: {key_file}")
     except Exception as e:
         raise SecureDocumentError(f"Failed to store key: {e}")
+
 
 def load_key(key_file: str) -> bytes:
     """Loads the encryption key from the predefined file. Raises an error if the key file is not found."""
