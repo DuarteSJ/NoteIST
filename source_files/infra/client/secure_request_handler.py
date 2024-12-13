@@ -85,9 +85,7 @@ class SecureRequestHandler:
         """Create the signed payload and send the request to the server."""
 
         request_data = json.dumps(changes)
-        payload = self._create_signed_payload(
-            request_data, private_key_path
-        )
+        payload = self._create_signed_payload(request_data, private_key_path)
 
         return self._send_request(payload)
 

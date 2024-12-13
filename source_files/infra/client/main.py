@@ -16,7 +16,7 @@ def main():
     # pull changes from server if there are any
     request_handler.pull_changes(PRIV_KEY_FILE)
     # run cli and register changes
-    changes = cli() # TODO: discuss this
+    changes = cli()  # TODO: discuss this
     # user closes cli
     print("user closed cli, backing up to srver...")
     # backup to server
