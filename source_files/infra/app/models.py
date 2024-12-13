@@ -1,31 +1,98 @@
 from typing import Optional, List
 from enum import Enum
 
-from pydantic import BaseModel, Field, GetCoreSchemaHandler
+from pydantic import BaseModel, Field, GetCoreSchemaHandler, field_validator
 from bson import ObjectId
 from pydantic_core import CoreSchema, core_schema
 import datetime
 
+from enum import Enum
+from typing import Optional, List, Union, Dict, Any
+from pydantic import BaseModel, Field, ConfigDict, field_validator, model_validator
+from typing_extensions import Annotated
+
 class RequestType(Enum):
-    CREATE_NOTE = 1
-    GET_NOTE = 2
-    GET_USER_NOTES = 3
-    EDIT_NOTE = 4
-    DELETE_NOTE = 5
+    CREATE_NOTE = "create_note"
+    GET_NOTE = "get_note"
+    GET_USER_NOTES = "get_user_notes"
+    EDIT_NOTE = "edit_note"
+    DELETE_NOTE = "delete_note"
 
-class RequestModel(BaseModel):
-    operation: RequestType
-    document: Optional[dict] = None
-    document_id: Optional[str] = None
+# Abstract Base Request Model
+class BaseRequestModel(BaseModel):
+    """
+    Abstract base class for all request models.
+    Provides common validation and structure.
+    """
+    type: RequestType
 
+    class Config:
+        extra = "allow"  # Allow extra fields for flexibility
+
+# Specific Request Models
+class CreateNoteRequest(BaseRequestModel):
+    type: RequestType = RequestType.CREATE_NOTE
+    document: Dict[str, Any]
+
+class GetNoteRequest(BaseRequestModel):
+    type: RequestType = RequestType.GET_NOTE
+    username: str
+    note_id: str
+
+class GetUserNotesRequest(BaseRequestModel):
+    type: RequestType = RequestType.GET_USER_NOTES
+    username: str
+
+class EditNoteRequest(BaseRequestModel):
+    type: RequestType = RequestType.EDIT_NOTE
+    note_id: str
+    document: Dict[str, Any]
+
+class DeleteNoteRequest(BaseRequestModel):
+    type: RequestType = RequestType.DELETE_NOTE
+    note_id: str
+
+# Union type for all possible request models
+RequestModelType = Union[
+    CreateNoteRequest,
+    GetNoteRequest,
+    GetUserNotesRequest,
+    EditNoteRequest,
+    DeleteNoteRequest
+]
+
+# Request Factory
+class RequestFactory:
+    @staticmethod
+    def create_request(request_data: Dict[str, Any]) -> RequestModelType:
+        """
+        Create the appropriate request model based on the request type.
+
+        :param request_data: Dictionary containing request details
+        :return: Specific request model instance
+        """
+        request_type = request_data.get('type')
+
+        request_map = {
+            RequestType.CREATE_NOTE: CreateNoteRequest,
+            RequestType.GET_NOTE: GetNoteRequest,
+            RequestType.GET_USER_NOTES: GetUserNotesRequest,
+            RequestType.EDIT_NOTE: EditNoteRequest,
+            RequestType.DELETE_NOTE: DeleteNoteRequest
+        }
+
+        request_class = request_map.get(request_type)
+        if not request_class:
+            raise ValueError(f"Unsupported request type: {request_type}")
+
+        return request_class(**request_data)
+
+# Response Model
 class ResponseModel(BaseModel):
     status: str
     message: str
-    document: Optional[dict] = None
-
-class DocumentModel(BaseModel):
-    title: str
-    content: str
+    documents: Optional[List[Dict[str, Any]]] = None
+    document: Optional[Dict[str, Any]] = None
 
 def convert_objectid(value):
     return str(value) if isinstance(value, ObjectId) else value

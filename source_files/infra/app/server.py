@@ -5,8 +5,13 @@ import logging
 from pymongo import MongoClient
 from pydantic import ValidationError
     
-# Import the Pydantic models
-from models import RequestModel, ResponseModel, RequestType
+# Import the new Pydantic models
+from models import (
+    RequestModelType, 
+    RequestFactory, 
+    ResponseModel, 
+    RequestType
+)
 
 class Server:
     def __init__(self, 
@@ -43,30 +48,48 @@ class Server:
         self.user_service = user_service
         self.notes_service = notes_service
 
-    def handle_request(self, request: RequestModel) -> ResponseModel:
+    def handle_request(self, request: RequestModelType) -> ResponseModel:
         """
         Handle different document operations by delegating to the appropriate service.
         """
         try:
-            if request.operation == RequestType.CREATE_NOTE:
-                result = self.notes_service.create_note(request.document)
-                return ResponseModel(status='success', message='Document created', document={'_id': str(result)})
+            if request.type == RequestType.CREATE_NOTE:
+                # Assuming create_note now takes username and document
+                note_id = self.notes_service.create_note(
+                    username=request.username, 
+                    document=request.document
+                )
+                return ResponseModel(status='success', message='Document created', document={'_id': str(note_id)})
 
-            elif request.operation == RequestType.GET_NOTE:
-                pass
-                document = self.notes_service.get_note(request.document_id)
+            elif request.type == RequestType.GET_NOTE:
+                # Assuming get_note now takes username and note_id
+                document = self.notes_service.get_note(
+                    username=request.username, 
+                    note_id=request.note_id
+                )
+                return ResponseModel(status='success', message='Document retrieved', document=document)
 
-            elif request.operation == RequestType.GET_USER_NOTES:
-                pass
-                #result = self.notes_service.update_note_by_id(request.document_id, request.document)
+            elif request.type == RequestType.GET_USER_NOTES:
+                # Retrieve all notes for the user
+                documents = self.notes_service.get_user_notes(username=request.username)
+                return ResponseModel(status='success', message='User notes retrieved', documents=documents)
 
-            elif request.operation == RequestType.EDIT_NOTE:
-                pass
-                #result = self.notes_service.delete_note_by_id(request.document_id)
+            elif request.type == RequestType.EDIT_NOTE:
+                # Edit a specific note
+                self.notes_service.edit_note(
+                    username=request.username, 
+                    note_id=request.note_id, 
+                    document=request.document
+                )
+                return ResponseModel(status='success', message='Document updated')
 
-            elif request.operation == RequestType.DELETE_NOTE:
-                pass
-            
+            elif request.type == RequestType.DELETE_NOTE:
+                # Delete a specific note
+                self.notes_service.delete_note(
+                    username=request.username, 
+                    note_id=request.note_id
+                )
+                return ResponseModel(status='success', message='Document deleted')
 
             else:
                 return ResponseModel(status='error', message='Unsupported operation')
@@ -97,8 +120,8 @@ class Server:
                         data = client_socket.recv(4096)
                         request_dict = json.loads(data.decode('utf-8'))
 
-                        # Validate request
-                        request = RequestModel(**request_dict)
+                        # Validate and create request using factory
+                        request = RequestFactory.create_request(request_dict)
 
                         # Process request
                         response = self.handle_request(request)
@@ -120,7 +143,7 @@ if __name__ == '__main__':
     
     try:
         with get_database_manager(MONGO_URI, DB_NAME) as db_manager:
-            user_service = get_users_service()
+            user_service = get_users_service(db_manager)
             notes_service = get_notes_service(db_manager)
             server = Server(user_service=user_service, notes_service=notes_service)
             server.start()
