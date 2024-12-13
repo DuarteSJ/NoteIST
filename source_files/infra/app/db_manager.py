@@ -3,28 +3,70 @@ from typing import Optional, Dict, Any, List
 from pymongo import MongoClient
 from bson import ObjectId
 
+import ssl
+
+#todo :testar a conexão com o banco de dados
+
 class DatabaseManager:
     """
     Handles low-level database interactions with MongoDB
     Focuses on basic CRUD operations without business logic
     """
-    def __init__(self, mongo_uri='mongodb://localhost:27017', db_name='secure_document_db'):
+    def __init__(self, 
+                 host: str = 'localhost', 
+                 port: int = 27017, 
+                 db_name: str = 'secure_document_db',
+                 username: Optional[str] = None,
+                 client_cert_path:  = None,
+                 ca_cert_path: Optional[str] = None
+                ):
         """
-        Initialize MongoDB connection
+        Initialize MongoDB connection with Mutual TLS
         
         Args:
-            mongo_uri (str): MongoDB connection URI
+            host (str): MongoDB server hostname or IP
+            port (int): MongoDB server port
             db_name (str): Name of the database
+            username (str, optional): Username for authentication
+            client_cert_path (str, optional): Path to client certificate PEM file
+            ca_cert_path (str, optional): Path to CA certificate
         """
         try:
-            self.client = MongoClient(mongo_uri)
+            # Prepare TLS/SSL options
+            ssl_context = ssl.create_default_context(cafile=ca_cert_path)
+            ssl_context.check_hostname = True
+            ssl_context.verify_mode = ssl.CERT_REQUIRED
+
+            # Prepare connection parameters
+            connection_params = {
+                'host': f'mongodb://{host}:{port}/{db_name}',
+                'tls': True,
+                'tlsCAFile': ca_cert_path,
+                'tlsAllowInvalidHostnames': False,
+            }
+
+            # Add client certificate if provided
+            if client_cert_path:
+                connection_params.update({
+                    'tlsCertificateKeyFile': client_cert_path,
+                })
+
+            
+
+            # Establish connection
+            self.client = MongoClient(**connection_params)
             self.db = self.client[db_name]
             
             # Setup logging
             logging.basicConfig(level=logging.INFO)
             self.logger = logging.getLogger(__name__)
+            
+            # Verify connection
+            self.client.admin.command('ping')
+            self.logger.info("Successfully connected to MongoDB")
+        
         except Exception as e:
-            logging.error(f"Error initializing MongoDB connection: {e}")
+            self.logger.error(f"Error initializing MongoDB connection: {e}")
             raise
 
     def insert_document(self, collection_name: str, document: Dict[str, Any]) -> str:
@@ -178,17 +220,38 @@ class DatabaseManager:
             self.logger.info("MongoDB connection closed")
 
 # Context manager for easy database management
-def get_database_manager(mongo_uri='mongodb://localhost:27017', db_name='secure_document_db'):
+def get_database_manager(
+    host: str = 'localhost', 
+    port: int = 27017, 
+    db_name: str = 'secure_document_db',
+    username: Optional[str] = None,
+    client_cert_path: Optional[str] = None,
+    ca_cert_path: Optional[str] = None,
+    auth_source: str = 'admin'
+):
     """
     Context manager for DatabaseManager to ensure proper connection handling
     
     Usage:
-    with get_database_manager() as db_manager:
+    with get_database_manager(
+        host='mongodb_server_ip', 
+        client_cert_path='/path/to/client.pem',
+        ca_cert_path='/path/to/ca.crt',
+        username='admin'
+    ) as db_manager:
         db_manager.insert_document(...)
     """
     manager = None
     try:
-        manager = DatabaseManager(mongo_uri, db_name)
+        manager = DatabaseManager(
+            host=host, 
+            port=port, 
+            db_name=db_name,
+            username=username,
+            client_cert_path=client_cert_path,
+            ca_cert_path=ca_cert_path,
+            auth_source=auth_source
+        )
         yield manager
     except Exception as e:
         logging.error(f"Error in database manager: {e}")

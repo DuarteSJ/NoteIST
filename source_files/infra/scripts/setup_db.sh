@@ -63,12 +63,12 @@ mongosh --tls \
     --host 192.168.56.17 \
     --tlsCertificateKeyFile /home/vagrant/certs/mongodb/mongodb-server.pem \
     --tlsCAFile /home/vagrant/certs/ca.crt <<EOF
-use admin
+use server
 db.createUser({
-    user: "server",
-    pwd: "server",
+    user: "admin",
+    pwd: "admin",
     roles: [
-        { role: "readWrite", db: "yes" }
+        { role: "readWrite", db: "secure_document_db" }
     ]
 })                                   
 EOF
