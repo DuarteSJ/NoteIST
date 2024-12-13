@@ -20,8 +20,6 @@ class SecureRequestHandler:
 
         self.cert_path = cert_path
 
-        self.changes: List[dict] = []
-
     def read_username_from_file(file_path: str) -> str:
         """Reads the username from a given file."""
         try:
@@ -83,12 +81,12 @@ class SecureRequestHandler:
             print(f"Request failed: {e}")
             return ResponseModel(status="error", message=str(e))
 
-    def push_changes(self, private_key_path: str) -> ResponseModel:
+    def push_changes(self, private_key_path: str, changes: List[dict]) -> ResponseModel:
         """Create the signed payload and send the request to the server."""
 
-        request_data = json.dumps(self.changes)
+        request_data = json.dumps(changes)
         payload = self._create_signed_payload(
-            self.username, request_data, private_key_path
+            request_data, private_key_path
         )
 
         return self._send_request(payload)
