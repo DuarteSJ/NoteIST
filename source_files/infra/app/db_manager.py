@@ -229,18 +229,7 @@ def get_database_manager(
     ca_cert_path: Optional[str] = None,
     auth_source: str = 'admin'
 ):
-    """
-    Context manager for DatabaseManager to ensure proper connection handling
     
-    Usage:
-    with get_database_manager(
-        host='mongodb_server_ip', 
-        client_cert_path='/path/to/client.pem',
-        ca_cert_path='/path/to/ca.crt',
-        username='admin'
-    ) as db_manager:
-        db_manager.insert_document(...)
-    """
     manager = None
     try:
         manager = DatabaseManager(

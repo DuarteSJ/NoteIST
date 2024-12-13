@@ -140,7 +140,11 @@ if __name__ == '__main__':
     
     MONGO_URI = 'mongodb://localhost:27017'
     DB_NAME = 'secure_document_db'
-    
+    DB_PORT = 27017
+    SERVER_CRT = '/home/vagrant/setup/certs/server/server.pem'
+    CA_CRT = '/home/vagrant/setup/certs/ca.crt'
+
+    #todo -> chamar, macas faz isto que n tenho paciencia
     try:
         with get_database_manager(MONGO_URI, DB_NAME) as db_manager:
             user_service = get_users_service(db_manager)
