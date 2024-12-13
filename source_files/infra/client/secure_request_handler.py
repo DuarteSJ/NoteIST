@@ -12,11 +12,28 @@ from key_manager import load_private_key
 
 
 class SecureRequestHandler:
-    def __init__(self, host: str, port: int, cert_path: str):
+    def __init__(self, username_file: str, host: str, port: int, cert_path: str):
         self.host = host
         self.port = port
+
+        self.username = self._read_username_from_file(username_file)
+
         self.cert_path = cert_path
+
         self.changes: List[dict] = []
+
+    def read_username_from_file(file_path: str) -> str:
+        """Reads the username from a given file."""
+        try:
+            with open(file_path, "r") as file:
+                username = file.read().strip()
+                return username
+        except FileNotFoundError:
+            print(f"Error: The file at {file_path} does not exist.")
+            return None
+        except Exception as e:
+            print(f"Error reading the file: {e}")
+            return None
 
     def _sign_request(self, request_data: str, private_key):
         """Sign the request using the private key."""
@@ -66,11 +83,13 @@ class SecureRequestHandler:
             print(f"Request failed: {e}")
             return ResponseModel(status="error", message=str(e))
 
-    def push_changes(self, username: str, private_key_path: str) -> ResponseModel:
+    def push_changes(self, private_key_path: str) -> ResponseModel:
         """Create the signed payload and send the request to the server."""
 
         request_data = json.dumps(self.changes)
-        payload = self._create_signed_payload(username, request_data, private_key_path)
+        payload = self._create_signed_payload(
+            self.username, request_data, private_key_path
+        )
 
         return self._send_request(payload)
 
