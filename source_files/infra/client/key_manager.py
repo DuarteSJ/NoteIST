@@ -4,7 +4,7 @@ from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.backends import default_backend
 
 
-def generate_private_key() -> rsa.RSAPrivateKey:
+def generate_private_key(key_size: int = 2048) -> rsa.RSAPrivateKey:
     """
     Generates a new RSA private key.
 
@@ -12,12 +12,12 @@ def generate_private_key() -> rsa.RSAPrivateKey:
         rsa.RSAPrivateKey: The generated private key.
     """
     private_key = rsa.generate_private_key(
-        public_exponent=65537, key_size=2048, backend=default_backend()
+        public_exponent=65537, key_size=key_size, backend=default_backend()
     )
     return private_key
 
 
-def generate_public_key(private_key: rsa.RSAPrivateKey) -> rsa.RSAPublicKey:
+def load_public_key(private_key: rsa.RSAPrivateKey) -> rsa.RSAPublicKey:
     """
     Generates the corresponding RSA public key from a given private key.
 
@@ -50,28 +50,9 @@ def store_private_key(private_key: rsa.RSAPrivateKey, private_key_path: str) -> 
                 encryption_algorithm=serialization.NoEncryption(),
             )
         )
-    print(f"Private key stored at: {private_key_path}")
-
-
-def store_public_key(public_key: rsa.RSAPublicKey, public_key_path: str) -> None:
-    """
-    Stores the RSA public key in PEM format at the specified file path.
-
-    Args:
-        public_key (rsa.RSAPublicKey): The public key to store.
-        public_key_path (str): The file path to store the public key.
-    """
-    if not os.path.exists(os.path.dirname(public_key_path)):
-        os.makedirs(os.path.dirname(public_key_path))
-
-    with open(public_key_path, "wb") as key_file:
-        key_file.write(
-            public_key.public_bytes(
-                encoding=serialization.Encoding.PEM,
-                format=serialization.PublicFormat.SubjectPublicKeyInfo,
-            )
-        )
-    print(f"Public key stored at: {public_key_path}")
+    print(
+        f"Private key stored at: {private_key_path}.\nDo not share, change, or edit this file's contents nor location or YOU WILL LOOSE ACCESS TO YOUR ACCOUNT.\n"
+    )
 
 
 def load_private_key(private_key_path: str) -> rsa.RSAPrivateKey:
@@ -91,18 +72,15 @@ def load_private_key(private_key_path: str) -> rsa.RSAPrivateKey:
     return private_key
 
 
-def load_public_key(public_key_path: str) -> rsa.RSAPublicKey:
+def generate_key_pair(private_key_path: str) -> rsa.RSAPublicKey:
     """
-    Loads the RSA public key from the specified file path.
+    Generates a new RSA key pair and stores the private key at the specified file path, returning the public key.
 
     Args:
-        public_key_path (str): The file path to load the public key from.
-
-    Returns:
-        rsa.RSAPublicKey: The loaded public key.
+        private_key_path (str): The file path to store the private key.
     """
-    with open(public_key_path, "rb") as key_file:
-        public_key = serialization.load_pem_public_key(
-            key_file.read(), backend=default_backend()
-        )
+    private_key = generate_private_key()
+    public_key = load_public_key(private_key)
+
+    store_private_key(private_key, private_key_path)
     return public_key

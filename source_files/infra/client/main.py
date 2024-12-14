@@ -1,22 +1,19 @@
 import key_manager
-from cli import main as cli
+from tui import main as tui
 
-from secure_document import SecureDocumentHandler
 from secure_request_handler import SecureRequestHandler
 
 # TODO: might want to change these paths
-USERNAME_FILE = "/home/.config/NoteIST/username"
 PRIV_KEY_FILE = "/home/.config/NoteIST/priv_key.pem"
+CERTIFICATE_FILE = "/home/vagrant/certs/ca.crt"
 
 
 def main():
-    request_handler = SecureRequestHandler(
-        host="192.168.56.14", port=5000, cert_path="/home/vagrant/setup/certs/ca.crt"
-    )
+    username = input("what is ur username?\n\t> ")
     # pull changes from server if there are any
     request_handler.pull_changes(PRIV_KEY_FILE)
     # run cli and register changes
-    changes = cli()  # TODO: discuss this
+    changes = tui()
     # user closes cli
     print("user closed cli, backing up to srver...")
     # backup to server

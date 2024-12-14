@@ -5,7 +5,12 @@ from secure_document import SecureDocumentHandler
 from uuid import uuid4
 import os
 from typing import List, Optional
-from exceptions import *
+from exceptions import (
+    SecureDocumentError,
+    KeyFileNotFoundError,
+    EncryptionError,
+    IntegrityError,
+)
 
 
 def generate_key() -> bytes:
