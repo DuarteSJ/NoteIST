@@ -76,11 +76,12 @@ class SecureRequestHandler:
         return self._send_request(payload)
 
     def pull_changes(self, private_key_path: str) -> ResponseModel:
-        request_data = {
-            "type": "get_user_notes",
-        }
-        payload = self._create_signed_payload(request_data, private_key_path)
-        return self._send_request(payload)
+        pass
+        # request_data = {
+        #     "type": "get_user_notes",
+        # }
+        # payload = self._create_signed_payload(request_data, private_key_path)
+        # return self._send_request(payload)
 
     def register_user(self, private_key_path: str, public_key: bytes) -> ResponseModel:
         pass

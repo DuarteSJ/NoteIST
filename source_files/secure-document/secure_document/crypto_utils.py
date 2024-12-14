@@ -10,7 +10,7 @@ from Crypto.Random import get_random_bytes
 
 
 class SecureDocumentHandler:
-    def _write_json(file_path: str, data: dict, indent: int = 2):
+    def _write_json(self, file_path: str, data: dict, indent: int = 2):
         """
         Dumps a dictionary into a JSON file.
         
@@ -25,7 +25,7 @@ class SecureDocumentHandler:
         except Exception as e:
             print(f"Error writing JSON to file: {e}")
 
-    def _read_json(file_path: str) -> dict:
+    def _read_json(self, file_path: str) -> dict:
         """
         Reads a JSON file and returns its contents as a dictionary.
         
@@ -67,7 +67,7 @@ class SecureDocumentHandler:
 
         # Validate encrypted JSON structure
         if not all(k in encrypted_json for k in ["iv", "hmac"]):
-            raise Exception("Invalid encrypted file format.")
+            raise Exception("Invalid encrypted file format")
 
         # Extract components
         iv = bytes.fromhex(encrypted_json["iv"])
@@ -204,7 +204,7 @@ class SecureDocumentHandler:
 
     def checkSingleFile(self, file: str, key_file: str) -> bool:
         """
-        Verify the integrity of a single JSON file by checking its HMAC.
+        Verify the integrity of a single encrypted JSON file by checking its HMAC.
 
         Args:
             file (str): Path to the file to verify.
@@ -218,34 +218,29 @@ class SecureDocumentHandler:
             Exception: If the file cannot be parsed or HMAC verification fails.
         """
         key = self._parseKeyFile(key_file)
-
-        iv, stored_hmac, encrypted_data  = self._parse_encrypted_file(file)
+        
+        iv, stored_hmac, encrypted_data = self._parse_encrypted_file(file)
 
         try:
-            # Prepare for HMAC verification
             hmac_input = b""
-
-            # Create cipher with single IV
             cipher = AES.new(key, AES.MODE_CBC, iv)
 
-            # Decrypt and verify each value
             for k, v in encrypted_data.items():
-                # Decrypt the value
+                # Convert encrypted value back to bytes
                 encrypted_value = bytes.fromhex(v)
                 decrypted_value = unpad(cipher.decrypt(encrypted_value), AES.block_size).decode('utf-8')
 
-                # Accumulate data for HMAC verification
+                # Prepare data for HMAC
                 hmac_input += k.encode('utf-8') + decrypted_value.encode('utf-8')
 
-            # Verify HMAC
+            # Compute HMAC and compare
             hmac = HMAC.new(key, digestmod=SHA256)
             hmac.update(hmac_input)
-            
             return hmac.hexdigest() == stored_hmac
 
         except Exception as e:
-            raise Exception(f"Integrity check failed: {e}")
-        
+            return False
+
     def checkMissingFiles(self, directoryPath: str, digestOfHmacs: str) -> bool:
         """
         Check if any files in the directory are missing or if any new files have been added.

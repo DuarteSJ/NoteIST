@@ -4,6 +4,7 @@ import json
 import logging
 from pymongo import MongoClient
 from pydantic import ValidationError
+from typing import Dict, Any
 from cryptography.hazmat.primitives.asymmetric import padding
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.serialization import load_pem_public_key
@@ -18,7 +19,8 @@ from models import (
     RegisterRequest,
     PullRequest,
     PushRequest,
-    SignedRequestModel
+    SignedRequestModel,
+    ActionType
 )
 
 class Server:
@@ -85,12 +87,17 @@ class Server:
             user = self.user_service.get_user(req.username)
             digest_of_hmacs = user.get('digest_of_hmacs', None)
             if not digest_of_hmacs:
-                #TODO: oq se faz aqui?
+                # TODO: Decide what to do here if digest_of_hmacs is not set
                 digest_of_hmacs = ""
-                pass
+            
             documents = self.notes_service.get_user_notes(username=req.username)
 
-            return ResponseModel(status='success', message='Document retrieved', document=document)
+            return ResponseModel(
+                status='success',
+                message='Documents retrieved successfully',
+                digest_of_hashes=digest_of_hmacs,
+                documents=documents
+            )
         except ValidationError as ve:
             self.logger.error(f"Validation Error: {ve}")
             return ResponseModel(status='error', message=str(ve))
@@ -98,6 +105,123 @@ class Server:
             self.logger.error(f"Error processing request: {e}")
             return ResponseModel(status='error', message=str(e))
 
+    def handle_push_request(self, req: PushRequest) -> ResponseModel:
+        """
+        Handle the push request by processing a list of actions.
+        
+        Calls the appropriate handler method for each action type.
+        """
+        try:
+            # Verify signature first
+            if not self.verify_signature(req):
+                return ResponseModel(status='error', message='Signature verification failed')
+            
+            # Get the user
+            user = self.user_service.get_user(req.username)
+            
+            # Prepare to collect results of actions
+            action_results = []
+            
+            # Process each action
+            for action in req.actions:
+                handler_method = self._get_action_handler(action)
+                if handler_method:
+                    try:
+                        result = handler_method(req.username, user)
+                        action_results.append({
+                            'action': action.value,
+                            'status': 'success',
+                            'result': result
+                        })
+                    except Exception as action_error:
+                        action_results.append({
+                            'action': action.value,
+                            'status': 'error',
+                            'message': str(action_error)
+                        })
+                else:
+                    action_results.append({
+                        'action': action.value,
+                        'status': 'error',
+                        'message': f'No handler found for action: {action.value}'
+                    })
+            
+            # Get digest of HMACs (if applicable)
+            digest_of_hmacs = user.get('digest_of_hmacs', '')
+            
+            # Retrieve user documents
+            documents = self.notes_service.get_user_notes(username=req.username)
+            
+            # Construct response
+            return ResponseModel(
+                status='success',
+                message='Actions processed successfully',
+                digest_of_hashes=digest_of_hmacs,
+                documents=documents,
+                document={'action_results': action_results}
+            )
+        
+        except ValidationError as ve:
+            self.logger.error(f"Validation Error: {ve}")
+            return ResponseModel(status='error', message=str(ve))
+        except Exception as e:
+            self.logger.error(f"Error processing request: {e}")
+            return ResponseModel(status='error', message=str(e))
+
+    def _get_action_handler(self, action: ActionType):
+        """
+        Retrieve the appropriate handler method for a given action.
+        
+        :param action: The action type to handle
+        :return: A method to handle the specific action
+        """
+        action_handlers = {
+            ActionType.CREATE_NOTE: self._handle_create_note,
+            ActionType.EDIT_NOTE: self._handle_edit_note,
+            ActionType.DELETE_NOTE: self._handle_delete_note
+        }
+        
+        return action_handlers.get(action)
+    #TODO: FIX THIS
+    def _handle_create_note(self, username: str, user: Dict[str, Any]) -> Dict[str, Any]:
+        """
+        Handle creating a new note for the user.
+        
+        :param username: The username of the note creator
+        :param user: User details
+        :return: Details of the created note
+        """
+        # Implement note creation logic
+        # This is a placeholder - you'll need to add actual implementation
+        note = self.notes_service.create_note(username=username)
+        return note
+    #TODO: FIX THIS
+    def _handle_edit_note(self, username: str, note: Dict[str, Any]) -> Dict[str, Any]:
+        """
+        Handle editing an existing note.
+        
+        :param username: The username of the note editor
+        :param user: User details
+        :return: Details of the edited note
+        """
+        # Implement note editing logic
+        # This is a placeholder - you'll need to add actual implementation
+        note = self.notes_service.edit_note(username=username)
+        return note
+
+    #TODO: FIX THIS
+    def _handle_delete_note(self, username: str, user: Dict[str, Any]) -> Dict[str, Any]:
+        """
+        Handle deleting a note.
+        
+        :param username: The username of the note deleter
+        :param user: User details
+        :return: Details of the deleted note
+        """
+        # Implement note deletion logic
+        # This is a placeholder - you'll need to add actual implementation
+        note = self.notes_service.delete_note(username=username)
+        return note
 
     def handle_request(self, request: RequestModelType) -> ResponseModel:
         """
@@ -105,23 +229,13 @@ class Server:
         """
         try:
             if request.type == RequestType.REGISTER:
-                # Assuming create_note now takes username and document
-                user_id = self.handle_register_request(req=request)
-                return ResponseModel(status='success', message='Document created', document={'_id': str(user_id)})
+                return self.handle_register_request(req=request)
 
             elif request.type == RequestType.PULL:
-                # Assuming get_note now takes username and note_id
-                document = self.notes_service.get_note(
-                    username=request.username, 
-                    note_id=request.note_id
-                )
-                return ResponseModel(status='success', message='Document retrieved', document=document)
+                return self.handle_pull_request(req=request)
 
             elif request.type == RequestType.PUSH:
-                # Retrieve all notes for the user
-                documents = self.notes_service.get_user_notes(username=request.username)
-                return ResponseModel(status='success', message='User notes retrieved', documents=documents)
-
+                return self.handle_push_request(req=request)
 
             else:
                 return ResponseModel(status='error', message='Unsupported operation')

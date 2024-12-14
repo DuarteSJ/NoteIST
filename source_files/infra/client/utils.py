@@ -25,7 +25,6 @@ def store_key(key: bytes, key_file: str) -> None:
         os.makedirs(os.path.dirname(key_file), exist_ok=True)
         with open(key_file, "wb") as f:
             f.write(key)
-        print(f"Key stored at: {key_file}")
     except Exception as e:
         raise SecureDocumentError(f"Failed to store key: {e}")
 
@@ -52,21 +51,18 @@ def writeToFile(
     title: str,
     content: str,
     version: int,
-    editors: Optional[List[str]] = None,
-    viewers: Optional[List[str]] = None,
+    editors: List[str] = [],
+    viewers: List[str] = [],
 ) -> None:
     """Writes content to a file in the specified format."""
-    editors = editors or []
-    viewers = viewers or []
+    editors = editors
+    viewers = viewers
     uuid = str(uuid4())
     tempFilePath = f"/tmp/notist_temp_{uuid}.json"
 
     note_data = {
         "title": title,
         "note": content,
-        "version": version,
-        "editors": editors,
-        "viewers": viewers,
     }
 
     try:
@@ -90,9 +86,7 @@ def readFromFile(filePath: str, keyFile: str) -> str:
         handler = SecureDocumentHandler()
 
         if not handler.checkSingleFile(filePath, keyFile):
-            raise IntegrityError(
-                "The file integrity or authenticity cannot be verified."
-            )
+            raise IntegrityError("The note's integrity is compromised.")
 
         handler.unprotect(filePath, keyFile, tempFilePath)
 
