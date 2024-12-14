@@ -1,8 +1,6 @@
 import logging
 from typing import Optional, Dict, Any, List
 from pymongo import MongoClient
-from bson import ObjectId
-
 import ssl
 
 #todo :testar a conexão com o banco de dados
@@ -17,7 +15,7 @@ class DatabaseManager:
                  port: int = 27017, 
                  db_name: str = 'secure_document_db',
                  username: Optional[str] = None,
-                 client_cert_path:  = None,
+                 client_cert_path: Optional[str] = None,
                  ca_cert_path: Optional[str] = None
                 ):
         """

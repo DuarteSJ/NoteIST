@@ -83,7 +83,7 @@ if __name__ == "__main__":
 import ssl
 import socket
 import json
-from app.models import ResponseModel
+from infra.common.models import ResponseModel
 
 class Server:
     def __init__(self, host: str, port: int, cert_path: str, key_path: str):
@@ -165,3 +165,23 @@ class Server:
     def delete_note(self, request: dict) -> ResponseModel:
         """Delete a note (mocked for example)."""
         return ResponseModel(status='success', message=f"Note {request['note_id']} deleted successfully")
+
+
+
+
+
+
+#TODO:
+    mudar user para ter password (password nao é guardada em lado nenhum, user tem de a saber):
+        pv key e gerada a partir de random salt (guardado localmente) + psw
+        - vantagens:
+            - private key nao fica guardada localmente (loacal ataacks counter)
+
+    mudar secure-document para encriptar so o content e o title, ou seja:
+        - {
+            id: 12
+            title: "paiwcxdgnfasdgpf"
+            content: "çosdfhnpoxds"
+            Hmac: hmac(title+content)
+            version: 2
+        }

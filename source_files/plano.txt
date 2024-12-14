@@ -1,0 +1,15 @@
+avoid ataques locais:
+-> salt com password
+
+login:
+checkMissingFiles
+
+
+
+nota:
+id unico - (id + versao)
+
+criar nota:
+
+
+edit nota:

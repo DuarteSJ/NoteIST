@@ -8,5 +8,5 @@
     "version": 3,
     "owner": {"id": 456, "username": "johna"},
     "editors": [{"id": 789, "username": "jane"}, {"id": 1011, "username": "bob"}],
-    "viewers": [{"id": 1213, "username": "alice"}, {"id": 1415, "username": "charlie"}],
+    "viewers": [{"id": 1213, "username": "alice"}, {"id": 1415, "username": "charlie"}]
 }

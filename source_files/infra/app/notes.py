@@ -3,7 +3,7 @@ from typing import Optional, Dict, Any, List
 import datetime
 
 from db_manager import DatabaseManager, get_database_manager
-from models import NotesModel
+from infra.common.models import NotesModel
 
 class NotesService:
     """

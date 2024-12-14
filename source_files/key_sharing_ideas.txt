@@ -1,0 +1,22 @@
+note: ownerId, id, version
+user has a pending keys attribute as follows:
+
+[
+  {
+    ownerID: ""
+    id: ""
+    secret: ""  
+  },
+  {
+    ownerID: ""
+    id: ""
+    secret: ""
+  }
+]
+
+remove user: # TODO: decide if user looses access to previous versions or not
+  - owner removes user
+  - owner generates new key
+  - owner rencripts note with new key
+  - owner shares new key with all remaining editors/viewers
+

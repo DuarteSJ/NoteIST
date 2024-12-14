@@ -2,3 +2,4 @@
 /secure-document/secure_document.egg-info
 .vagrant
 *.pyc
+/project_env

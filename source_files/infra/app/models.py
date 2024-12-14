@@ -11,59 +11,64 @@ from typing import Optional, List, Union, Dict, Any
 from pydantic import BaseModel, Field, ConfigDict, field_validator, model_validator
 from typing_extensions import Annotated
 
-class RequestType(Enum):
+class ActionType(Enum):
+    """Enum for different note-related actions"""
     CREATE_NOTE = "create_note"
-    GET_NOTE = "get_note"
     GET_USER_NOTES = "get_user_notes"
     EDIT_NOTE = "edit_note"
     DELETE_NOTE = "delete_note"
 
-# Abstract Base Request Model
+class RequestType(Enum):
+    """Enum for different request types"""
+    REGISTER = "register"
+    PUSH = "push"
+    PULL = "pull"
+
 class BaseRequestModel(BaseModel):
     """
-    Abstract base class for all request models.
-    Provides common validation and structure.
+    Base request model for all request types.
+    Provides common structure for pull, push, and register requests.
     """
+    username: str
     type: RequestType
 
-    class Config:
-        extra = "allow"  # Allow extra fields for flexibility
+class SignedRequestModel(BaseRequestModel):
+    """
+    Request model that includes a signature.
+    Used for requests that require authentication.
+    """
+    signature: bytes
 
-# Specific Request Models
-class CreateNoteRequest(BaseRequestModel):
-    type: RequestType = RequestType.CREATE_NOTE
-    document: Dict[str, Any]
+class RegisterRequest(BaseRequestModel):
+    """
+    Request model for user registration.
+    Includes username and public key.
+    """
+    type: RequestType = RequestType.REGISTER
+    public_key: bytes
 
-class GetNoteRequest(BaseRequestModel):
-    type: RequestType = RequestType.GET_NOTE
-    username: str
-    note_id: str
+class PushRequest(SignedRequestModel):
+    """
+    Request model for push operations.
+    Includes a list of actions to be performed.
+    """
+    type: RequestType = RequestType.PUSH
+    actions: List[ActionType]
 
-class GetUserNotesRequest(BaseRequestModel):
-    type: RequestType = RequestType.GET_USER_NOTES
-    username: str
-
-class EditNoteRequest(BaseRequestModel):
-    type: RequestType = RequestType.EDIT_NOTE
-    note_id: str
-    document: Dict[str, Any]
-
-class DeleteNoteRequest(BaseRequestModel):
-    type: RequestType = RequestType.DELETE_NOTE
-    note_id: str
-
-#TODO: create actual request ("list of requests" to note service)
+class PullRequest(SignedRequestModel):
+    """
+    Request model for pull operations.
+    Retrieves data based on username and signature.
+    """
+    type: RequestType = RequestType.PULL
 
 # Union type for all possible request models
 RequestModelType = Union[
-    CreateNoteRequest,
-    GetNoteRequest,
-    GetUserNotesRequest,
-    EditNoteRequest,
-    DeleteNoteRequest
+    RegisterRequest,
+    PushRequest,
+    PullRequest
 ]
 
-# Request Factory
 class RequestFactory:
     @staticmethod
     def create_request(request_data: Dict[str, Any]) -> RequestModelType:
@@ -76,11 +81,9 @@ class RequestFactory:
         request_type = request_data.get('type')
 
         request_map = {
-            RequestType.CREATE_NOTE: CreateNoteRequest,
-            RequestType.GET_NOTE: GetNoteRequest,
-            RequestType.GET_USER_NOTES: GetUserNotesRequest,
-            RequestType.EDIT_NOTE: EditNoteRequest,
-            RequestType.DELETE_NOTE: DeleteNoteRequest
+            RequestModelType.REGISTER: RegisterRequest,
+            RequestModelType.PUSH: PushRequest,
+            RequestModelType.PULL: PullRequest
         }
 
         request_class = request_map.get(request_type)
@@ -89,12 +92,14 @@ class RequestFactory:
 
         return request_class(**request_data)
 
-# Response Model
+# Response Model remains the same as in the original file
 class ResponseModel(BaseModel):
     status: str
     message: str
+    digest_of_hashes: Optional[str] = None
     documents: Optional[List[Dict[str, Any]]] = None
     document: Optional[Dict[str, Any]] = None
+
 
 def convert_objectid(value):
     return str(value) if isinstance(value, ObjectId) else value
@@ -130,7 +135,8 @@ class PyObjectId(ObjectId):
 class UsersModel(BaseModel):
     id: Optional[PyObjectId] = Field(default_factory=PyObjectId, alias="_id")
     username: str = Field(...)
-    public_key: bytes = Field(...) #TODO: temos de mudar isto? Acho que é chill, mas n sei
+    public_key: bytes = Field(...)
+    digest_of_hmacs: str = Field(...)
     owned_notes: List[int] = Field(...)
     editor_notes: List[int] = Field(...)
     viewer_notes: List[int] = Field(...)

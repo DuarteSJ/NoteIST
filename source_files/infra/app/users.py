@@ -3,10 +3,8 @@ from typing import Optional, Dict, Any, Tuple
 import hashlib
 import secrets
 import re
-
 from db_manager import DatabaseManager, get_database_manager
 from models import UsersModel
-
 class UsersService:
     """
     Handles user-related operations including authentication and management
@@ -67,35 +65,23 @@ class UsersService:
 
     def create_user(self, 
                     username: str, 
-                    password: str) -> Dict[str, Any]:
-        """
-        Create a new user
-        
-        Args:
-            username (str): Unique username
-            password (str): User's password
-        
-        Returns:
-            Dict with user details
-        """
+                    public_key) -> Dict[str, Any]:
         try:
+            
+            # Check public key
+            if not isinstance(public_key, bytes):
+                raise ValueError("Public key must be in bytes format")
+
             # Check if username already exists
             existing_user = self.db_manager.find_document('users', {'username': username})
             if existing_user:
                 raise ValueError("Username already exists")
             
-            # Validate password
-            if not self._validate_password(password):
-                raise ValueError("Password does not meet complexity requirements")
-            
-            # Hash password
-            password_hash, salt = self._hash_password(password)
-            
             # Prepare user data
             user_data = {
                 "username": username,
-                "password": password_hash,
-                "hash_of_digest": salt,
+                "public_key": public_key,
+                "hash_of_digest": "",
                 "owned_notes": [],
                 "editor_notes": [],
                 "viewer_notes": []
@@ -112,116 +98,44 @@ class UsersService:
             
             # Log and return (exclude sensitive info)
             self.logger.info(f"User created with ID: {user_id}")
-            return {
-                "_id": user_id,
-                "username": username,
-                "owned_notes": [],
-                "editor_notes": [],
-                "viewer_notes": []
-            }
+            return user_id
         
         except Exception as e:
             self.logger.error(f"Error creating user: {e}")
             raise
 
-    def authenticate_user(self, username: str, password: str) -> Dict[str, Any]:
+
+    def get_user(self, identifier: str, by_username: bool = True) -> Dict[str, Any]:
         """
-        Authenticate a user
-        
+        Retrieve user details by username or user ID.
+
         Args:
-            username (str): User's username
-            password (str): User's password
-        
+            identifier (str): The username or user ID of the user.
+            by_username (bool): Whether to search by username (default is True). If False, searches by user ID.
+
         Returns:
-            Dict with user details if authentication succeeds
+            Dict: A dictionary containing user details (excluding sensitive fields).
         """
         try:
-            # Find user
-            user = self.db_manager.find_document('users', {'username': username})
-            
+            query = {'username': identifier} if by_username else {'_id': identifier}
+
+            user = self.db_manager.find_document('users', query)
+
             if not user:
                 raise ValueError("User not found")
-            
-            # Verify password
-            stored_hash = user['password']
-            salt = user['hash_of_digest']
-            
-            # Regenerate hash with stored salt
-            input_hash, _ = self._hash_password(password, salt)
-            
-            if input_hash != stored_hash:
-                raise ValueError("Invalid credentials")
-            
-            # Return user details (excluding sensitive info)
+
+            # Exclude sensitive information
             return {
                 "_id": user['_id'],
                 "username": user['username'],
+                "public_key": user.get('public_key', None),
                 "owned_notes": user.get('owned_notes', []),
                 "editor_notes": user.get('editor_notes', []),
                 "viewer_notes": user.get('viewer_notes', [])
             }
-        
-        except Exception as e:
-            self.logger.error(f"Error authenticating user: {e}")
-            raise
 
-    def update_user_password(self, 
-                              user_id: str, 
-                              current_password: str, 
-                              new_password: str) -> Dict[str, Any]:
-        """
-        Update user's password with current password verification
-        
-        Args:
-            user_id (str): ID of the user
-            current_password (str): User's current password
-            new_password (str): New password to set
-        
-        Returns:
-            Dict with update status
-        """
-        try:
-            # Find user
-            user = self.db_manager.find_document('users', {'_id': user_id})
-            
-            if not user:
-                raise ValueError("User not found")
-            
-            # Verify current password
-            stored_hash = user['password']
-            salt = user['hash_of_digest']
-            
-            input_hash, _ = self._hash_password(current_password, salt)
-            
-            if input_hash != stored_hash:
-                raise ValueError("Current password is incorrect")
-            
-            # Validate new password
-            if not self._validate_password(new_password):
-                raise ValueError("New password does not meet complexity requirements")
-            
-            # Hash new password
-            new_password_hash, new_salt = self._hash_password(new_password)
-            
-            # Update password
-            self.db_manager.update_document(
-                'users',
-                {'_id': user_id},
-                {
-                    "$set": {
-                        "password": new_password_hash,
-                        "hash_of_digest": new_salt
-                    }
-                }
-            )
-            
-            return {
-                "status": "success",
-                "message": "Password updated successfully"
-            }
-        
         except Exception as e:
-            self.logger.error(f"Error updating user password: {e}")
+            self.logger.error(f"Error retrieving user: {e}")
             raise
 
     def delete_user(self, user_id: str, password: str) -> Dict[str, Any]:

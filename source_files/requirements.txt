@@ -1,0 +1,5 @@
+../../secure-document
+cryptography
+pydantic
+pycryptodome
+bson
