@@ -181,7 +181,7 @@ class Server:
         action_handlers = {
             ActionType.CREATE_NOTE: self._handle_create_note,
             ActionType.EDIT_NOTE: self._handle_edit_note,
-            ActionType.DELETE_NOTE: self._handle_delete_note
+            ActionType.DELETE_NOTE: self._handle_delete_note,
             ActionType.ADD_COLABORATOR: self._handle_add_colaborator,
             ActionType.REMOVE_COLABORATOR: self._handle_remove_colaborator
         }
@@ -307,6 +307,10 @@ class Server:
             note_id,
             owner
         )
+        for editor_id in server_note.get('editors', []):
+            self.user_service.remove_editor_note(editor_id, note_id)
+        for viewer_id in server_note.get('viewers', []):
+            self.user_service.remove_viewer_note(viewer_id, note_id)
 
         return ResponseModel(status='success', message='Note deleted')
 
