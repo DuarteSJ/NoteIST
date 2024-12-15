@@ -19,6 +19,8 @@ class ActionType(Enum):
     ADD_PARTICIPANT = "add_participant"
     REMOVE_PARTICIPANT = "remove_participant"
 
+
+
 class RequestType(Enum):
     """Enum for different request types"""
     REGISTER = "register"

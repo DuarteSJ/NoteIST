@@ -12,15 +12,16 @@ from users import UsersService
 from notes import NotesService
 # Import the new Pydantic models
 from models import (
+    BaseRequestModel,
     RequestType,
     ResponseModel,
-    RequestModelType,
     RequestFactory,
     RegisterRequest,
     PullRequest,
     PushRequest,
     SignedRequestModel,
-    ActionType
+    ActionType,
+    ActionModel
 )
 
 class Server:
@@ -116,7 +117,7 @@ class Server:
             if not self.verify_signature(req):
                 return ResponseModel(status='error', message='Signature verification failed')
             
-            # Get the user
+            # user was found for signature verification
             user = self.user_service.get_user(req.username)
             
             # Prepare to collect results of actions
@@ -124,10 +125,12 @@ class Server:
             
             # Process each action
             for action in req.actions:
-                handler_method = self._get_action_handler(action)
+                if 'type' not in action:
+                    continue
+                handler_method = self._get_action_handler(action.type)
                 if handler_method:
                     try:
-                        result = handler_method(req.username, user)
+                        result = handler_method(action, user)
                         action_results.append({
                             'action': action.value,
                             'status': 'success',
@@ -182,8 +185,8 @@ class Server:
         }
         
         return action_handlers.get(action)
-    #TODO: FIX THIS
-    def _handle_create_note(self, username: str, user: Dict[str, Any]) -> Dict[str, Any]:
+   
+    def _handle_create_note(self, action: Dict[str, Any], user: Dict[str, Any]) -> Dict[str, Any]:
         """
         Handle creating a new note for the user.
         
@@ -191,12 +194,40 @@ class Server:
         :param user: User details
         :return: Details of the created note
         """
-        # Implement note creation logic
-        # This is a placeholder - you'll need to add actual implementation
-        note = self.notes_service.create_note(username=username)
+        # Criar nota:
+        # verificar se id, owner_id existem. Se não criar nota
+        
+        note = action.get('data', {}).get('note')
+        if not note:
+            raise ValueError("Missing note data")
+        
+        note_id = note.get('_id')
+        note_hmac = note.get('hmac')
+        note_iv = note.get('iv')
+        note_title = note.get('title')
+        note_note = note.get('note')
+        if not note_id or not note_hmac or not note_iv or not note_title or not note_note:
+            raise ValueError("Missing required note fields")
+        
+        note = self.notes_service.get_note(note_id,user )
+        if note:
+            #TODO: WHAT TO DO HERE?
+            raise ValueError(f"Note with id {note_id} already exists")
+        
+        note = self.notes_service.create_note(
+            title=note_title,
+            content=note_note,
+            id=note_id,
+            iv=note_iv,
+            hmac=note_hmac,
+            owner=user,
+            note=note
+        )
+
         return note
+    
     #TODO: FIX THIS
-    def _handle_edit_note(self, username: str, note: Dict[str, Any]) -> Dict[str, Any]:
+    def _handle_edit_note(self, action: Dict[str, Any], user: Dict[str, Any]) -> Dict[str, Any]:
         """
         Handle editing an existing note.
         
@@ -204,8 +235,25 @@ class Server:
         :param user: User details
         :return: Details of the edited note
         """
-        # Implement note editing logic
-        # This is a placeholder - you'll need to add actual implementation
+        
+        # recebe uma nota com id, title, content, hmac, iv e version.
+        # checka a version do documento e a atual
+        # se tiver havido um update da parte de um editor, aumenta a versão para a ultima que saiu.
+        # se a versão for a mesma, chama o create_note
+
+        note = action.get('data', {}).get('note')
+        if not note:
+            raise ValueError("Missing note data")
+        
+        note_id = note.get('_id')
+        note_hmac = note.get('hmac')
+        note_iv = note.get('iv')
+        note_title = note.get('title')
+        note_note = note.get('note')
+        note_version = note.get('version')
+
+        last_note_version = self.notes_service.get_note_version(note_id)
+
         note = self.notes_service.edit_note(username=username)
         return note
 
@@ -223,7 +271,7 @@ class Server:
         note = self.notes_service.delete_note(username=username)
         return note
 
-    def handle_request(self, request: RequestModelType) -> ResponseModel:
+    def handle_request(self, request: BaseRequestModel) -> ResponseModel:
         """
         Handle different document operations by delegating to the appropriate service.
         """
@@ -309,7 +357,7 @@ class Server:
                     except Exception as e:
                         self.logger.error(f"Server error: {e}")
 
-if __name__ == '__main__':
+if __name__ == '__main__':#
     from users import get_users_service
     from notes import get_notes_service
     from db_manager import get_database_manager

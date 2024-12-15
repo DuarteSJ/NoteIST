@@ -3,7 +3,7 @@ from typing import Optional, Dict, Any, List
 import datetime
 
 from db_manager import DatabaseManager, get_database_manager
-from infra.common.models import NotesModel
+from models import NotesModel
 
 class NotesService:
     """
@@ -21,53 +21,39 @@ class NotesService:
         self.logger = logging.getLogger(__name__)
 
     def create_note(self, 
-                    title: str, 
-                    content: str, 
-                    owner_id: int, 
-                    editors: Optional[List[int]] = None, 
-                    viewers: Optional[List[int]] = None,
-                    hmac: Optional[str] = None) -> Dict[str, Any]:
-        """
-        Create a new note with comprehensive validation
-        
-        Args:
-            title (str): Note title
-            content (str): Note content
-            owner_id (int): ID of the note owner
-            editors (list, optional): List of user IDs who can edit
-            viewers (list, optional): List of user IDs who can view
-            hmac (str, optional): HMAC for note integrity
-        
-        Returns:
-            Dict containing the created note details
-        """
+                title: str,
+                content: str,
+                id: int,
+                iv: str,
+                hmac: str,
+                owner: Dict[str, Any],
+                editors: Optional[List[int]] = None, 
+                viewers: Optional[List[int]] = None) -> Dict[str, Any]:
         try:
-            # Validate owner exists
-            owner = self.db_manager.find_document('users', {'_id': owner_id})
-            if not owner:
-                raise ValueError(f"User with ID {owner_id} not found")
-
             # Prepare note data
+            owner_id = owner.get('id')
             note_data = {
-                "hmac": hmac or "",  # Optional HMAC
+                "_id": id,
+                "iv": iv,
+                "hmac": hmac,
                 "title": title,
-                "content": content,
-                "owner": owner_id,
-                "editors": editors or [],
-                "viewers": viewers or [],
-                "date_created": datetime.datetime.utcnow(),
-                "date_modified": datetime.datetime.utcnow(),
+                "note": content,
+                "date_created": datetime.datetime.now(datetime.timezone.utc),
+                "date_modified": datetime.datetime.now(datetime.timezone.utc),
                 "last_modified_by": owner_id,
-                "version": 1
+                "version": 1,
+                "owner": {
+                        "id": owner_id,
+                        "username": owner.get('username')
+                        },
+                "editors": [{"id": editor} for editor in (editors or [])],
+                "viewers": [{"id": viewer} for viewer in (viewers or [])],
             }
-
-            # Validate using Pydantic model
-            note_model = NotesModel(**note_data)
 
             # Insert note
             note_id = self.db_manager.insert_document(
                 'notes', 
-                note_model.model_dump(by_alias=True)
+                note_data
             )
             
             # Update user's owned notes
@@ -85,29 +71,44 @@ class NotesService:
             self.logger.error(f"Error creating note: {e}")
             raise
 
-    def get_note(self, note_id: str, user_id: int) -> Dict[str, Any]:
+    def get_note(self, note_id: str, owner_id: int, version: int = None) -> Dict[str, Any]:
         """
-        Retrieve a note with permission checks
+        Retrieve a note with permission checks using unique identifiers
         
         Args:
             note_id (str): ID of the note to retrieve
-            user_id (int): ID of the user requesting the note
+            owner_id (int): ID of the note owner
+            version (int, optional): Version of the note. Defaults to 1.
         
         Returns:
             Dict containing note details if user has permission
         """
         try:
-            # Find the note
-            note = self.db_manager.find_document('notes', {'_id': note_id})
+            # Find the note using the unique combination of identifiers
+            if version:
+                note = self.db_manager.find_document('notes', {
+                    '_id': note_id, 
+                    'version': version,
+                    'owner.id': owner_id
+                })
+            else:
+                note = self.db_manager.find_document('notes', {
+                    '_id': note_id, 
+                    'owner.id': owner_id
+                })
             
             if not note:
-                raise ValueError("Note not found")
+                return None
             
-            # Check user permissions
-            if (user_id != note['owner'] and 
-                user_id not in note['editors'] and 
-                user_id not in note['viewers']):
-                raise PermissionError("User does not have permission to access this note")
+            #TODO: is this needed?
+            # # Check user permissions
+            # # Check if the requesting user is the owner, an editor, or a viewer
+            # is_owner = owner_id == note['owner']['id']
+            # is_editor = any(editor['id'] == owner_id for editor in note.get('editors', []))
+            # is_viewer = any(viewer['id'] == owner_id for viewer in note.get('viewers', []))
+            
+            # if not (is_owner or is_editor or is_viewer):
+            #     raise PermissionError("User does not have permission to access this note")
             
             return note
         
