@@ -182,6 +182,8 @@ class Server:
             ActionType.CREATE_NOTE: self._handle_create_note,
             ActionType.EDIT_NOTE: self._handle_edit_note,
             ActionType.DELETE_NOTE: self._handle_delete_note
+            ActionType.ADD_COLABORATOR: self._handle_add_colaborator,
+            ActionType.REMOVE_COLABORATOR: self._handle_remove_colaborator
         }
         
         return action_handlers.get(action)

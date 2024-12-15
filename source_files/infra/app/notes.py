@@ -271,6 +271,189 @@ class NotesService:
             self.logger.error(f"Error retrieving user notes: {e}")
             raise
 
+    def add_note_viewer(self, note_id: str, owner_id: int, user_id: int) -> Dict[str, Any]:
+        """
+        Add a viewer to a note
+        
+        Args:
+            note_id (str): ID of the note
+            owner_id (int): ID of the note owner
+            user_id (int): ID of the user to add as a viewer
+            
+        Returns:
+            Dict with status of the operation
+        """
+        try:
+            # Find the note
+            note = self.db_manager.find_document('notes', {'_id': note_id})
+            if not note:
+                raise ValueError("Note not found")
+            
+            
+            # Check if the requesting user is the owner 
+            if owner_id != note['owner']:
+                raise PermissionError("Only the note owner can add viewers")
+            
+            # Check if the user is already a viewer
+            if user_id in note.get('viewers', []):
+                return {
+                    "status": "success",
+                    "message": "User is already a viewer"
+                }
+            
+            # Add user as a viewer
+            self.db_manager.update_document(
+                'notes',
+                {'_id': note_id},
+                {'$push': {'viewers': user_id}}
+            )
+            
+            # Check if the note is on the user's viewer list
+
+
+            return {
+                "status": "success",
+                "message": "User added as a viewer"
+            }
+        
+        except Exception as e:
+            self.logger.error(f"Error adding viewer to note: {e}")
+            raise
+
+    def remove_note_viewer(self, note_id: str, owner_id: int, user_id: int) -> Dict[str, Any]:
+        """
+        Remove a viewer from a note
+        
+        Args:
+            note_id (str): ID of the note
+            owner_id (int): ID of the note owner
+            user_id (int): ID of the user to remove as a viewer
+            
+        Returns:
+            Dict with status of the operation
+        """
+        try:
+            # Find the note
+            note = self.db_manager.find_document('notes', {'_id': note_id})
+            if not note:
+                raise ValueError("Note not found")
+            
+            # Check if the requesting user is the owner 
+            if owner_id != note['owner']:
+                raise PermissionError("Only the note owner can remove viewers")
+            
+            # Check if the user is a viewer
+            if user_id not in note.get('viewers', []):
+                return {
+                    "status": "success",
+                    "message": "User is not a viewer"
+                }
+            
+            # Remove user as a viewer
+            self.db_manager.update_document(
+                'notes',
+                {'_id': note_id},
+                {'$pull': {'viewers': user_id}}
+            )
+            
+            return {
+                "status": "success",
+                "message": "User removed as a viewer"
+            }
+        
+        except Exception as e:
+            self.logger.error(f"Error removing viewer from note: {e}")
+            raise
+
+    def add_note_editor(self, note_id: str, owner_id: int, user_id: int) -> Dict[str, Any]:
+        """
+        Add an editor to a note
+        
+        Args:
+            note_id (str): ID of the note
+            owner_id (int): ID of the note owner
+            user_id (int): ID of the user to add as an editor
+            
+        Returns:
+            Dict with status of the operation
+        """
+        try:
+            # Find the note
+            note = self.db_manager.find_document('notes', {'_id': note_id})
+            if not note:
+                raise ValueError("Note not found")
+            
+            # Check if the requesting user is the owner 
+            if owner_id != note['owner']:
+                raise PermissionError("Only the note owner can add editors")
+            
+            # Check if the user is already an editor
+            if user_id in note.get('editors', []):
+                return {
+                    "status": "success",
+                    "message": "User is already an editor"
+                }
+            
+            # Add user as an editor
+            self.db_manager.update_document(
+                'notes',
+                {'_id': note_id},
+                {'$push': {'editors': user_id}}
+            )
+            
+            return {
+                "status": "success",
+                "message": "User added as an editor"
+            }
+        
+        except Exception as e:
+            self.logger.error(f"Error adding editor to note: {e}")
+            raise
+
+    def remove_note_editor(self, note_id: str, owner_id: int, user_id: int) -> Dict[str, Any]:
+        """
+        Remove an editor from a note
+        
+        Args:
+            note_id (str): ID of the note
+            owner_id (int): ID of the note owner
+            user_id (int): ID of the user to remove as an editor
+            
+        Returns:
+            Dict with status of the operation
+        """
+        try:
+            # Find the note
+            note = self.db_manager.find_document('notes', {'_id': note_id})
+            if not note:
+                raise ValueError("Note not found")
+            
+            # Check if the requesting user is the owner 
+            if owner_id != note['owner']:
+                raise PermissionError("Only the note owner can remove editors")
+            
+            # Check if the user is an editor
+            if user_id not in note.get('editors', []):
+                return {
+                    "status": "success",
+                    "message": "User is not an editor"
+                }
+            
+            # Remove user as an editor
+            self.db_manager.update_document(
+                'notes',
+                {'_id': note_id},
+                {'$pull': {'editors': user_id}}
+            )
+            
+            return {
+                "status": "success",
+                "message": "User removed as an editor"
+            }
+        
+        except Exception as e:
+            self.logger.error(f"Error removing editor from note: {e}")
+            raise
 
 def get_notes_service(db_manager):
     """

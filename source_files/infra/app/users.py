@@ -166,6 +166,130 @@ class UsersService:
             self.logger.error(f"Error checking note permissions: {e}")
             raise
 
+    def add_viewer_note(self, user_id: int, note_id: int) -> Dict[str, Any]:
+        """
+        Add a note to the list of notes the user can view
+        
+        Args:
+            user_id (int): ID of the user
+            note_id (int): ID of the note
+        
+        Returns:
+            Dict[str, Any]: A dictionary containing the updated user document
+        """
+        try:
+            # Get user document
+            user = self.db_manager.find_document('users', {'_id': user_id})
+
+            if not user:
+                raise ValueError("User not found")
+
+            # Update user document
+            updated_user = self.db_manager.update_document(
+                'users',
+                {'_id': user_id},
+                {'$addToSet': {'viewer_notes': note_id}}
+            )
+
+            return updated_user
+        
+        except Exception as e:
+            self.logger.error(f"Error adding viewer note: {e}")
+            raise
+
+    def remove_viewer_note(self, user_id: int, note_id: int) -> Dict[str, Any]:
+        """
+        Remove a note from the list of notes the user can view
+        
+        Args:
+            user_id (int): ID of the user
+            note_id (int): ID of the note
+        
+        Returns:
+            Dict[str, Any]: A dictionary containing the updated user document
+        """
+        try:
+            # Get user document
+            user = self.db_manager.find_document('users', {'_id': user_id})
+
+            if not user:
+                raise ValueError("User not found")
+
+            # Update user document
+            updated_user = self.db_manager.update_document(
+                'users',
+                {'_id': user_id},
+                {'$pull': {'viewer_notes': note_id}}
+            )
+
+            return updated_user
+        
+        except Exception as e:
+            self.logger.error(f"Error removing viewer note: {e}")
+            raise
+
+    def add_editor_note(self, user_id: int, note_id: int) -> Dict[str, Any]:
+        """
+        Add a note to the list of notes the user can edit
+        
+        Args:
+            user_id (int): ID of the user
+            note_id (int): ID of the note
+        
+        Returns:
+            Dict[str, Any]: A dictionary containing the updated user document
+        """
+        try:
+            # Get user document
+            user = self.db_manager.find_document('users', {'_id': user_id})
+
+            if not user:
+                raise ValueError("User not found")
+
+            # Update user document
+            updated_user = self.db_manager.update_document(
+                'users',
+                {'_id': user_id},
+                {'$addToSet': {'editor_notes': note_id}}
+            )
+
+            return updated_user
+        
+        except Exception as e:
+            self.logger.error(f"Error adding editor note: {e}")
+            raise
+
+    def remove_editor_note(self, user_id: int, note_id: int) -> Dict[str, Any]:
+        """
+        Remove a note from the list of notes the user can edit
+        
+        Args:
+            user_id (int): ID of the user
+            note_id (int): ID of the note
+        
+        Returns:
+            Dict[str, Any]: A dictionary containing the updated user document
+        """
+        try:
+            # Get user document
+            user = self.db_manager.find_document('users', {'_id': user_id})
+
+            if not user:
+                raise ValueError("User not found")
+
+            # Update user document
+            updated_user = self.db_manager.update_document(
+                'users',
+                {'_id': user_id},
+                {'$pull': {'editor_notes': note_id}}
+            )
+
+            return updated_user
+        
+        except Exception as e:
+            self.logger.error(f"Error removing editor note: {e}")
+            raise
+
 # Factory function for creating UsersService
 def get_users_service(db_manager):
     """
