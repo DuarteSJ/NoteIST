@@ -226,9 +226,8 @@ class Server:
             note=note
         )
 
-        return note
+        return ResponseModel(status='success', message='Note created')
     
-    #TODO: FIX THIS
     def _handle_edit_note(self, action: Dict[str, Any], user: Dict[str, Any]) -> Dict[str, Any]:
         """
         Handle editing an existing note.
@@ -277,10 +276,9 @@ class Server:
             version=note_version
         )
 
-        return note
+        return ResponseModel(status='success', message='Note edited')
 
-    #TODO: FIX THIS
-    def _handle_delete_note(self, username: str, user: Dict[str, Any]) -> Dict[str, Any]:
+    def _handle_delete_note(self, action: Dict[str, Any], user: Dict[str, Any]) -> Dict[str, Any]:
         """
         Handle deleting a note.
         
@@ -288,10 +286,31 @@ class Server:
         :param user: User details
         :return: Details of the deleted note
         """
-        # Implement note deletion logic
-        # This is a placeholder - you'll need to add actual implementation
-        note = self.notes_service.delete_note(username=username)
-        return note
+        
+        sent_note = action.get('data', {}).get('note')
+        if not sent_note:
+            raise ValueError("Missing note data")
+        
+        owner = sent_note.get('owner')
+        server_note = self.notes_service.get_note(sent_note.get('_id'), owner)
+
+        perms = self.user_service.check_user_note_permissions(user.get("_id"), server_note)
+        if not perms.get("is_owner"):
+            raise ValueError("User does not have permission to delete this note")
+        
+        note_id = sent_note.get('_id')
+        
+        if not note_id:
+            raise ValueError("Missing required note fields")
+        
+        self.notes_service.delete_note(
+            note_id,
+            owner
+        )
+
+        return ResponseModel(status='success', message='Note deleted')
+
+        
 
     def handle_request(self, request: BaseRequestModel) -> ResponseModel:
         """

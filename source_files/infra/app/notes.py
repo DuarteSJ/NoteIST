@@ -161,35 +161,34 @@ class NotesService:
             return latest_note
         
         except Exception as e:
-            self.logger.error(f"Error retrieving latest note version: {e}")
+            self.logger.error(f"Error retrieving note: {e}")
             raise
 
     def delete_note(self, note_id: str, user_id: int) -> Dict[str, Any]:
         """
-        Delete a note with owner permission check
+        Delete all notes with the given _id and owner[_id] equal to user_id.
         
         Args:
-            note_id (str): ID of the note to delete
-            user_id (int): ID of the user deleting the note
+            note_id (str): ID of the notes to delete.
+            user_id (int): ID of the user deleting the notes.
         
         Returns:
-            Dict with deletion status
+            Dict: Deletion status.
         """
         try:
-            # Find the existing note
-            note = self.db_manager.find_document('notes', {'_id': note_id})
+            # Query to find notes with matching _id and owner._id
+            query = {"_id": note_id, "owner._id": user_id}
             
-            if not note:
-                raise ValueError("Note not found")
+            # Find matching notes
+            notes = self.db_manager.find_documents('notes', query)
             
-            # Check delete permissions (only owner can delete)
-            if user_id != note['owner']:
-                raise PermissionError("Only the note owner can delete this note")
+            if not notes:
+                raise ValueError("No notes found")
+
+            # Delete the matching notes
+            delete_count = self.db_manager.delete_documents('notes', query)
             
-            # Delete note
-            delete_count = self.db_manager.delete_document('notes', {'_id': note_id})
-            
-            # Remove note from user's owned notes
+            # Update the user's owned notes list
             self.db_manager.update_document(
                 'users',
                 {'_id': user_id},
@@ -198,15 +197,15 @@ class NotesService:
             
             if delete_count:
                 return {
-                    "status": "success", 
-                    "message": "Note deleted successfully",
+                    "status": "success",
+                    "message": f"{delete_count} note(s) deleted successfully",
                     "note_id": note_id
                 }
             
             raise ValueError("Note deletion failed")
         
         except Exception as e:
-            self.logger.error(f"Error deleting note: {e}")
+            self.logger.error(f"Error deleting notes: {e}")
             raise
 
     def get_user_notes(self, user_id: int) -> List[Dict[str, Any]]:
