@@ -243,34 +243,36 @@ class Server:
         # se tiver havido um update da parte de um editor, aumenta a versão para a ultima que saiu.
         # se a versão for a mesma, chama o create_note
 
-        note = action.get('data', {}).get('note')
-        if not note:
+        sent_note = action.get('data', {}).get('note')
+        if not sent_note:
             raise ValueError("Missing note data")
         
-        perms = self.user_service.check_user_note_permissions(user.get("_id"), note)
+        owner = sent_note.get('owner')
+        server_note = self.notes_service.get_note(sent_note.get('_id'), owner)
+        
+        perms = self.user_service.check_user_note_permissions(user.get("_id"), server_note)
         if not perms.get("is_editor"):
             raise ValueError("User does not have permission to edit this note")
         
-        note_id = note.get('_id')
-        note_hmac = note.get('hmac')
-        note_iv = note.get('iv')
-        note_title = note.get('title')
-        note_note = note.get('note')
-        note_version = note.get('version')
+        note_id = sent_note.get('_id')
+        owner_id = sent_note.get('owner').get('_id')
+        note_hmac = sent_note.get('hmac')
+        note_iv = sent_note.get('iv')
+        note_title = sent_note.get('title')
+        note_note = sent_note.get('note')
+        note_version = sent_note.get('version')
 
-        _,last_note_version = self.notes_service.get_note_version(note_id)
-        if note_version < last_note_version:
-            note_version = last_note_version
-        elif note_version > last_note_version:
-            raise ValueError("Something went wrong with the note versioning (version is higher than the last one)")
+        if not note_id or not note_hmac or not note_iv or not note_title or not note_note or not note_version or not owner_id:
+            raise ValueError("Missing required note fields")
         
-        note = self.notes_service.create_note(
+        note = self.notes_service.edit_note(
             title=note_title,
             content=note_note,
             id=note_id,
             iv=note_iv,
             hmac=note_hmac,
-            owner=user,
+            owner=owner,
+            editor=user,
             note=note,
             version=note_version
         )

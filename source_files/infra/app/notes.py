@@ -4,6 +4,7 @@ import datetime
 
 from db_manager import DatabaseManager, get_database_manager
 from models import NotesModel
+from pymongo.errors import DuplicateKeyError
 
 class NotesService:
     """
@@ -81,96 +82,59 @@ class NotesService:
                 owner: Dict[str, Any],
                 editor: Dict[str, Any],
                 version: int,
+                max_retries: int = 3,
                 ) -> Dict[str, Any]:
-        try:
-            # First, retrieve the existing note to get the current version and other details
-            existing_note, last_server_version = self.get_note_version(id, owner.get('id'))
-            
-            if not existing_note:
-                #TODO: what to do?
-                raise ValueError("Note no longer exists")
-            
-            if last_server_version < version:
-                version = last_server_version+1
-            elif last_server_version > version:
-                raise ValueError("Something went wrong with the versioning. Trying restarting the app.")
-            
-            # Prepare note data for the new version
-            note_data = {
-                "_id": id,
-                "iv": iv,
-                "hmac": hmac,
-                "title": title,
-                "note": content,
-                "date_created": existing_note['date_created'],  # Keep original creation date
-                "date_modified": datetime.datetime.now(datetime.timezone.utc),
-                "last_modified_by": editor.get('id'),
-                "version": version,
-                "owner": existing_note['owner'],
-                "editors": existing_note.get('editors', []),
-                "viewers": existing_note.get('viewers', [])
-            }
+        while retries < max_retries:
+            try:
+                # First, retrieve the existing note to get the current version and other details
+                existing_note = self.get_note(id, owner.get('id'))
+                last_server_version = existing_note.get('version')
+                
+                if not existing_note:
+                    #TODO: what to do?
+                    raise ValueError("Note no longer exists")
+                
+                if last_server_version < version:
+                    version = last_server_version+1
+                elif last_server_version > version:
+                    raise ValueError("Something went wrong with the versioning. Trying restarting the app.")
+                
+                # Prepare note data for the new version
+                note_data = {
+                    "_id": id,
+                    "iv": iv,
+                    "hmac": hmac,
+                    "title": title,
+                    "note": content,
+                    "date_created": existing_note['date_created'],  # Keep original creation date
+                    "date_modified": datetime.datetime.now(datetime.timezone.utc),
+                    "last_modified_by": editor.get('id'),
+                    "version": version,
+                    "owner": existing_note['owner'],
+                    "editors": existing_note.get('editors', []),
+                    "viewers": existing_note.get('viewers', [])
+                }
 
-            # Insert the new version of the note
-            note_id = self.db_manager.insert_document(
-                'notes', 
-                note_data
-            )
+                # Insert the new version of the note
+                note_id = self.db_manager.insert_document(
+                    'notes', 
+                    note_data
+                )
+                
+                # Log and return
+                self.logger.info(f"Note edited with ID: {note_id}, new version: {version}")
+                return {**note_data, "_id": note_id}
             
-            # Log and return
-            self.logger.info(f"Note edited with ID: {note_id}, new version: {version}")
-            return {**note_data, "_id": note_id}
-        
-        except Exception as e:
-            self.logger.error(f"Error editing note: {e}")
-            raise
+            except Exception as e:
+                self.logger.error(f"Error editing note: {e}")
+                raise
+            except DuplicateKeyError:
+                # Increment retry counter and try again
+                retries += 1
+                print(f"DuplicateKeyError encountered, retrying... Attempt {retries}/{max_retries}")
+        raise ValueError("Failed to insert a new version after multiple retries")
 
-    def get_note(self, note_id: str, owner_id: int, version: int = None) -> Dict[str, Any]:
-        """
-        Retrieve a note with permission checks using unique identifiers
-        
-        Args:
-            note_id (str): ID of the note to retrieve
-            owner_id (int): ID of the note owner
-            version (int, optional): Version of the note. Defaults to 1.
-        
-        Returns:
-            Dict containing note details if user has permission
-        """
-        try:
-            # Find the note using the unique combination of identifiers
-            if version:
-                note = self.db_manager.find_document('notes', {
-                    '_id': note_id, 
-                    'version': version,
-                    'owner.id': owner_id
-                })
-            else:
-                note = self.db_manager.find_document('notes', {
-                    '_id': note_id, 
-                    'owner.id': owner_id
-                })
-            
-            if not note:
-                return None
-            
-            #TODO: is this needed?
-            # # Check user permissions
-            # # Check if the requesting user is the owner, an editor, or a viewer
-            # is_owner = owner_id == note['owner']['id']
-            # is_editor = any(editor['id'] == owner_id for editor in note.get('editors', []))
-            # is_viewer = any(viewer['id'] == owner_id for viewer in note.get('viewers', []))
-            
-            # if not (is_owner or is_editor or is_viewer):
-            #     raise PermissionError("User does not have permission to access this note")
-            
-            return note
-        
-        except Exception as e:
-            self.logger.error(f"Error retrieving note: {e}")
-            raise
-
-    def get_note_version(self, note_id: str, owner_id: int) -> Dict[str, Any]:
+    def get_note(self, note_id: str, owner_id: int) -> Dict[str, Any]:
         """
         Retrieve the latest version of a note for a given note ID and owner
         
@@ -194,7 +158,7 @@ class NotesService:
             if not latest_note:
                 raise ValueError("Note not found")
             
-            return latest_note, latest_note.get('version')
+            return latest_note
         
         except Exception as e:
             self.logger.error(f"Error retrieving latest note version: {e}")
