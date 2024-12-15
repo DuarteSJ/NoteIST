@@ -102,6 +102,7 @@ class ResponseModel(BaseModel):
     digest_of_hashes: Optional[str] = None
     documents: Optional[List[Dict[str, Any]]] = None
     document: Optional[Dict[str, Any]] = None
+    curr_note_id: Optional[int] = None
 
 
 def convert_objectid(value):

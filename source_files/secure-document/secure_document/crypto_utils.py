@@ -126,18 +126,21 @@ class SecureDocumentHandler:
             hmac_input = b""
 
             for k, v in json_data.items():
-                # Convert value to bytes for encryption
-                # TODO: assuming its string
-                value_bytes = str(v).encode('utf-8')
+                if k in ["title", "note"]:
+                    # Convert value to bytes for encryption
+                    # TODO: assuming its string
+                    value_bytes = str(v).encode('utf-8')
 
-                # Encrypt the value
-                encrypted_value = cipher.encrypt(pad(value_bytes, AES.block_size))
+                    # Encrypt the value
+                    encrypted_value = cipher.encrypt(pad(value_bytes, AES.block_size))
 
-                # Store encrypted value
-                encrypted_json[k] = encrypted_value.hex()
+                    # Store encrypted value
+                    encrypted_json[k] = encrypted_value.hex()
 
-                # Accumulate data for HMAC
-                hmac_input += k.encode('utf-8') + value_bytes
+                    # Accumulate data for HMAC
+                    hmac_input += k.encode('utf-8') + value_bytes
+                else:
+                    encrypted_json[k] = v
 
             # Compute HMAC for all keys and values
             hmac = HMAC.new(key, digestmod=SHA256)
@@ -180,15 +183,18 @@ class SecureDocumentHandler:
 
             # Decrypt and verify each value
             for k, v in encrypted_data.items():
-                # Decrypt the value
-                encrypted_value = bytes.fromhex(v)
-                decrypted_value = unpad(cipher.decrypt(encrypted_value), AES.block_size).decode('utf-8')
+                if k in ["title", "note"]:
+                    # Decrypt the value
+                    encrypted_value = bytes.fromhex(v)
+                    decrypted_value = unpad(cipher.decrypt(encrypted_value), AES.block_size).decode('utf-8')
 
-                # Store decrypted value
-                decrypted_json[k] = decrypted_value
+                    # Store decrypted value
+                    decrypted_json[k] = decrypted_value
 
-                # Accumulate data for HMAC verification
-                hmac_input += k.encode('utf-8') + decrypted_value.encode('utf-8')
+                    # Accumulate data for HMAC verification
+                    hmac_input += k.encode('utf-8') + decrypted_value.encode('utf-8')
+                else:
+                    decrypted_json[k] = v
 
             # Verify HMAC
             hmac = HMAC.new(key, digestmod=SHA256)
@@ -226,12 +232,13 @@ class SecureDocumentHandler:
             cipher = AES.new(key, AES.MODE_CBC, iv)
 
             for k, v in encrypted_data.items():
-                # Convert encrypted value back to bytes
-                encrypted_value = bytes.fromhex(v)
-                decrypted_value = unpad(cipher.decrypt(encrypted_value), AES.block_size).decode('utf-8')
+                if k in ["title", "note"]:
+                    # Convert encrypted value back to bytes
+                    encrypted_value = bytes.fromhex(v)
+                    decrypted_value = unpad(cipher.decrypt(encrypted_value), AES.block_size).decode('utf-8')
 
-                # Prepare data for HMAC
-                hmac_input += k.encode('utf-8') + decrypted_value.encode('utf-8')
+                    # Prepare data for HMAC
+                    hmac_input += k.encode('utf-8') + decrypted_value.encode('utf-8')
 
             # Compute HMAC and compare
             hmac = HMAC.new(key, digestmod=SHA256)

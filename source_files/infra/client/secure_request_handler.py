@@ -72,8 +72,10 @@ class SecureRequestHandler:
             )
 
     def push_changes(self, private_key_path: str, changes: List[dict]) -> ResponseModel:
-        payload = self._create_signed_payload(changes, private_key_path)
-        return self._send_request(payload)
+        print(f"changes: {changes}")
+        # payload = self._create_signed_payload(changes, private_key_path)
+        # return self._send_request(payload)
+
 
     def pull_changes(self, private_key_path: str) -> ResponseModel:
         pass
@@ -91,3 +93,10 @@ class SecureRequestHandler:
         # }
         # payload = self._create_signed_payload(request_data, private_key_path)
         # return self._send_request(payload)
+
+    def add_contributor() -> ResponseModel:
+        pass
+
+
+    def remove_contributor() -> ResponseModel:
+        pass

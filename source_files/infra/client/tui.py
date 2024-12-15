@@ -1,10 +1,12 @@
 import os
 import shutil
 from typing import Optional
-from utils import *
+from utils import generate_key, store_key, writeToFile, readJson, unencryptFile, getNoteInfo
 from cryptography.hazmat.primitives.asymmetric import rsa
 from key_manager import generate_key_pair
 from secure_request_handler import SecureRequestHandler
+from models import ActionType
+import json
 
 
 class NoteIST:
@@ -26,6 +28,7 @@ class NoteIST:
         # Specific paths
         self.host = host
         self.port = port
+        self.id = 0 # If this is not the first time the client is running, this will get updated by the server later
         self.cert_path = cert_path
         self.notes_dir = os.path.join(self.base_data_dir, "notes")
         self.priv_key_path = os.path.join(self.base_config_dir, "priv_key.pem")
@@ -151,6 +154,10 @@ class NoteIST:
             print(f"Server registration error: {e}")
             raise
 
+    def _get_next_id(self) -> int:
+        """Returns the next available ID for a note."""
+        self.id += 1
+        return self.id
     def main_menu(self):
         """Displays the main menu and returns the user's choice."""
         print("\n=== NoteIST ===")
@@ -185,17 +192,22 @@ class NoteIST:
         content = input("Enter note content: ")
 
         writeToFile(
-            note_path,
-            key_file,
-            title,
-            content,
-            1,
+            id=self._get_next_id(),
+            filePath=note_path,
+            keyFile=key_file,
+            title=title,
+            content=content,
+            version=1,
+            owner=self.username,
+            editors=[],
+            viewers=[],
         )
+        encryptedNote = readJson(note_path)
         self.changes.append({
-            "type": "create_note",
-            "note_title": title,
-            "version": "v1.notist",
-            "content": content
+            "type": ActionType.CREATE_NOTE,
+            "data": {
+                "note": encryptedNote,
+            }
         })        
         print(f"Note '{title}' created successfully!")
 
@@ -257,7 +269,7 @@ class NoteIST:
 
         filepath = os.path.join(note_dir, version)
 
-        content = readFromFile(filepath, key_file)
+        content = unencryptFile(filepath, key_file)["note"]
 
         print("\nContent of the selected note version:")
         print(content)
@@ -311,7 +323,8 @@ class NoteIST:
 
         filepath = os.path.join(note_dir, version)
         key_file = os.path.join(note_dir, "key")
-        content = readFromFile(filepath, key_file)
+        note = unencryptFile(filepath, key_file)
+        content = note["note"]
         print("\nCurrent Content:")
         print(content)
 
@@ -321,19 +334,26 @@ class NoteIST:
         key_file = os.path.join(note_dir, "key")
 
         writeToFile(
-            new_filepath,
-            key_file,
-            selected_note,
-            new_content,
-            new_version,
+            filePath=new_filepath,
+            keyFile=key_file,
+            content=new_content,
+            version=new_version,
+            # these are not changed
+            id=note["_id"],
+            title=note["title"],
+            owner=note["owner"],
+            editors=note["editors"],
+            viewers=note["viewers"],
         )
         print(f"Note '{selected_note}' version {new_version} updated successfully!")
+        
+        encrypted_note = readJson(new_filepath)
 
         self.changes.append({
-            "type": "edit_note",
-            "note_title": selected_note,
-            "new_version": f"v{new_version}.notist",
-            "new_content": new_content
+            "type": ActionType.EDIT_NOTE,
+            "data": {
+                "note": encrypted_note,
+            },
         })
 
     def _get_next_version(self, note_dir):
@@ -368,22 +388,30 @@ class NoteIST:
         selected_note = note_dirs[choice - 1]
         note_dir = os.path.join(self.notes_dir, selected_note)
 
+        versions = [f for f in os.listdir(note_dir) if f.endswith(".notist")]
+
+        if versions: # directory is not empty, get id and add change
+            id = getNoteInfo(versions[0])["id"]
+            self.changes.append({
+                "type": ActionType.DELETE_NOTE,
+                "data": {
+                    "note_id": id, 
+                }
+            })
+
         shutil.rmtree(note_dir)
         print(f"All versions of note '{selected_note}' deleted successfully!")
 
-        self.changes.append({
-            "type": "delete_note",
-            "": selected_note,
-        })
 
     def push_changes(self):
         """Function to push changes to the server."""
         response = self.request_handler.push_changes(self.priv_key_path, self.changes)
         print(f"Push changes response: {response.status} - {response.message}")
-    
+
     def pull_changes(self):
         """Function to pull changes from the server."""
         response = self.request_handler.pull_changes(self.priv_key_path)
+        id = 0  # TODO: extract id from response
         print(f"Pull changes response: {response.status} - {response.message}")
 
 def main():

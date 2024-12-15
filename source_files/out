@@ -1,7 +1,35 @@
 {
-  "iv": "48d5c94dc3da0e5733bfb3ab94b98ee0",
-  "hmac": "f58c4a2d08be9ad52982874b4b327a13f951fb242ad3595ca8b1ced0537745e8",
-  "id": "63e7e4f7bba7a463628f9ff790564fca",
-  "title": "8685886efcadd83c0023e2d5589535b7ca381c710d2743d55f17a1ab0c2160eb",
-  "note": "58ae11f9cde20ff84965585c1b2566705f13965ca42667dac04e4659c4580bbd"
+  "iv": "6ff2fe5d08acaf9073f6b0c256af0532",
+  "hmac": "22f7f16e4f636c2761bbcc7aee7e84b75e549a84f8baab3d8a25f661cd209840",
+  "id": 123,
+  "title": "150f9c917dd73e5f64d02eb6c33858c038d49015e2eb3d52f62fbc0f132da55f",
+  "note": "14c3d849953f149b4b79ee050d4aa9174432d15a99f63286c1698b899eed2827",
+  "data_created": "2022-01-01T12:00:00Z",
+  "date_modified": "2022-01-02T12:00:00Z",
+  "last_modified_by": 456,
+  "version": 3,
+  "owner": {
+    "id": 456,
+    "username": "johna"
+  },
+  "editors": [
+    {
+      "id": 789,
+      "username": "jane"
+    },
+    {
+      "id": 1011,
+      "username": "bob"
+    }
+  ],
+  "viewers": [
+    {
+      "id": 1213,
+      "username": "alice"
+    },
+    {
+      "id": 1415,
+      "username": "charlie"
+    }
+  ]
 }

@@ -234,6 +234,41 @@ class NotesService:
             self.logger.error(f"Error retrieving user notes: {e}")
             raise
 
+    def get_next_note_id(self, owner_id: int) -> int:
+        """
+        Generate the next unique note ID for a specific owner
+        
+        Args:
+            owner_id (int): ID of the note owner
+        
+        Returns:
+            int: The next unique note ID for the owner
+        """
+        try:
+            # Find the maximum existing note ID for this owner
+            max_note_query = {
+                'owner.id': owner_id
+            }
+            
+            # Sort in descending order and limit to 1 to get the highest _id
+            max_note = self.db_manager.find_document(
+                'notes', 
+                max_note_query, 
+                sort=[('_id', -1)], 
+                limit=1
+            )
+            
+            # If no notes exist for this owner, start with 1
+            if not max_note:
+                return 1
+            
+            # Return the next integer ID
+            return max_note['_id'] + 1
+        
+        except Exception as e:
+            self.logger.error(f"Error generating next note ID: {e}")
+            raise
+
     def add_note_viewer(self, note_id: str, owner_id: int, user_id: int) -> Dict[str, Any]:
         """
         Add a viewer to a note

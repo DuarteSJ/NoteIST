@@ -64,7 +64,6 @@ class Server:
         """
         Handle the registration request.
         """
-
         try:
             self.user_service.create_user(req.username, req.public_key)
             return ResponseModel(status='success', message='User registered')
@@ -92,13 +91,16 @@ class Server:
                 digest_of_hmacs = ""
             
             documents = self.notes_service.get_user_notes(username=req.username)
+            note_id = self.notes_service.get_next_note_id(user.get("_id"))
 
             return ResponseModel(
                 status='success',
                 message='Documents retrieved successfully',
                 digest_of_hashes=digest_of_hmacs,
-                documents=documents
+                documents=documents,
+                curr_note_id=note_id
             )
+        
         except ValidationError as ve:
             self.logger.error(f"Validation Error: {ve}")
             return ResponseModel(status='error', message=str(ve))
@@ -287,9 +289,12 @@ class Server:
         :return: Details of the deleted note
         """
         
-        sent_note = action.get('data', {}).get('note')
-        if not sent_note:
-            raise ValueError("Missing note data")
+        # sent_note = action.get('data', {}).get('note')
+        # if not sent_note:
+        #     raise ValueError("Missing note data")
+
+        owner =
+        note_id = action.get()
         
         owner = sent_note.get('owner')
         server_note = self.notes_service.get_note(sent_note.get('_id'), owner)
@@ -314,9 +319,97 @@ class Server:
 
         return ResponseModel(status='success', message='Note deleted')
 
+
+
+    def _handle_add_colaborator(self, action: Dict[str, Any], user: Dict[str, Any]) -> Dict[str, Any]:
+        """
+        Handle adding colaborators to a note.
+        colaborators can be viewers or editors. (decided in the action data)
+        {
+            "type": "ADD_COLABORATOR",
+            "data": {
+                "note_id": 
+                "editorFlag": True/False,
+                "colaborator_name":
+            }
+        }
+
+        """
+        action_owner_id = user.get("_id")
+        note_id = action.get('data', {}).get('note_id')
+        colaborator_name = action.get('data', {}).get('colaborator_name')
+        editorFlag = action.get('data', {}).get('editorFlag')
+
+        if not note_id or not colaborator_name or editorFlag is None:
+            raise ValueError("Missing required note fields")
+        
+        colaborator = self.user_service.get_user(colaborator_name)
+        if not colaborator:
+            raise ValueError(f"User {colaborator_name} not found")
+        
+        note = self.notes_service.get_note(note_id, user)
+        if not note:
+            raise ValueError(f"Note with id {note_id} not found")
+        
+        if editorFlag:
+            self.notes_service.add_editor_to_note( note_id,user.get("_id"),colaborator.get("_id"))
+            self.user_service.add_editor_note(colaborator.get("_id"), note_id)
+        
+        self.notes_service.add_viewer_to_note( note_id,user.get("_id"),colaborator.get("_id"))
+        self.user_service.add_viewer_note(colaborator.get("_id"), note_id)
+
+        return ResponseModel(status='success', message='Colaborator added')
+        
+    def _handle_remove_colaborator(self, action: Dict[str, Any], user: Dict[str, Any]) -> Dict[str, Any]: 
+        """
+        Handle removing colaborators from a note.
+        colaborators can be viewers or editors. (decided in the action data)
+        {
+            "type": "REMOVE_COLABORATOR",
+            "data": {
+                "note_id": 
+                "editorFlag": True/False,
+                "colaborator_name":
+            }
+        }
+        """
+        action_owner_id = user.get("_id")
+        note_id = action.get('data', {}).get('note_id')
+        colaborator_name = action.get('data', {}).get('colaborator_name')
+        editorFlag = action.get('data', {}).get('editorFlag')
+
+        if not note_id or not colaborator_name or editorFlag is None:
+            raise ValueError("Missing required note fields")
+        
+        colaborator = self.user_service.get_user(colaborator_name)
+        if not colaborator:
+            raise ValueError(f"User {colaborator_name} not found")
+        
+        note = self.notes_service.get_note(note_id, user)
+        if not note:
+            raise ValueError(f"Note with id {note_id} not found")
+        
+        if editorFlag:
+            self.notes_service.remove_editor_from_note( note_id,user.get("_id"),colaborator.get("_id"))
+            self.user_service.remove_editor_note(colaborator.get("_id"), note_id)
+        
+        self.notes_service.remove_viewer_from_note( note_id,user.get("_id"),colaborator.get("_id"))
+        self.user_service.remove_viewer_note(colaborator.get("_id"), note_id)
+
+        return ResponseModel(status='success', message='Colaborator removed')    
         
 
+
+        
+        
+
+
+
+
+
     def handle_request(self, request: BaseRequestModel) -> ResponseModel:
+        
+        
         """
         Handle different document operations by delegating to the appropriate service.
         """
@@ -391,6 +484,8 @@ class Server:
 
                         # Validate and create request using factory
                         request = RequestFactory.create_request(request_dict)
+
+
 
                         # Process request
                         response = self.handle_request(request)

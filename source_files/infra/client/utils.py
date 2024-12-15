@@ -46,11 +46,13 @@ def load_key(key_file: str) -> bytes:
 
 
 def writeToFile(
+    id: int,
     filePath: str,
     keyFile: str,
     title: str,
     content: str,
-    version: int,
+    version: int,   
+    owner: str,
     editors: List[str] = [],
     viewers: List[str] = [],
 ) -> None:
@@ -61,8 +63,13 @@ def writeToFile(
     tempFilePath = f"/tmp/notist_temp_{uuid}.json"
 
     note_data = {
+        "_id": id,
         "title": title,
         "note": content,
+        "owner": owner,
+        "editors": editors,
+        "viewers": viewers,
+        "version": version,
     }
 
     try:
@@ -78,8 +85,8 @@ def writeToFile(
             os.remove(tempFilePath)
 
 
-def readFromFile(filePath: str, keyFile: str) -> str:
-    """Reads content (note) from a file after verification and decryption."""
+def unencryptFile(filePath: str, keyFile: str) -> str:
+    """Reads teh entire note from a file after verification and decryption."""
     tempFilePath = "/tmp/notist_temp_read.json"
 
     try:
@@ -90,10 +97,8 @@ def readFromFile(filePath: str, keyFile: str) -> str:
 
         handler.unprotect(filePath, keyFile, tempFilePath)
 
-        with open(tempFilePath, "r") as f:
-            note_data = json.load(f)
-
-        return note_data["note"]
+        note_data = readJson(tempFilePath)
+        return note_data
     except IntegrityError as e:
         raise e
     except Exception as e:
@@ -101,3 +106,21 @@ def readFromFile(filePath: str, keyFile: str) -> str:
     finally:
         if os.path.exists(tempFilePath):
             os.remove(tempFilePath)
+
+def getNoteInfo(note_file: str) -> tuple:
+    """Extracts id hamc and iv from note"""
+    try:
+        with open(note_file, "r") as f:
+            note_data = json.load(f)
+        return note_data["id"], note_data["hmac"], note_data["iv"]
+    except Exception as e:
+        raise Exception(f"Failed to get note info: {e}")
+
+def readJson(filePath: str) -> str:
+    """Reads the entire note from a file."""
+    try:
+        with open(filePath, "r") as f:
+            note_data = json.load(f)
+        return note_data
+    except Exception as e:
+        raise Exception(f"Failed to read file: {e}")
