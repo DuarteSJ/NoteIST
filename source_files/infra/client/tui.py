@@ -417,7 +417,7 @@ class NoteIST:
 def main():
     host = "192.168.56.14"  # TODO: server host
     port = 5000  # TODO: server port
-    cert_path = "/path/to/certificate.pem"  # TODO: certificate path
+    cert_path = "/home/vagrant/certs/server/server.crt"  # TODO: certificate path
 
     app = NoteIST(host=host, port=port, cert_path=cert_path)
 

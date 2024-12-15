@@ -28,6 +28,10 @@ class ActionType(Enum):
     REMOVE_COLABORATOR = "remove_colaborator"
 
     
+class RequestType(Enum):
+    REGISTER = "register"
+    PUSH = "push"
+    PULL = "pull"
 
 
 class BaseRequestModel(BaseModel):
@@ -63,7 +67,7 @@ class PushRequest(SignedRequestModel):
     Includes a list of actions to be performed.
     """
 
-    actions: List[ActionType]
+    data: List[ActionType]
 
 
 class PullRequest(SignedRequestModel):

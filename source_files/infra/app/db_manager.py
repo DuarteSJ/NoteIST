@@ -219,7 +219,7 @@ class DatabaseManager:
 
 # Context manager for easy database management
 def get_database_manager(
-    host: str = 'localhost', 
+    host: str = '192.168.56.17', 
     port: int = 27017, 
     db_name: str = 'secure_document_db',
     username: Optional[str] = None,

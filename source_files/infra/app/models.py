@@ -41,6 +41,7 @@ class SignedRequestModel(BaseRequestModel):
     Used for requests that require authentication.
     """
     signature: bytes
+    data: List[ActionType]
 
 class RegisterRequest(BaseRequestModel):
     """
@@ -56,7 +57,6 @@ class PushRequest(SignedRequestModel):
     Includes a list of actions to be performed.
     """
     type: RequestType = RequestType.PUSH
-    actions: List[ActionType]
 
 class PullRequest(SignedRequestModel):
     """

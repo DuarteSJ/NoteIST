@@ -30,8 +30,8 @@ class Server:
                  notes_service: NotesService,
                  host='0.0.0.0', 
                  port=5000, 
-                 cert_path='/home/vagrant/setup/certs/server.crt', 
-                 key_path='/home/vagrant/setup/certs/server.key',
+                 cert_path='/home/vagrant/certs/server.crt', 
+                 key_path='/home/vagrant/certs/server.key',
                  mongo_uri='mongodb://192.168.56.17:27017',):
         # Setup logging
         logging.basicConfig(level=logging.INFO)
@@ -126,7 +126,7 @@ class Server:
             action_results = []
             
             # Process each action
-            for action in req.actions:
+            for action in req.data:
                 if 'type' not in action:
                     continue
                 handler_method = self._get_action_handler(action.type)
@@ -293,25 +293,22 @@ class Server:
         # if not sent_note:
         #     raise ValueError("Missing note data")
 
-        owner =
-        note_id = action.get()
+        owner = user
+        note_id = action.get('data', {}).get('note_id')
+        if not note_id:
+            raise ValueError("Missing note data")
         
-        owner = sent_note.get('owner')
-        server_note = self.notes_service.get_note(sent_note.get('_id'), owner)
+        server_note = self.notes_service.get_note(note_id, owner)
 
         perms = self.user_service.check_user_note_permissions(user.get("_id"), server_note)
         if not perms.get("is_owner"):
             raise ValueError("User does not have permission to delete this note")
-        
-        note_id = sent_note.get('_id')
-        
-        if not note_id:
-            raise ValueError("Missing required note fields")
-        
+         
         self.notes_service.delete_note(
             note_id,
             owner
         )
+
         for editor_id in server_note.get('editors', []):
             self.user_service.remove_editor_note(editor_id, note_id)
         for viewer_id in server_note.get('viewers', []):

@@ -4,7 +4,7 @@ import json
 from cryptography.hazmat.primitives.asymmetric import padding
 from cryptography.hazmat.primitives import hashes
 from typing import List, Optional
-from models import ResponseModel
+from models import ResponseModel, RequestType
 from key_manager import load_private_key
 
 
@@ -25,15 +25,22 @@ class SecureRequestHandler:
             request_data.encode("utf-8"), padding.PKCS1v15(), hashes.SHA256()
         )
 
-    def _create_signed_payload(self, request_data: dict, private_key_path: str) -> dict:
-        request_data_str = json.dumps(request_data)
+    def _create_unsigned_payload(self, req_type: str, request_data: dict) -> dict:
+        return {
+            "type": req_type,
+            "username": self.username,
+            "data": request_data,
+        }
+
+    def _create_signed_payload(self, req_type , request_data: dict, private_key_path: str) -> dict:
         private_key = load_private_key(private_key_path)
-        signature = self._sign_request(request_data_str, private_key)
+        signature = self._sign_request(request_data, private_key)
 
         return {
+            "type": req_type,
             "username": self.username,
             "signature": signature.hex(),
-            "data": request_data_str,
+            "data": request_data,
         }
 
     def _receive_data(self, secure_sock) -> str:
@@ -72,31 +79,20 @@ class SecureRequestHandler:
             )
 
     def push_changes(self, private_key_path: str, changes: List[dict]) -> ResponseModel:
-        print(f"changes: {changes}")
-        # payload = self._create_signed_payload(changes, private_key_path)
+        payload = self._create_signed_payload(RequestType.PUSH, changes, private_key_path)
+        print(f"push payload: {payload}")
         # return self._send_request(payload)
 
 
     def pull_changes(self, private_key_path: str) -> ResponseModel:
-        pass
-        # request_data = {
-        #     "type": "get_user_notes",
-        # }
-        # payload = self._create_signed_payload(request_data, private_key_path)
+        payload = self._create_signed_payload(RequestType.PULL,[], private_key_path)
+        print(f"pull payload: {payload}")
         # return self._send_request(payload)
 
-    def register_user(self, private_key_path: str, public_key: bytes) -> ResponseModel:
-        pass
-        # request_data = {
-        #     "type": "register",
-        #     "public_key": public_key,
-        # }
-        # payload = self._create_signed_payload(request_data, private_key_path)
-        # return self._send_request(payload)
-
-    def add_contributor() -> ResponseModel:
-        pass
-
-
-    def remove_contributor() -> ResponseModel:
-        pass
+    def register_user(self, public_key: bytes) -> ResponseModel:
+        request_data = {
+            "public_key": public_key,
+        }
+        payload = self._create_unsigned_payload(RequestType.REGISTER, request_data)
+        print
+        return self._send_request(payload)

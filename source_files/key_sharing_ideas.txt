@@ -20,3 +20,25 @@ remove user: # TODO: decide if user looses access to previous versions or not
   - owner rencripts note with new key
   - owner shares new key with all remaining editors/viewers
 
+
+
+push:
+  actions:[
+    dict1,
+    dict2,
+    ...,
+    dict n
+  ],
+  removes: (username, id)
+    [usernames]
+  adds:
+    [usernames]
+
+pushResponse:
+  actionsResponse:[respostas]
+  removesAndAddsResponse:[
+    if removes is empty:
+      public key of new added users
+    else:
+      public key of all remaining users
+  ]

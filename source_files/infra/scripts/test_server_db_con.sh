@@ -11,8 +11,8 @@
 MONGO_HOST="192.168.56.17"
 MONGO_PORT="27017"
 MONGO_USER="server"
-CLIENT_CERT="/home/vagrant/setup/certs/server/server.pem"
-CA_CERT="/home/vagrant/setup/certs/ca.crt"
+CLIENT_CERT="/home/vagrant/certs/server/server.pem"
+CA_CERT="/home/vagrant/certs/ca.crt"
 
 # Connection Test Function
 test_mongodb_connection() {
