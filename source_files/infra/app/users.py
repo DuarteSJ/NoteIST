@@ -19,50 +19,6 @@ class UsersService:
         self.db_manager = database_manager
         self.logger = logging.getLogger(__name__)
 
-    def _hash_password(self, password: str, salt: Optional[str] = None) -> Tuple[str, str]:
-        """
-        Generate a secure hash for the password
-        
-        Args:
-            password (str): User's password
-            salt (str, optional): Existing salt or generate a new one
-        
-        Returns:
-            tuple of (hashed_password, salt)
-        """
-        if not salt:
-            salt = secrets.token_hex(16)  # 32 character salt
-        
-        # Use a strong hashing method
-        salted_password = f"{salt}{password}"
-        password_hash = hashlib.sha256(salted_password.encode()).hexdigest()
-        
-        return password_hash, salt
-
-    def _validate_password(self, password: str) -> bool:
-        """
-        Validate password strength
-        
-        Args:
-            password (str): Password to validate
-        
-        Returns:
-            bool: Whether password meets requirements
-        """
-        # Check password complexity
-        # if len(password) < 8:
-        #     return False
-        
-        # At least one uppercase, one lowercase, one number
-        # if not re.search(r'[A-Z]', password):
-        #     return False
-        # if not re.search(r'[a-z]', password):
-        #     return False
-        # if not re.search(r'\d', password):
-        #     return False
-        
-        return True
-
     def create_user(self, 
                     username: str, 
                     public_key) -> Dict[str, Any]:
@@ -177,6 +133,37 @@ class UsersService:
 
         except Exception as e:
             self.logger.error(f"Error deleting user: {e}")
+            raise
+
+    def check_user_note_permissions(self, user_id: int, note: Dict[str, Any]) -> Dict[str, bool]:
+        """
+        Check a user's permissions for a specific note
+        
+        Args:
+            user_id (int): ID of the user to check permissions for
+            note (Dict[str, Any]): The note document to check permissions against
+        
+        Returns:
+            Dict[str, bool]: A dictionary containing permission flags
+        """
+        try:
+            # Check if user is the owner
+            is_owner = note.get('owner', {}).get('_id') == user_id
+
+            # Check if user is an editor
+            is_editor = any(editor.get('_id') == user_id for editor in note.get('editors', []))
+
+            # Check if user is a viewer
+            is_viewer = any(viewer.get('_id') == user_id for viewer in note.get('viewers', []))
+
+            return {
+                'is_owner': is_owner,
+                'is_editor': is_editor or is_owner,
+                'is_viewer': is_viewer or is_editor or is_owner,
+            }
+        
+        except Exception as e:
+            self.logger.error(f"Error checking note permissions: {e}")
             raise
 
 # Factory function for creating UsersService

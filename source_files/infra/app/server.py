@@ -245,6 +245,10 @@ class Server:
         if not note:
             raise ValueError("Missing note data")
         
+        perms = self.user_service.check_user_note_permissions(user.get("_id"), note)
+        if not perms.get("is_editor"):
+            raise ValueError("User does not have permission to edit this note")
+        
         note_id = note.get('_id')
         note_hmac = note.get('hmac')
         note_iv = note.get('iv')
@@ -252,9 +256,23 @@ class Server:
         note_note = note.get('note')
         note_version = note.get('version')
 
-        last_note_version = self.notes_service.get_note_version(note_id)
+        _,last_note_version = self.notes_service.get_note_version(note_id)
+        if note_version < last_note_version:
+            note_version = last_note_version
+        elif note_version > last_note_version:
+            raise ValueError("Something went wrong with the note versioning (version is higher than the last one)")
+        
+        note = self.notes_service.create_note(
+            title=note_title,
+            content=note_note,
+            id=note_id,
+            iv=note_iv,
+            hmac=note_hmac,
+            owner=user,
+            note=note,
+            version=note_version
+        )
 
-        note = self.notes_service.edit_note(username=username)
         return note
 
     #TODO: FIX THIS
