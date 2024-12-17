@@ -10,7 +10,8 @@
 # MongoDB Server Details
 MONGO_HOST="192.168.56.17"
 MONGO_PORT="27017"
-MONGO_USER="server"
+MONGO_USER="username"
+MONGO_PASSWORD="password"
 CLIENT_CERT="/home/vagrant/certs/server/server.pem"
 CA_CERT="/home/vagrant/certs/ca.crt"
 
@@ -35,6 +36,8 @@ test_mongodb_connection() {
         --tlsCertificateKeyFile $CLIENT_CERT \
         --tlsCAFile $CA_CERT \
         --username $MONGO_USER \
+        --password $MONGO_PASSWORD \
+        --authenticationDatabase secure_document_db \
         --eval "db.runCommand({ping: 1})"
     
     if [ $? -eq 0 ]; then

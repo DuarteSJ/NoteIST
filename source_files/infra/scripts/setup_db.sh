@@ -63,7 +63,7 @@ mongosh --tls \
     --host 192.168.56.17 \
     --tlsCertificateKeyFile /home/vagrant/certs/mongodb/mongodb-server.pem \
     --tlsCAFile /home/vagrant/certs/ca.crt <<EOF
-use server
+use secure_document_db
 db.createUser({
     user: "admin",
     pwd: "admin",
@@ -72,6 +72,7 @@ db.createUser({
     ]
 })                                   
 EOF
+
 
 # Securely store the password
 echo "$ADMIN_PASSWORD" | sudo tee /root/.mongodb_admin_password > /dev/null
