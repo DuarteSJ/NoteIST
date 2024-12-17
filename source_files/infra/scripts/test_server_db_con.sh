@@ -35,9 +35,6 @@ test_mongodb_connection() {
         --tls \
         --tlsCertificateKeyFile $CLIENT_CERT \
         --tlsCAFile $CA_CERT \
-        --username $MONGO_USER \
-        --password $MONGO_PASSWORD \
-        --authenticationDatabase secure_document_db \
         --eval "db.runCommand({ping: 1})"
     
     if [ $? -eq 0 ]; then

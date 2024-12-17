@@ -20,8 +20,7 @@ from models import (
     PullRequest,
     PushRequest,
     SignedRequestModel,
-    ActionType,
-    ActionModel
+    ActionType
 )
 
 class Server:
@@ -499,15 +498,14 @@ if __name__ == '__main__':#
     from notes import get_notes_service
     from db_manager import get_database_manager
     
-    MONGO_HOST = 'localhost'
+    MONGO_HOST = '192.168.56.17'
     MONGO_PORT = '27017'
     DB_NAME = 'secure_document_db'
-    DB_USERNAME = 'admin'
     SERVER_CRT = '/home/vagrant/certs/server/server.pem'
     CA_CRT = '/home/vagrant/certs/ca.crt'
 
     try:
-        with get_database_manager(MONGO_HOST,MONGO_PORT,DB_NAME,) as db_manager:
+        with get_database_manager(MONGO_HOST,MONGO_PORT,DB_NAME,None,SERVER_CRT,CA_CRT) as db_manager:
             user_service = get_users_service(db_manager)
             notes_service = get_notes_service(db_manager)
             server = Server(user_service=user_service, notes_service=notes_service)

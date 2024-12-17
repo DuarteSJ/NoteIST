@@ -1,9 +1,11 @@
 import logging
 from typing import Optional, Dict, Any, List
 from pymongo import MongoClient
+from contextlib import contextmanager
+from logging.handlers import TimedRotatingFileHandler
 import ssl
+import os
 
-#todo :testar a conexão com o banco de dados
 
 class DatabaseManager:
     """
@@ -11,31 +13,41 @@ class DatabaseManager:
     Focuses on basic CRUD operations without business logic
     """
     def __init__(self, 
-                 host: str = 'localhost', 
-                 port: int = 27017, 
-                 db_name: str = 'secure_document_db',
-                 username: Optional[str] = None,
-                 client_cert_path: Optional[str] = None,
-                 ca_cert_path: Optional[str] = None
-                ):
-        """
-        Initialize MongoDB connection with Mutual TLS
+                host: str = 'localhost', 
+                port: int = 27017, 
+                db_name: str = 'secure_document_db',
+                username: Optional[str] = None,
+                client_cert_path: Optional[str] = None,
+                ca_cert_path: Optional[str] = None
+            ):
+        # Configure more verbose logging
+        os.makedirs('logs', exist_ok=True)
+
+        # Configure logging
+        logging.basicConfig(
+            level=logging.DEBUG,  # Set to DEBUG for detailed logs
+            format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+            handlers=[
+                logging.StreamHandler(),  # Logs to console
+                TimedRotatingFileHandler(
+                    'logs/mongodb_connection.log',  # File path inside the 'logs' folder
+                    when='midnight',  # Rotate at midnight
+                    interval=1,  # Interval for rotation (1 day)
+                    backupCount=7,  # Optional: keep last 7 log files
+                    encoding='utf-8'  # Optional: ensure proper encoding
+                )
+            ]
+        )
         
-        Args:
-            host (str): MongoDB server hostname or IP
-            port (int): MongoDB server port
-            db_name (str): Name of the database
-            username (str, optional): Username for authentication
-            client_cert_path (str, optional): Path to client certificate PEM file
-            ca_cert_path (str, optional): Path to CA certificate
-        """
+        self.logger = logging.getLogger(__name__)
+
         try:
             # Prepare TLS/SSL options
             ssl_context = ssl.create_default_context(cafile=ca_cert_path)
             ssl_context.check_hostname = True
             ssl_context.verify_mode = ssl.CERT_REQUIRED
 
-            # Prepare connection parameters
+            # Prepare connection parameters with more detail
             connection_params = {
                 'host': f'mongodb://{host}:{port}/{db_name}',
                 'tls': True,
@@ -49,22 +61,26 @@ class DatabaseManager:
                     'tlsCertificateKeyFile': client_cert_path,
                 })
 
-            
+            # Log connection details before connecting
+            self.logger.info(f"Attempting to connect to MongoDB at {host}:{port}")
+            self.logger.debug(f"Connection Parameters: {connection_params}")
 
             # Establish connection
             self.client = MongoClient(**connection_params)
             self.db = self.client[db_name]
-            
-            # Setup logging
-            logging.basicConfig(level=logging.INFO)
-            self.logger = logging.getLogger(__name__)
-            
-            # Verify connection
-            self.client.admin.command('ping')
+
+            # Verify connection with detailed logging
+            server_info = self.client.server_info()
             self.logger.info("Successfully connected to MongoDB")
+            self.logger.debug(f"Server Information: {server_info}")
+
+            # Additional connection details
+            self.logger.info(f"Connected to Database: {db_name}")
+            self.logger.info(f"Databases available: {self.client.list_database_names()}")
+
         
         except Exception as e:
-            self.logger.error(f"Error initializing MongoDB connection: {e}")
+            self.logger.error(f"Error initializing MongoDB connection: {e}", exc_info=True)
             raise
 
     def insert_document(self, collection_name: str, document: Dict[str, Any]) -> str:
@@ -217,7 +233,7 @@ class DatabaseManager:
             self.client.close()
             self.logger.info("MongoDB connection closed")
 
-# Context manager for easy database management
+@contextmanager
 def get_database_manager(
     host: str = '192.168.56.17', 
     port: int = 27017, 
@@ -225,7 +241,6 @@ def get_database_manager(
     username: Optional[str] = None,
     client_cert_path: Optional[str] = None,
     ca_cert_path: Optional[str] = None,
-    auth_source: str = 'admin'
 ):
     
     manager = None
@@ -236,8 +251,7 @@ def get_database_manager(
             db_name=db_name,
             username=username,
             client_cert_path=client_cert_path,
-            ca_cert_path=ca_cert_path,
-            auth_source=auth_source
+            ca_cert_path=ca_cert_path
         )
         yield manager
     except Exception as e:
