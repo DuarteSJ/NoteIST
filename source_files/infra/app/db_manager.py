@@ -25,7 +25,7 @@ class DatabaseManager:
 
         # Configure logging
         logging.basicConfig(
-            level=logging.DEBUG,  # Set to DEBUG for detailed logs
+            level=logging.INFO,  # Set to DEBUG for detailed logs
             format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
             handlers=[
                 logging.StreamHandler(),  # Logs to console
@@ -62,8 +62,8 @@ class DatabaseManager:
                 })
 
             # Log connection details before connecting
-            self.logger.info(f"Attempting to connect to MongoDB at {host}:{port}")
-            self.logger.debug(f"Connection Parameters: {connection_params}")
+            #self.logger.info(f"Attempting to connect to MongoDB at {host}:{port}")
+            #self.logger.debug(f"Connection Parameters: {connection_params}")
 
             # Establish connection
             self.client = MongoClient(**connection_params)
@@ -72,11 +72,11 @@ class DatabaseManager:
             # Verify connection with detailed logging
             server_info = self.client.server_info()
             self.logger.info("Successfully connected to MongoDB")
-            self.logger.debug(f"Server Information: {server_info}")
+            #self.logger.debug(f"Server Information: {server_info}")
 
             # Additional connection details
-            self.logger.info(f"Connected to Database: {db_name}")
-            self.logger.info(f"Databases available: {self.client.list_database_names()}")
+            #self.logger.info(f"Connected to Database: {db_name}")
+            #self.logger.info(f"Databases available: {self.client.list_database_names()}")
 
         
         except Exception as e:

@@ -1,4 +1,4 @@
-../../secure-document
+-e ../client/secure-document
 cryptography
 pydantic
 pycryptodome

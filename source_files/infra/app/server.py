@@ -2,14 +2,17 @@ import socket
 import ssl
 import json
 import logging
-from pymongo import MongoClient
 from pydantic import ValidationError
 from typing import Dict, Any
 from cryptography.hazmat.primitives.asymmetric import padding
 from cryptography.hazmat.primitives import hashes
-from cryptography.hazmat.primitives.serialization import load_pem_public_key
+from cryptography.hazmat.primitives.serialization import load_der_public_key
+from cryptography.hazmat.backends import default_backend
 from users import UsersService
 from notes import NotesService
+from cryptography.hazmat.primitives.hashes import SHA256
+
+
 # Import the new Pydantic models
 from models import (
     BaseRequestModel,
@@ -29,9 +32,8 @@ class Server:
                  notes_service: NotesService,
                  host='0.0.0.0', 
                  port=5000, 
-                 cert_path='/home/vagrant/certs/server.crt', 
-                 key_path='/home/vagrant/certs/server.key',
-                 mongo_uri='mongodb://192.168.56.17:27017',):
+                 cert_path='/home/vagrant/certs/server/server.crt', 
+                 key_path='/home/vagrant/certs/server/server.key'):
         # Setup logging
         logging.basicConfig(level=logging.INFO)
         self.logger = logging.getLogger(__name__)
@@ -52,17 +54,21 @@ class Server:
         """
         Handle the registration request.
         """
+
+        key = req.data.get('public_key')
+        if not key:
+            return {"status": "error", "message": "Public key is required"}
         try:
-            self.user_service.create_user(req.username, req.public_key)
-            return ResponseModel(status='success', message='User registered')
+            self.user_service.create_user(req.username, key)
+            return {"status": "success", "message": "User created successfully"}
 
         except ValidationError as ve:
             self.logger.error(f"Validation Error: {ve}")
-            return ResponseModel(status='error', message=str(ve))
+            return {"status": "error", "message": str(ve)}
         
         except Exception as e:
             self.logger.error(f"Error processing request: {e}")
-            return ResponseModel(status='error', message=str(e))
+            return {"status": "error", "message": str(e)}
 
     def handle_pull_request(self, req: PullRequest) -> ResponseModel:
         """
@@ -70,7 +76,7 @@ class Server:
         """
         try:
             if not self.verify_signature(req):
-                return ResponseModel(status='error', message='Signature verification failed')
+                return {"status": "error", "message": "Signature verification failed"}
             
             user = self.user_service.get_user(req.username)
             digest_of_hmacs = user.get('digest_of_hmacs', None)
@@ -81,20 +87,20 @@ class Server:
             documents = self.notes_service.get_user_notes(username=req.username)
             note_id = self.notes_service.get_next_note_id(user.get("_id"))
 
-            return ResponseModel(
-                status='success',
-                message='Documents retrieved successfully',
-                digest_of_hashes=digest_of_hmacs,
-                documents=documents,
-                curr_note_id=note_id
-            )
+            return {
+                "status": "success",
+                "message": "Documents retrieved successfully",
+                "digest_of_hashes": digest_of_hmacs,
+                "documents": documents,
+                "curr_note_id": note_id
+            }
         
         except ValidationError as ve:
             self.logger.error(f"Validation Error: {ve}")
-            return ResponseModel(status='error', message=str(ve))
+            return {"status": "error", "message": str(ve)}
         except Exception as e:
             self.logger.error(f"Error processing request: {e}")
-            return ResponseModel(status='error', message=str(e))
+            return {"status": "error", "message": str(e)}
 
     def handle_push_request(self, req: PushRequest) -> ResponseModel:
         """
@@ -105,7 +111,7 @@ class Server:
         try:
             # Verify signature first
             if not self.verify_signature(req):
-                return ResponseModel(status='error', message='Signature verification failed')
+                return {"status": "error", "message": "Signature verification failed"}
             
             # user was found for signature verification
             user = self.user_service.get_user(req.username)
@@ -146,13 +152,13 @@ class Server:
             documents = self.notes_service.get_user_notes(username=req.username)
             
             # Construct response
-            return ResponseModel(
-                status='success',
-                message='Actions processed successfully',
-                digest_of_hashes=digest_of_hmacs,
-                documents=documents,
-                document={'action_results': action_results}
-            )
+            return {
+                "status": "success",
+                "message": "Actions processed successfully",
+                "digest_of_hashes": digest_of_hmacs,
+                "documents": documents,
+                "action_results": action_results
+            }
         
         except ValidationError as ve:
             self.logger.error(f"Validation Error: {ve}")
@@ -382,16 +388,7 @@ class Server:
         self.user_service.remove_viewer_note(colaborator.get("_id"), note_id)
 
         return ResponseModel(status='success', message='Colaborator removed')    
-        
-
-
-        
-        
-
-
-
-
-
+    
     def handle_request(self, request: BaseRequestModel) -> ResponseModel:
         
         
@@ -419,28 +416,34 @@ class Server:
             return ResponseModel(status='error', message=str(e))
 
     def _receive_data(self, secure_sock) -> str:
-        data = b""
-        while True:
-            chunk = secure_sock.recv(4096)
-            if not chunk:
-                break
-            data += chunk
-        return data.decode("utf-8")
+        #TODO: Receive data in chunks
+        #data = b""
+        #while True:
+            #print('a')
+        chunk = secure_sock.recv(4096)
+            # if not chunk:
+            #     break
+            # data += chunk
+        return chunk.decode("utf-8")
     
     def verify_signature(self, req: SignedRequestModel) -> bool:
         # Fetch public key from database
         username = req.username
         signature = req.signature
         data = req.data
-        public_key_pem = self.user_service.get_user(username)["public_key"]
-        public_key = load_pem_public_key(public_key_pem.encode('utf-8'))
-
+        serialized_data = json.dumps(data, separators=(",", ":"), sort_keys=True)
+        public_key_bytes = self.user_service.get_user(username)["public_key"]  
+        print(public_key_bytes)
         try:
+            # Load the public key
+            public_key = load_der_public_key(public_key_bytes, default_backend())
+
+            # Verify the signature
             public_key.verify(
-                bytes.fromhex(signature),
-                data.encode('utf-8'),
+                signature,  # signature should be raw bytes
+                serialized_data.encode('utf-8'),  # data to verify should also be bytes
                 padding.PKCS1v15(),
-                hashes.SHA256()
+                SHA256()
             )
             return True
         except Exception as e:
@@ -452,6 +455,7 @@ class Server:
         Start the secure TLS socket server
         """
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
+
             sock.bind((self.host, self.port))
             sock.listen(5)
             self.logger.info(f"Server listening on {self.host}:{self.port}")
@@ -466,7 +470,7 @@ class Server:
                         data = self._receive_data(client_socket)
 
                         request_dict = json.loads(data)
-
+                        
                         # Validate and create request using factory
                         request = RequestFactory.create_request(request_dict)
 
@@ -476,7 +480,7 @@ class Server:
                         response = self.handle_request(request)
 
                         # Send response
-                        client_socket.send(response.json().encode('utf-8'))
+                        client_socket.send(json.dumps(response).encode("utf-8"))
                         client_socket.close()
 
                     except Exception as e:
@@ -491,13 +495,14 @@ if __name__ == '__main__':#
     MONGO_PORT = '27017'
     DB_NAME = 'secure_document_db'
     SERVER_CRT = '/home/vagrant/certs/server/server.pem'
+    SERVER_KEY_PATH = '/home/vagrant/certs/server/server.pem'
     CA_CRT = '/home/vagrant/certs/ca.crt'
 
     try:
         with get_database_manager(MONGO_HOST,MONGO_PORT,DB_NAME,None,SERVER_CRT,CA_CRT) as db_manager:
             user_service = get_users_service(db_manager)
             notes_service = get_notes_service(db_manager)
-            server = Server(user_service=user_service, notes_service=notes_service)
+            server = Server(user_service=user_service, notes_service=notes_service,cert_path=SERVER_CRT,key_path=SERVER_KEY_PATH)
             server.start()
     except Exception as e:
         logging.error(f"Error initializing the server: {e}")

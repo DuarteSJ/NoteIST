@@ -1,8 +1,6 @@
 import logging
 from typing import Optional, Dict, Any, Tuple
-import hashlib
-import secrets
-import re
+import base64
 from db_manager import DatabaseManager, get_database_manager
 from models import UsersModel
 class UsersService:
@@ -25,6 +23,8 @@ class UsersService:
         try:
             
             # Check public key
+            
+            public_key = base64.b64decode(public_key)
             if not isinstance(public_key, bytes):
                 raise ValueError("Public key must be in bytes format")
 
@@ -37,7 +37,7 @@ class UsersService:
             user_data = {
                 "username": username,
                 "public_key": public_key,
-                "hash_of_digest": "",
+                "digest_of_hmacs": "",
                 "owned_notes": [],
                 "editor_notes": [],
                 "viewer_notes": []

@@ -5,7 +5,7 @@ sudo apt-get update
 sudo apt-get install -y python3 python3-pip python3-dev build-essential
 
 # Install necessary Python libraries for secure communication
-pip3 install pymongo pydantic
+pip3 install -r ../client/requirements.txt
 
 # Optionally configure the client (set environment variables, copy config files)
 # Example: Create a directory for the client and set environment variables

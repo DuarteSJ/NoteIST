@@ -3,11 +3,11 @@ import shutil
 from typing import Optional
 from utils import generate_key, store_key, writeToFile, readJson, unencryptFile, getNoteInfo
 from cryptography.hazmat.primitives.asymmetric import rsa
-from key_manager import generate_key_pair
+from key_manager import generate_key_pair, get_public_key_json_serializable
 from secure_request_handler import SecureRequestHandler
 from models import ActionType
 import json
-
+from cryptography.hazmat.primitives import serialization
 
 class NoteIST:
     def __init__(self, host: str, port: int, cert_path: str):
@@ -61,30 +61,39 @@ class NoteIST:
         if not os.path.exists(self.priv_key_path):
             self._register_new_user()
             return
-
-        # Try to load username
+        # if the private key exists, try to log the user in
         try:
-            self.username = self._load_username()
-            if not self.username:
-                self._register_new_user()
-        except FileNotFoundError:
+            print("tentando login")
+            self._login()
+        except Exception:
+            print("falhou login")
             self._register_new_user()
 
-        # Initialize request handler if it is not yet innitialized (this is spaggeti code)
-        if not self.request_handler:
-            self.request_handler = SecureRequestHandler(
-                self.username, self.host, self.port, self.cert_path
-            )
 
-    def _load_username(self) -> str:
+    def _login(self):
         """
-        Load username from persistent storage.
-
-        Returns:
-            str: The stored username
+       Log the user in by loading the username from persistent storage and pulling changes from the server.
         """
         with open(self.username_path, "r") as f:
-            return json.load(f)["username"]
+            self.username = json.load(f)["username"]
+            if not self.username: # if the username is empty, register a new user
+                raise Exception("Username is empty")
+            else: # if there already was a user account, pull changes from remote repository
+                print(f"in else")
+                try:
+                    self.request_handler = SecureRequestHandler(
+                    self.username, self.host, self.port, self.cert_path
+                )
+                except Exception as e:
+                    print(f"Error creating request handler: {e}")
+                while True:
+                    try:
+                        response = self.pull_changes()
+                        break
+                    except Exception as e:
+                        print(f"Error pulling changes from remote server: {e}")
+                print(response)
+        
 
     def _save_username(self, username: str):
         """
@@ -144,11 +153,14 @@ class NoteIST:
             public_key (rsa.RSAPublicKey): The user's public key
         """
         try:
-            # Assuming request_handler is set up with necessary methods
+            # New request handler since no prior initialization
             self.request_handler = SecureRequestHandler(
                 username, self.host, self.port, self.cert_path
             )
-            self.request_handler.register_user(self.username, public_key)
+            response = self.request_handler.register_user(get_public_key_json_serializable(public_key))
+            print(f" Server registration response: {response.status} - {response.message}")
+            if response.status == "error":
+                raise Exception(f"Server registration error: {response.message}")
             print(f"User '{username}' registered successfully!")
         except Exception as e:
             print(f"Server registration error: {e}")
@@ -158,6 +170,7 @@ class NoteIST:
         """Returns the next available ID for a note."""
         self.id += 1
         return self.id
+
     def main_menu(self):
         """Displays the main menu and returns the user's choice."""
         print("\n=== NoteIST ===")
@@ -410,14 +423,17 @@ class NoteIST:
 
     def pull_changes(self):
         """Function to pull changes from the server."""
+        print("tui pull changes")
         response = self.request_handler.pull_changes(self.priv_key_path)
+        print("tui got response")
         id = 0  # TODO: extract id from response
         print(f"Pull changes response: {response.status} - {response.message}")
 
 def main():
+    from models import RequestType
     host = "192.168.56.14"  # TODO: server host
     port = 5000  # TODO: server port
-    cert_path = "/home/vagrant/certs/server/server.crt"  # TODO: certificate path
+    cert_path = "/home/vagrant/certs/ca.crt"  # TODO: certificate path
 
     app = NoteIST(host=host, port=port, cert_path=cert_path)
 

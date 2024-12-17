@@ -1,15 +1,9 @@
-from typing import Optional, List
-from enum import Enum
-
-from pydantic import BaseModel, Field, GetCoreSchemaHandler, field_validator
+from pydantic import BaseModel, Field, GetCoreSchemaHandler
 from bson import ObjectId
 from pydantic_core import CoreSchema, core_schema
 import datetime
-
 from enum import Enum
 from typing import Optional, List, Union, Dict, Any
-from pydantic import BaseModel, Field, ConfigDict, field_validator, model_validator
-from typing_extensions import Annotated
 
 class ActionType(Enum):
     """Enum for different note-related actions"""
@@ -34,6 +28,7 @@ class BaseRequestModel(BaseModel):
     """
     username: str
     type: RequestType
+    data: Union[List[Dict[str, Any]], Dict[str, Any]]
 
 class SignedRequestModel(BaseRequestModel):
     """
@@ -41,7 +36,6 @@ class SignedRequestModel(BaseRequestModel):
     Used for requests that require authentication.
     """
     signature: bytes
-    data: List[ActionType]
 
 class RegisterRequest(BaseRequestModel):
     """
@@ -49,7 +43,6 @@ class RegisterRequest(BaseRequestModel):
     Includes username and public key.
     """
     type: RequestType = RequestType.REGISTER
-    public_key: bytes
 
 class PushRequest(SignedRequestModel):
     """
@@ -74,19 +67,21 @@ RequestModelType = Union[
 
 class RequestFactory:
     @staticmethod
-    def create_request(request_data: Dict[str, Any]) -> RequestModelType:
+    def create_request(request_data: Dict[str, Any]):
         """
         Create the appropriate request model based on the request type.
 
         :param request_data: Dictionary containing request details
         :return: Specific request model instance
         """
+
+
         request_type = request_data.get('type')
 
         request_map = {
-            RequestModelType.REGISTER: RegisterRequest,
-            RequestModelType.PUSH: PushRequest,
-            RequestModelType.PULL: PullRequest
+            RequestType.REGISTER.value: RegisterRequest,
+            RequestType.PUSH.value: PushRequest,
+            RequestType.PULL.value: PullRequest
         }
 
         request_class = request_map.get(request_type)
@@ -95,8 +90,8 @@ class RequestFactory:
 
         return request_class(**request_data)
 
-# Response Model remains the same as in the original file
 class ResponseModel(BaseModel):
+    #TODO: MAYBE CHANGE THIS
     status: str
     message: str
     digest_of_hashes: Optional[str] = None
@@ -104,40 +99,7 @@ class ResponseModel(BaseModel):
     document: Optional[Dict[str, Any]] = None
     curr_note_id: Optional[int] = None
 
-
-def convert_objectid(value):
-    return str(value) if isinstance(value, ObjectId) else value
-
-class PyObjectId(ObjectId):
-    """Custom type for handling MongoDB ObjectId in Pydantic models"""
-    
-    @classmethod
-    def validate(cls, v, _handler=None):
-        """
-        Validator method that matches Pydantic's expected signature.
-        The additional _handler parameter allows for compatibility with Pydantic's validation process.
-        """
-        if not ObjectId.is_valid(v):
-            raise ValueError("Invalid ObjectId")
-        return ObjectId(v)
-    
-    @classmethod
-    def __get_pydantic_core_schema__(
-        cls, 
-        source_type: type, 
-        handler: GetCoreSchemaHandler
-    ) -> CoreSchema:
-        """
-        Provides a Pydantic core schema for validation.
-        This replaces the older __get_validators__ method.
-        """
-        return core_schema.union_schema([
-            core_schema.str_schema(),
-            core_schema.is_instance_schema(ObjectId)
-        ])
-
 class UsersModel(BaseModel):
-    id: Optional[PyObjectId] = Field(default_factory=PyObjectId, alias="_id")
     username: str = Field(...)
     public_key: bytes = Field(...)
     digest_of_hmacs: str = Field(...)
@@ -146,9 +108,6 @@ class UsersModel(BaseModel):
     viewer_notes: List[int] = Field(...)
 
 class NotesModel(BaseModel):
-    """Pydantic model for documents"""
-
-    id: Optional[PyObjectId] = Field(default_factory=PyObjectId, alias="_id")
     hmac: str = Field(...)
     title: str = Field(...)
     content: str = Field(...)
@@ -159,42 +118,3 @@ class NotesModel(BaseModel):
     date_modified: datetime.datetime = Field(...)
     last_modified_by: int = Field(...)
     version: int = Field(...)
-
-    class Config:
-        arbitrary_types_allowed = True
-        json_encoders = {ObjectId: str, datetime: lambda dt: dt.isoformat() + "Z"}
-
-        # TODO: podemos apagar este garbage por favor?????
-        schema_extra = {
-            "id": 123,
-            "title": "Example Document",
-            "note": "This is an example document.",
-            "data_created": "2022-01-01T12:00:00Z",
-            "date_modified": "2022-01-02T12:00:00Z",
-            "last_modified_by": 456,
-            "version": 3,
-            "owner": {
-                "id": 456,
-                "username": "john"
-            },
-            "editors": [
-                {
-                "id": 789,
-                "username": "jane"
-                },
-                {
-                "id": 1011,
-                "username": "bob"
-                }
-            ],
-            "viewers": [
-                {
-                "id": 1213,
-                "username": "alice"
-                },
-                {
-                "id": 1415,
-                "username": "charlie"
-                }
-            ]
-        }
