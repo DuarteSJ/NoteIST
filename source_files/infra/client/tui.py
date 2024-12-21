@@ -431,7 +431,7 @@ class NoteIST:
 
 def main():
     from models import RequestType
-    host = "192.168.56.14"  # TODO: server host
+    host = "ping 192.168.1.228"  # TODO: server host
     port = 5000  # TODO: server port
     cert_path = "/home/vagrant/certs/ca.crt"  # TODO: certificate path
 
