@@ -28,6 +28,8 @@ sudo iptables -A INPUT -p tcp --dport 22 -j ACCEPT
 # ONLY allow incoming connections to port 5000 from any source
 sudo iptables -A INPUT -p tcp --dport 5000 -j ACCEPT
 
+#allow ping todo: remove this
+sudo iptables -A INPUT -p icmp --icmp-type echo-request -j ACCEPT
 
 # Allow app server to connect to DB server on port 27017
 sudo iptables -A OUTPUT -p tcp -d 192.168.60.20 --dport 27017 -j ACCEPT

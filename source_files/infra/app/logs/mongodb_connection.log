@@ -2469,3 +2469,5 @@ id
 2024-12-17 20:30:18,315 - __main__ - INFO - Connection from ('192.168.56.15', 37862)
 2024-12-17 20:30:18,317 - root - ERROR - Signature verification failed: 
 2024-12-17 20:31:06,852 - db_manager - INFO - MongoDB connection closed
+2024-12-21 23:12:40,023 - db_manager - INFO - Successfully connected to MongoDB
+2024-12-21 23:12:40,024 - __main__ - INFO - Server listening on 0.0.0.0:5000
