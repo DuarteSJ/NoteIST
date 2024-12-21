@@ -1,17 +1,16 @@
 #!/bin/bash
 
-#wget -qO - https://www.mongodb.org/static/pgp/server-6.0.asc | sudo gpg --dearmor -o /usr/share/keyrings/mongodb-archive-keyring.gpg
-#echo "deb [signed-by=/usr/share/keyrings/mongodb-archive-keyring.gpg] https://repo.mongodb.org/apt/ubuntu focal/mongodb-org/6.0 multiverse" | sudo tee /etc/apt/sources.list.d/mongodb-org-6.0.list
-
-##sudo apt update
-#sudo apt install -y mongodb-mongosh
+wget -qO - https://www.mongodb.org/static/pgp/server-6.0.asc | sudo gpg --dearmor -o /usr/share/keyrings/mongodb-archive-keyring.gpg
+echo "deb [signed-by=/usr/share/keyrings/mongodb-archive-keyring.gpg] https://repo.mongodb.org/apt/ubuntu focal/mongodb-org/6.0 multiverse" | sudo tee /etc/apt/sources.list.d/mongodb-org-6.0.list
+#sudo apt update
+sudo apt install -y mongodb-mongosh
 
 
 # MongoDB Server Details
 MONGO_HOST="192.168.56.17"
 MONGO_PORT="27017"
-MONGO_USER="username"
-MONGO_PASSWORD="password"
+MONGO_USER="admin"
+MONGO_PASSWORD="admin"
 CLIENT_CERT="/home/vagrant/certs/server/server.pem"
 CA_CERT="/home/vagrant/certs/ca.crt"
 

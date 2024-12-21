@@ -1,126 +1,131 @@
 # -*- mode: ruby -*-
 # vi: set ft=ruby :
 
-# Ensure this Project is for Virtualbox Provider
 ENV['VAGRANT_DEFAULT_PROVIDER'] = "virtualbox"
 
-# Ensure the required plugins are globally installed
-VAGRANT_PLUGINS = [
-  "vagrant-vbguest",
-  "vagrant-reload",
-]
-VAGRANT_PLUGINS.each do |plugin|
-  unless Vagrant.has_plugin?("#{plugin}")
-    system("vagrant plugin install #{plugin}")
-    exit system('vagrant', *ARGV)
-  end
-end
-
-# Start the process  
 Vagrant.configure("2") do |config|
-
   config.ssh.insert_key = false
   config.vbguest.auto_update = false
   config.vm.box_check_update = false
 
-  # Database Server Configuration with MongoDB
-  config.vm.define "db-server" do |db|
-    db.vm.box = "ubuntu/focal64"
-    db.vm.hostname = "db-server"
-    db.vm.network "private_network", ip: "192.168.56.17"
-    db.vm.network "forwarded_port", guest: 27017, host: 27018
-    
-    # Provider Virtualbox
-    db.vm.provider "virtualbox" do |vb|
-      vb.name = "db-server"
-      vb.memory = "1024"
-      vb.cpus = 1
-    end # of vb
-    
-    # Shared folders
-    if Vagrant::Util::Platform.windows?
-      db.vm.synced_folder "scripts/", "/home/vagrant/scripts",
-        owner: "vagrant", group: "vagrant",
-        mount_options: ["dmode=775","fmode=755"]
-    else
-      db.vm.synced_folder "scripts/", "/home/vagrant/scripts",
-        mount_options: ["dmode=775", "fmode=755"] 
-      db.vm.synced_folder "certs/", "/home/vagrant/certs",
-        mount_options: ["dmode=775", "fmode=755"]
-      db.vm.synced_folder "mongo/", "/home/vagrant/mongo",
-        mount_options: ["dmode=775", "fmode=755"]
-    end # of shared folders
-    
-    # Provisioning
-    #db.vm.provision :shell, path: "scripts/setup_db.sh"
-    db.vm.provision :reload
-  end # of db
+  # Create multiple network interfaces
+  # 1. Outside Network (Client)
+  # 2. DMZ Network (App Server)
+  # 3. Private Network (DB Server)
+  
+  # Network Interface Configuration
+  DMZ_NET = "192.168.60.0/24"     # DMZ Network
+  PRIVATE_NET = "192.168.50.0/24" # Private Network
 
-  # Application Server Configuration
-  config.vm.define "app-server" do |app|
-    app.vm.box = "ubuntu/focal64"
-    app.vm.hostname = "app-server"
-    app.vm.network "private_network", ip: "192.168.56.14"
-    app.vm.network "forwarded_port", guest: 8000, host: 8001
-    
-    # Providopenssl x509 -req -in server.csr -signkey server.key -out server.crter Virtualbox
-    app.vm.provider "virtualbox" do |vb|
-      vb.name = "app-server"
-      vb.memory = "1024"
-      vb.cpus = 2
-    end # of vb
-    
-    # Shared folders
-    if Vagrant::Util::Platform.windows?
-      app.vm.synced_folder "scripts/", "/home/vagrant/scripts",
-        owner: "vagrant", group: "vagrant",
-        mount_options: ["dmode=775","fmode=755"]
-    else
-        app.vm.synced_folder "app/", "/home/vagrant/app",
-          mount_options: ["dmode=775", "fmode=755"]
-        app.vm.synced_folder "scripts/", "/home/vagrant/scripts",
-          mount_options: ["dmode=775", "fmode=755"]
-        app.vm.synced_folder "certs/", "/home/vagrant/certs",
-          mount_options: ["dmode=775", "fmode=755"]
-    end # of shared folders
-    
-    # Provisioning
-    #app.vm.provision :shell, path: "scripts/setup_app.sh"
-    app.vm.provision :reload
-  end # of app
 
-  # Client Machine (Optional)
+  # Client (Outside Network)
   config.vm.define "client" do |client|
     client.vm.box = "ubuntu/focal64"
     client.vm.hostname = "client"
-    client.vm.network "private_network", ip: "192.168.56.15"
-    # set ip address
-
     
-    # Provider Virtualbox
+    client.vm.network "public_network"
+    
     client.vm.provider "virtualbox" do |vb|
-      vb.name = "client"
       vb.memory = "1024"
       vb.cpus = 1
-    end # of vb
-    
+    end
+
     # Shared folders
     if Vagrant::Util::Platform.windows?
       client.vm.synced_folder "scripts/", "/home/vagrant/scripts",
         owner: "vagrant", group: "vagrant",
         mount_options: ["dmode=775","fmode=755"]
+      client.vm.synced_folder "client/", "/home/vagrant/client",
+        owner: "vagrant", group: "vagrant",
+        mount_options: ["dmode=775","fmode=755"]
     else
-        client.vm.synced_folder "client/", "/home/vagrant/client",
-          mount_options: ["dmode=775", "fmode=755"]
-        client.vm.synced_folder "scripts/", "/home/vagrant/scripts",
-          mount_options: ["dmode=775", "fmode=755"]
-        client.vm.synced_folder "certs/", "/home/vagrant/certs",
-          mount_options: ["dmode=775", "fmode=755"]
-        client.vm.synced_folder "app/", "/home/vagrant/app"
-    end # of shared folders
+      client.vm.synced_folder "client/", "/home/vagrant/client",
+        mount_options: ["dmode=775", "fmode=755"]
+      client.vm.synced_folder "scripts/", "/home/vagrant/scripts",
+        mount_options: ["dmode=775", "fmode=755"]
+      client.vm.synced_folder "certs/", "/home/vagrant/certs",
+        mount_options: ["dmode=775", "fmode=755"]
+    end
+
+    # Client security configuration
+    #client.vm.provision "shell", path: "scripts/secure_client.sh"
+  end
+
+
+  # App Server (DMZ)
+  config.vm.define "app-server" do |app|
+    app.vm.box = "ubuntu/focal64"
+    app.vm.hostname = "app-server"
     
-    # Provisioning
-    #client.vm.provision :shell, path: "scripts/setup_client.sh"
-    client.vm.provision :reload
-  end # of client
-end # of config
+    # DMZ Network Interface
+    app.vm.network "private_network", 
+      ip: "192.168.60.10", 
+      virtualbox__intnet: "dmz-net"
+    
+    # Private Network Interface for DB Connection
+    app.vm.network "private_network", 
+      ip: "192.168.56.14", 
+      virtualbox__intnet: "private-net"
+    
+    app.vm.provider "virtualbox" do |vb|
+      vb.memory = "1024"
+      vb.cpus = 2
+    end
+
+    # Shared folders
+    if Vagrant::Util::Platform.windows?
+      app.vm.synced_folder "scripts/", "/home/vagrant/scripts",
+        owner: "vagrant", group: "vagrant",
+        mount_options: ["dmode=775","fmode=755"]
+      app.vm.synced_folder "app/", "/home/vagrant/app",
+        owner: "vagrant", group: "vagrant",
+        mount_options: ["dmode=775","fmode=755"]
+    else
+      app.vm.synced_folder "app/", "/home/vagrant/app",
+        mount_options: ["dmode=775", "fmode=755"]
+      app.vm.synced_folder "scripts/", "/home/vagrant/scripts",
+        mount_options: ["dmode=775", "fmode=755"]
+      app.vm.synced_folder "certs/", "/home/vagrant/certs",
+        mount_options: ["dmode=775", "fmode=755"]
+    end
+
+    # App server security configuration
+    app.vm.provision "shell", path: "scripts/secure_app_server.sh"
+  end
+
+  # Database Server (Private Network)
+  config.vm.define "db-server" do |db|
+    db.vm.box = "ubuntu/focal64"
+    db.vm.hostname = "db-server"
+    
+    # Private Network Interface
+    db.vm.network "private_network", 
+      ip: "192.168.56.17", 
+      virtualbox__intnet: "private-net"
+    
+    db.vm.provider "virtualbox" do |vb|
+      vb.memory = "1024"
+      vb.cpus = 1
+    end
+
+    # Shared folders
+    if Vagrant::Util::Platform.windows?
+      db.vm.synced_folder "scripts/", "/home/vagrant/scripts",
+        owner: "vagrant", group: "vagrant",
+        mount_options: ["dmode=775","fmode=755"]
+      db.vm.synced_folder "mongo/", "/home/vagrant/mongo",
+        owner: "vagrant", group: "vagrant",
+        mount_options: ["dmode=775","fmode=755"]
+    else
+      db.vm.synced_folder "scripts/", "/home/vagrant/scripts",
+        mount_options: ["dmode=775", "fmode=755"]
+      db.vm.synced_folder "mongo/", "/home/vagrant/mongo",
+        mount_options: ["dmode=775", "fmode=755"]
+      db.vm.synced_folder "certs/", "/home/vagrant/certs",
+        mount_options: ["dmode=775", "fmode=755"]
+    end
+
+    # Database server security configuration
+    db.vm.provision "shell", path: "scripts/secure_db_server.sh"
+  end
+end

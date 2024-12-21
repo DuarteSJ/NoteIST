@@ -35,18 +35,7 @@ class Server:
         # Setup logging
         logging.basicConfig(level=logging.INFO)
         self.logger = logging.getLogger(__name__)
-
-        # MongoDB connection for additional operations if needed
-        self.client = MongoClient(mongo_uri)
-        self.db = self.client['secure_document_db']
-        self.collection = self.db['documents']
         
-        # Check if connection
-        if self.client:
-            self.logger.info("Connected to MongoDB")
-        else:
-            self.logger.error("Failed to connect to MongoDB")       
-
         # Socket and TLS setup
         self.host = host
         self.port = port
