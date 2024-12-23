@@ -22,11 +22,6 @@ class UsersService:
                     username: str, 
                     public_key) -> Dict[str, Any]:
         try:
-            
-            # Check public key
-            
-            public_key = bytes.fromhex(public_key)
-            public_key = Binary(public_key)
 
             # Check if username already exists
             existing_user = self.db_manager.find_document('users', {'username': username})

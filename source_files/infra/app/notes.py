@@ -147,17 +147,15 @@ class NotesService:
         """
         try:
             # Find the latest version of the note
-            latest_note = self.db_manager.find_document('notes', 
-                {
-                    'id': note_id, 
-                    'owner.id': owner_id
-                },
-                sort=[('version', -1)],  # Sort by version in descending order
-                limit=1  # Retrieve only the first (highest) version
-            )
-            if not latest_note:
-                raise ValueError("Note not found")
+            result = self.db_manager.find_document('notes', {
+                'id': note_id,
+                'owner.id': owner_id
+                })
+            if not result:
+                return False
             
+            all_versions = list(result)
+            latest_note = max(all_versions, key=lambda x: x['version'])
             return latest_note
         
         except Exception as e:
@@ -250,20 +248,17 @@ class NotesService:
                 'owner.id': owner_id
             }
             
-            # Sort in descending order and limit to 1 to get the highest _id
-            max_note = self.db_manager.find_document(
-                'notes', 
-                max_note_query, 
-                sort=[('_id', -1)], 
-                limit=1
-            )
-            
-            # If no notes exist for this owner, start with 1
-            if not max_note:
+            result = self.db_manager.find_document('notes', max_note_query)
+            if not result:
                 return 1
-            
-            # Return the next integer ID
-            return max_note['_id'] + 1
+
+            # Get all documents and sort in Python
+            all_notes = list(result)
+            if not all_notes:
+                return 1
+                
+            max_id = max(note['_id'] for note in all_notes)
+            return max_id + 1
         
         except Exception as e:
             self.logger.error(f"Error generating next note ID: {e}")

@@ -3,7 +3,7 @@ import socket
 import json
 from cryptography.hazmat.primitives.asymmetric import padding
 from cryptography.hazmat.primitives import hashes
-from typing import List, Optional
+from typing import List
 from models import ResponseModel, RequestType
 from key_manager import load_private_key
 

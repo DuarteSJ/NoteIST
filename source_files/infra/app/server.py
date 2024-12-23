@@ -11,6 +11,8 @@ from cryptography.hazmat.backends import default_backend
 from users import UsersService
 from notes import NotesService
 from cryptography.hazmat.primitives.hashes import SHA256
+import base64
+
 
 
 # Import the new Pydantic models
@@ -84,7 +86,7 @@ class Server:
                 # TODO: Decide what to do here if digest_of_hmacs is not set
                 digest_of_hmacs = "" ""
             
-            documents = self.notes_service.get_user_notes(username=req.username)
+            documents = self.notes_service.get_user_notes(user.get("_id"))
             note_id = self.notes_service.get_next_note_id(user.get("_id"))
 
             return {
@@ -121,53 +123,48 @@ class Server:
             
             # Process each action
             for action in req.data:
+                print(action)
                 if 'type' not in action:
                     continue
-                handler_method = self._get_action_handler(action.type)
+                handler_method = self._get_action_handler(action.get('type'))
                 if handler_method:
                     try:
                         result = handler_method(action, user)
                         action_results.append({
-                            'action': action.value,
+                            'action': action.get('type'),
                             'status': 'success',
                             'result': result
                         })
                     except Exception as action_error:
                         action_results.append({
-                            'action': action.value,
+                            'action': action.get('type'),
                             'status': 'error',
                             'message': str(action_error)
                         })
                 else:
                     action_results.append({
-                        'action': action.value,
+                        'action': action.get('type'),
                         'status': 'error',
-                        'message': f'No handler found for action: {action.value}'
+                        'message': f'No handler found for action: {action.get("type")}'
                     })
             
-            # Get digest of HMACs (if applicable)
-            digest_of_hmacs = user.get('digest_of_hmacs', '')
-            
-            # Retrieve user documents
-            documents = self.notes_service.get_user_notes(username=req.username)
-            
+        
             # Construct response
             return {
                 "status": "success",
                 "message": "Actions processed successfully",
-                "digest_of_hashes": digest_of_hmacs,
-                "documents": documents,
                 "action_results": action_results
             }
         
         except ValidationError as ve:
             self.logger.error(f"Validation Error: {ve}")
-            return ResponseModel(status='error', message=str(ve))
+            return {"status": "error", "message": str(ve)}
         except Exception as e:
+            print('aaaaa')
             self.logger.error(f"Error processing request: {e}")
-            return ResponseModel(status='error', message=str(e))
+            return {"status": "error", "message": str(e)}
 
-    def _get_action_handler(self, action: ActionType):
+    def _get_action_handler(self, action: str):
         """
         Retrieve the appropriate handler method for a given action.
         
@@ -175,11 +172,11 @@ class Server:
         :return: A method to handle the specific action
         """
         action_handlers = {
-            ActionType.CREATE_NOTE: self._handle_create_note,
-            ActionType.EDIT_NOTE: self._handle_edit_note,
-            ActionType.DELETE_NOTE: self._handle_delete_note,
-            ActionType.ADD_COLABORATOR: self._handle_add_colaborator,
-            ActionType.REMOVE_COLABORATOR: self._handle_remove_colaborator
+            ActionType.CREATE_NOTE.value: self._handle_create_note,
+            ActionType.EDIT_NOTE.value: self._handle_edit_note,
+            ActionType.DELETE_NOTE.value: self._handle_delete_note,
+            ActionType.ADD_COLABORATOR.value: self._handle_add_colaborator,
+            ActionType.REMOVE_COLABORATOR.value: self._handle_remove_colaborator
         }
         
         return action_handlers.get(action)
@@ -194,8 +191,8 @@ class Server:
         """
         # Criar nota:
         # verificar se id, owner_id existem. Se não criar nota
-        
-        note = action.get('data', {}).get('note')
+        data = action.get('data', {})
+        note = data.get('note')
         if not note:
             raise ValueError("Missing note data")
         
@@ -207,7 +204,7 @@ class Server:
         if not note_id or not note_hmac or not note_iv or not note_title or not note_note:
             raise ValueError("Missing required note fields")
         
-        note = self.notes_service.get_note(note_id,user )
+        note = self.notes_service.get_note(note_id,user)
         if note:
             #TODO: WHAT TO DO HERE?
             raise ValueError(f"Note with id {note_id} already exists")
@@ -219,10 +216,10 @@ class Server:
             iv=note_iv,
             hmac=note_hmac,
             owner=user,
-            note=note
         )
+        note_id = note.get("_id")
 
-        return ResponseModel(status='success', message='Note created')
+        return {"status": "success", "message": "Note created", "note_id": note_id}
     
     def _handle_edit_note(self, action: Dict[str, Any], user: Dict[str, Any]) -> Dict[str, Any]:
         """
@@ -412,6 +409,7 @@ class Server:
             self.logger.error(f"Validation Error: {ve}")
             return ResponseModel(status='error', message=str(ve))
         except Exception as e:
+            print('asdasdasdasdasdasd')
             self.logger.error(f"Error processing request: {e}")
             return ResponseModel(status='error', message=str(e))
 
@@ -419,7 +417,6 @@ class Server:
         #TODO: Receive data in chunks
         #data = b""
         #while True:
-            #print('a')
         chunk = secure_sock.recv(4096)
             # if not chunk:
             #     break
@@ -429,11 +426,11 @@ class Server:
     def verify_signature(self, req: SignedRequestModel) -> bool:
         # Fetch public key from database
         username = req.username
-        signature = req.signature
+        signature = req.signature.decode("utf-8")
+        signature = bytes.fromhex(signature)
         data = req.data
         serialized_data = json.dumps(data, separators=(",", ":"), sort_keys=True)
-        public_key_bytes = self.user_service.get_user(username)["public_key"].encode('utf-8')
-        print(public_key_bytes)
+        public_key_bytes = base64.b64decode(self.user_service.get_user(username)["public_key"])
 
         try:
             # Load the public key
@@ -457,6 +454,7 @@ class Server:
         """
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
 
+            sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
             sock.bind((self.host, self.port))
             sock.listen(5)
             self.logger.info(f"Server listening on {self.host}:{self.port}")

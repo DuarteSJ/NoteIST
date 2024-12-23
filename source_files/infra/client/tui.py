@@ -7,7 +7,6 @@ from key_manager import generate_key_pair, get_public_key_json_serializable
 from secure_request_handler import SecureRequestHandler
 from models import ActionType
 import json
-from cryptography.hazmat.primitives import serialization
 
 class NoteIST:
     def __init__(self, host: str, port: int, cert_path: str):
@@ -217,7 +216,7 @@ class NoteIST:
         )
         encryptedNote = readJson(note_path)
         self.changes.append({
-            "type": ActionType.CREATE_NOTE,
+            "type": ActionType.CREATE_NOTE.value,
             "data": {
                 "note": encryptedNote,
             }
@@ -363,7 +362,7 @@ class NoteIST:
         encrypted_note = readJson(new_filepath)
 
         self.changes.append({
-            "type": ActionType.EDIT_NOTE,
+            "type": ActionType.EDIT_NOTE.value,
             "data": {
                 "note": encrypted_note,
             },
@@ -406,7 +405,7 @@ class NoteIST:
         if versions: # directory is not empty, get id and add change
             id = getNoteInfo(versions[0])["id"]
             self.changes.append({
-                "type": ActionType.DELETE_NOTE,
+                "type": ActionType.DELETE_NOTE.value,
                 "data": {
                     "note_id": id, 
                 }
