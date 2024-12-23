@@ -16,7 +16,10 @@ sudo iptables -A INPUT -i lo -j ACCEPT
 sudo iptables -A INPUT -p tcp --dport 22 -j ACCEPT
 
 # ONLY allow MongoDB connections from the app server
-sudo iptables -A INPUT -p tcp -s 192.168.50.10 --dport 27017 -j ACCEPT
+sudo iptables -A INPUT -p tcp -s 192.168.56.14 --dport 27017 -j ACCEPT
+
+#allow pings
+sudo iptables -A INPUT -p icmp --icmp-type echo-request -j ACCEPT
 
 # Log and drop other incoming packets
 sudo iptables -A INPUT -j LOG --log-prefix "DB-SERVER-DROPPED: "

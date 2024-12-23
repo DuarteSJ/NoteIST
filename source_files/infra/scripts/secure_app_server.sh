@@ -32,6 +32,6 @@ sudo iptables -A INPUT -p tcp --dport 5000 -j ACCEPT
 sudo iptables -A INPUT -p icmp --icmp-type echo-request -j ACCEPT
 
 # Allow app server to connect to DB server on port 27017
-sudo iptables -A OUTPUT -p tcp -d 192.168.60.20 --dport 27017 -j ACCEPT
+sudo iptables -A OUTPUT -p tcp -d 192.168.56.17 --dport 27017 -j ACCEPT
 
 echo "Firewall rules applied successfully"
