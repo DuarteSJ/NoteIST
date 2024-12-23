@@ -43,7 +43,7 @@ class SecureRequestHandler:
         private_key = load_private_key(private_key_path)
         print(f"Private key loaded: {private_key}")
         signature = self._sign_request(request_data, private_key)
-        print(f"Signature: {signature.hex()}")
+        print(f"Signature: {signature}")
 
         return {
             "type": req_type,
@@ -68,7 +68,7 @@ class SecureRequestHandler:
                 with context.wrap_socket(
                     sock, server_hostname=self.host
                 ) as secure_sock:
-                    print(f"Sending payload: {payload}")
+                    print(f" sending: {json.dumps(payload).encode('utf-8')}")
                     secure_sock.send(json.dumps(payload).encode("utf-8"))
                     response_data = self._receive_data(secure_sock)
                     response_dict = json.loads(response_data)

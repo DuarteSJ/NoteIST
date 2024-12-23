@@ -54,7 +54,7 @@ class Server:
         """
         Handle the registration request.
         """
-
+        
         key = req.data.get('public_key')
         if not key:
             return {"status": "error", "message": "Public key is required"}
@@ -82,7 +82,7 @@ class Server:
             digest_of_hmacs = user.get('digest_of_hmacs', None)
             if not digest_of_hmacs:
                 # TODO: Decide what to do here if digest_of_hmacs is not set
-                digest_of_hmacs = ""
+                digest_of_hmacs = "" ""
             
             documents = self.notes_service.get_user_notes(username=req.username)
             note_id = self.notes_service.get_next_note_id(user.get("_id"))
@@ -432,8 +432,9 @@ class Server:
         signature = req.signature
         data = req.data
         serialized_data = json.dumps(data, separators=(",", ":"), sort_keys=True)
-        public_key_bytes = self.user_service.get_user(username)["public_key"]  
+        public_key_bytes = self.user_service.get_user(username)["public_key"].encode('utf-8')
         print(public_key_bytes)
+
         try:
             # Load the public key
             public_key = load_der_public_key(public_key_bytes, default_backend())

@@ -2524,3 +2524,36 @@ pymongo.errors.ServerSelectionTimeoutError: 192.168.56.17:27017: timed out (conf
 2024-12-23 15:43:29,058 - db_manager - INFO - Successfully connected to MongoDB
 2024-12-23 15:43:29,059 - __main__ - INFO - Server listening on 0.0.0.0:5000
 2024-12-23 15:46:55,011 - db_manager - INFO - MongoDB connection closed
+2024-12-23 16:15:21,310 - db_manager - INFO - Successfully connected to MongoDB
+2024-12-23 16:15:21,312 - __main__ - INFO - Server listening on 0.0.0.0:5000
+2024-12-23 16:38:22,725 - db_manager - INFO - Successfully connected to MongoDB
+2024-12-23 16:38:22,726 - __main__ - INFO - Server listening on 0.0.0.0:5000
+2024-12-23 16:41:30,004 - __main__ - ERROR - Server error: [SSL: SSLV3_ALERT_BAD_CERTIFICATE] sslv3 alert bad certificate (_ssl.c:1145)
+2024-12-23 16:43:35,569 - db_manager - INFO - MongoDB connection closed
+2024-12-23 16:53:01,878 - db_manager - INFO - Successfully connected to MongoDB
+2024-12-23 16:53:01,879 - __main__ - INFO - Server listening on 0.0.0.0:5000
+2024-12-23 16:53:09,881 - __main__ - INFO - Connection from ('192.168.1.200', 50296)
+2024-12-23 16:53:09,890 - db_manager - INFO - Inserted document in users with ID: 67699575c9ec9c9fb0777f4f
+2024-12-23 16:53:09,891 - users - INFO - User created with ID: 67699575c9ec9c9fb0777f4f
+2024-12-23 16:57:36,004 - __main__ - INFO - Connection from ('192.168.1.200', 54452)
+2024-12-23 16:57:36,006 - root - ERROR - Signature verification failed: 
+2024-12-23 17:00:48,886 - db_manager - INFO - MongoDB connection closed
+2024-12-23 17:00:51,247 - db_manager - INFO - Successfully connected to MongoDB
+2024-12-23 17:00:51,248 - __main__ - INFO - Server listening on 0.0.0.0:5000
+2024-12-23 17:00:59,499 - __main__ - INFO - Connection from ('192.168.1.200', 55394)
+2024-12-23 17:00:59,501 - __main__ - ERROR - Error processing request: 'utf-8' codec can't decode byte 0x82 in position 1: invalid start byte
+2024-12-23 17:02:06,357 - __main__ - INFO - Connection from ('192.168.1.200', 60576)
+2024-12-23 17:02:06,359 - __main__ - ERROR - Error processing request: 'utf-8' codec can't decode byte 0x82 in position 1: invalid start byte
+2024-12-23 17:07:34,489 - db_manager - INFO - MongoDB connection closed
+2024-12-23 17:07:37,648 - db_manager - INFO - Successfully connected to MongoDB
+2024-12-23 17:07:37,649 - __main__ - INFO - Server listening on 0.0.0.0:5000
+2024-12-23 17:08:05,030 - __main__ - INFO - Connection from ('192.168.1.200', 43164)
+2024-12-23 17:08:05,031 - __main__ - ERROR - Error processing request: 'bytes' object has no attribute 'encode'
+2024-12-23 17:09:27,933 - __main__ - INFO - Connection from ('192.168.1.200', 56926)
+2024-12-23 17:09:27,933 - users - ERROR - Error creating user: non-hexadecimal number found in fromhex() arg at position 0
+2024-12-23 17:09:27,933 - __main__ - ERROR - Error processing request: non-hexadecimal number found in fromhex() arg at position 0
+2024-12-23 17:12:49,552 - __main__ - INFO - Connection from ('192.168.1.200', 41884)
+2024-12-23 17:12:49,553 - users - ERROR - Error creating user: non-hexadecimal number found in fromhex() arg at position 0
+2024-12-23 17:12:49,553 - __main__ - ERROR - Error processing request: non-hexadecimal number found in fromhex() arg at position 0
+2024-12-23 17:13:47,540 - __main__ - INFO - Connection from ('192.168.1.200', 48830)
+2024-12-23 17:13:47,541 - __main__ - ERROR - Server error: Expecting value: line 1 column 1 (char 0)

@@ -1,5 +1,5 @@
+cryptography==3.4.7
+pydantic==2.10.4
+pycryptodome==3.21.0
+bson==0.5.10
 -e ../client/secure-document
-cryptography
-pydantic
-pycryptodome
-bson

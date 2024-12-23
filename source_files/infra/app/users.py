@@ -1,6 +1,7 @@
 import logging
 from typing import Optional, Dict, Any, Tuple
 import base64
+from bson.binary import Binary
 from db_manager import DatabaseManager, get_database_manager
 from models import UsersModel
 class UsersService:
@@ -24,9 +25,8 @@ class UsersService:
             
             # Check public key
             
-            public_key = base64.b64decode(public_key)
-            if not isinstance(public_key, bytes):
-                raise ValueError("Public key must be in bytes format")
+            public_key = bytes.fromhex(public_key)
+            public_key = Binary(public_key)
 
             # Check if username already exists
             existing_user = self.db_manager.find_document('users', {'username': username})
