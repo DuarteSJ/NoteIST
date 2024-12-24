@@ -4,16 +4,15 @@ from cryptography.hazmat.backends import default_backend
 import base64
 import os
 
+
 class KeyManager:
     """Handles cryptographic key operations including generation, storage, and loading."""
-    
+
     @staticmethod
     def generate_private_key(key_size: int = 2048) -> rsa.RSAPrivateKey:
         """Generates a new RSA private key."""
         return rsa.generate_private_key(
-            public_exponent=65537,
-            key_size=key_size,
-            backend=default_backend()
+            public_exponent=65537, key_size=key_size, backend=default_backend()
         )
 
     @staticmethod
@@ -22,7 +21,9 @@ class KeyManager:
         return private_key.public_key()
 
     @staticmethod
-    def store_private_key(private_key: rsa.RSAPrivateKey, private_key_path: str) -> None:
+    def store_private_key(
+        private_key: rsa.RSAPrivateKey, private_key_path: str
+    ) -> None:
         """Stores the RSA private key in PEM format."""
         if not os.path.exists(os.path.dirname(private_key_path)):
             os.makedirs(os.path.dirname(private_key_path))
@@ -46,9 +47,7 @@ class KeyManager:
         """Loads an RSA private key from a file."""
         with open(private_key_path, "rb") as key_file:
             return serialization.load_pem_private_key(
-                key_file.read(),
-                password=None,
-                backend=default_backend()
+                key_file.read(), password=None, backend=default_backend()
             )
 
     @classmethod

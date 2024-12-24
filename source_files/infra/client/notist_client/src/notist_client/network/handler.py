@@ -7,9 +7,10 @@ from ..crypto.keys import KeyManager
 from ..models.responses import Response
 from ..models.actions import RequestType
 
+
 class NetworkHandler:
     """Handles all network communication with the server."""
-    
+
     def __init__(self, username: str, host: str, port: int, cert_path: str):
         self.username = username
         self.host = host
@@ -30,7 +31,9 @@ class NetworkHandler:
             context.verify_mode = ssl.CERT_REQUIRED
 
             with socket.create_connection((self.host, self.port)) as sock:
-                with context.wrap_socket(sock, server_hostname=self.host) as secure_sock:
+                with context.wrap_socket(
+                    sock, server_hostname=self.host
+                ) as secure_sock:
                     secure_sock.send(json.dumps(payload).encode("utf-8"))
                     response_data = self._receive_data(secure_sock)
                     return Response(**json.loads(response_data))
@@ -39,22 +42,18 @@ class NetworkHandler:
             raise Exception(f"Network error: {e}")
         except Exception as e:
             return Response(
-                status="error",
-                message=str(e),
-                documents=None,
-                document=None
+                status="error", message=str(e), documents=None, document=None
             )
 
-    def push_changes(self, private_key_path: str, changes: List[Dict[str, Any]]) -> Response:
+    def push_changes(
+        self, private_key_path: str, changes: List[Dict[str, Any]]
+    ) -> Response:
         """Pushes changes to the server."""
         private_key = KeyManager.load_private_key(private_key_path)
         signature = self.secure_handler.sign_request(changes, private_key)
-        
+
         payload = self.secure_handler.create_signed_payload(
-            RequestType.PUSH.value,
-            self.username,
-            changes,
-            signature
+            RequestType.PUSH.value, self.username, changes, signature
         )
         return self._send_request(payload)
 
@@ -62,21 +61,16 @@ class NetworkHandler:
         """Pulls changes from the server."""
         private_key = KeyManager.load_private_key(private_key_path)
         signature = self.secure_handler.sign_request([], private_key)
-        
+
         payload = self.secure_handler.create_signed_payload(
-            RequestType.PULL.value,
-            self.username,
-            [],
-            signature
+            RequestType.PULL.value, self.username, [], signature
         )
         return self._send_request(payload)
 
     def register_user(self, public_key: str) -> Response:
         """Registers a new user with the server."""
         payload = self.secure_handler.create_unsigned_payload(
-            RequestType.REGISTER.value,
-            self.username,
-            {"public_key": public_key}
+            RequestType.REGISTER.value, self.username, {"public_key": public_key}
         )
         print(payload)
         return self._send_request(payload)

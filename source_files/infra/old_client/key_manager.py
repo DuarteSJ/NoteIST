@@ -4,6 +4,7 @@ from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.backends import default_backend
 import base64
 
+
 def generate_private_key(key_size: int = 2048) -> rsa.RSAPrivateKey:
     """
     Generates a new RSA private key.
@@ -85,6 +86,7 @@ def generate_key_pair(private_key_path: str) -> rsa.RSAPublicKey:
     store_private_key(private_key, private_key_path)
     return public_key
 
+
 def get_public_key_json_serializable(public_key: rsa.RSAPublicKey) -> str:
     """
     Converts the RSA public key into a JSON-serializable Base64-encoded string.
@@ -99,7 +101,7 @@ def get_public_key_json_serializable(public_key: rsa.RSAPublicKey) -> str:
         encoding=serialization.Encoding.DER,
         format=serialization.PublicFormat.SubjectPublicKeyInfo,
     )
-    #jesus fucking christ, this is a fucking mess of a code base and I'm not even sure if this is the right way to do it but it works so I'm not gonna touch it anymore 
+    # jesus fucking christ, this is a fucking mess of a code base and I'm not even sure if this is the right way to do it but it works so I'm not gonna touch it anymore
     # Encode the raw bytes to Base64 for JSON compatibility
     public_key_base64 = base64.b64encode(public_key_bytes).decode("utf-8")
     return public_key_base64

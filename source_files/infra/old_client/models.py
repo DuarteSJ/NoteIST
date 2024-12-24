@@ -21,13 +21,14 @@ import datetime
 
 class ActionType(Enum):
     """Enum for different note-related actions"""
+
     CREATE_NOTE = "create_note"
     EDIT_NOTE = "edit_note"
     DELETE_NOTE = "delete_note"
     ADD_COLABORATOR = "add_colaborator"
     REMOVE_COLABORATOR = "remove_colaborator"
 
-    
+
 class RequestType(Enum):
     REGISTER = "register"
     PUSH = "push"

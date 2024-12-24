@@ -22,7 +22,9 @@ class SecureRequestHandler:
 
     def _sign_request(self, request_data: list, private_key):
         try:
-            serialized_data = json.dumps(request_data, separators=(",", ":"), sort_keys=True)
+            serialized_data = json.dumps(
+                request_data, separators=(",", ":"), sort_keys=True
+            )
             print(f"Serialized data: {serialized_data}")
             return private_key.sign(
                 serialized_data.encode("utf-8"), padding.PKCS1v15(), hashes.SHA256()
@@ -38,7 +40,9 @@ class SecureRequestHandler:
             "data": request_data,
         }
 
-    def _create_signed_payload(self, req_type , request_data: dict, private_key_path: str) -> dict:
+    def _create_signed_payload(
+        self, req_type, request_data: dict, private_key_path: str
+    ) -> dict:
         print(f"Creating signed payload for {req_type}")
         private_key = load_private_key(private_key_path)
         print(f"Private key loaded: {private_key}")
@@ -85,14 +89,17 @@ class SecureRequestHandler:
             )
 
     def push_changes(self, private_key_path: str, changes: List[dict]) -> ResponseModel:
-        payload = self._create_signed_payload(RequestType.PUSH.value, changes, private_key_path)
+        payload = self._create_signed_payload(
+            RequestType.PUSH.value, changes, private_key_path
+        )
         print(f"push payload: {payload}")
         return self._send_request(payload)
 
-
     def pull_changes(self, private_key_path: str) -> ResponseModel:
         print("pulling changes")
-        payload = self._create_signed_payload(RequestType.PULL.value,[], private_key_path)
+        payload = self._create_signed_payload(
+            RequestType.PULL.value, [], private_key_path
+        )
         print(f"pull payload: {payload}")
         return self._send_request(payload)
 
@@ -100,5 +107,7 @@ class SecureRequestHandler:
         request_data = {
             "public_key": public_key,
         }
-        payload = self._create_unsigned_payload(RequestType.REGISTER.value, request_data)
+        payload = self._create_unsigned_payload(
+            RequestType.REGISTER.value, request_data
+        )
         return self._send_request(payload)

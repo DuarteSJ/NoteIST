@@ -3,9 +3,10 @@ import json
 from typing import Dict, Any, Optional
 from ..crypto.keys import KeyManager
 
+
 class FileHandler:
     """Handles file operations for notes and configuration."""
-    
+
     @staticmethod
     def store_key(key: bytes, key_file: str) -> None:
         """Stores an encryption key in a file."""

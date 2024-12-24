@@ -14,7 +14,6 @@ from cryptography.hazmat.primitives.hashes import SHA256
 import base64
 
 
-
 # Import the new Pydantic models
 from models import (
     BaseRequestModel,
@@ -25,17 +24,20 @@ from models import (
     PullRequest,
     PushRequest,
     SignedRequestModel,
-    ActionType
+    ActionType,
 )
 
+
 class Server:
-    def __init__(self, 
-                 user_service: UsersService,
-                 notes_service: NotesService,
-                 host='0.0.0.0', 
-                 port=5000, 
-                 cert_path='/home/vagrant/certs/server/server.crt', 
-                 key_path='/home/vagrant/certs/server/server.key'):
+    def __init__(
+        self,
+        user_service: UsersService,
+        notes_service: NotesService,
+        host="0.0.0.0",
+        port=5000,
+        cert_path="/home/vagrant/certs/server/server.crt",
+        key_path="/home/vagrant/certs/server/server.key",
+    ):
         # Setup logging
         logging.basicConfig(level=logging.INFO)
         self.logger = logging.getLogger(__name__)
@@ -51,13 +53,12 @@ class Server:
         self.user_service = user_service
         self.notes_service = notes_service
 
-
     def handle_register_request(self, req: RegisterRequest) -> ResponseModel:
         """
         Handle the registration request.
         """
-        
-        key = req.data.get('public_key')
+
+        key = req.data.get("public_key")
         if not key:
             return {"status": "error", "message": "Public key is required"}
         try:
@@ -67,7 +68,7 @@ class Server:
         except ValidationError as ve:
             self.logger.error(f"Validation Error: {ve}")
             return {"status": "error", "message": str(ve)}
-        
+
         except Exception as e:
             self.logger.error(f"Error processing request: {e}")
             return {"status": "error", "message": str(e)}
@@ -79,13 +80,13 @@ class Server:
         try:
             if not self.verify_signature(req):
                 return {"status": "error", "message": "Signature verification failed"}
-            
+
             user = self.user_service.get_user(req.username)
-            digest_of_hmacs = user.get('digest_of_hmacs', None)
+            digest_of_hmacs = user.get("digest_of_hmacs", None)
             if not digest_of_hmacs:
                 # TODO: Decide what to do here if digest_of_hmacs is not set
                 digest_of_hmacs = "" ""
-            
+
             documents = self.notes_service.get_user_notes(user.get("_id"))
             note_id = self.notes_service.get_next_note_id(user.get("_id"))
 
@@ -94,9 +95,9 @@ class Server:
                 "message": "Documents retrieved successfully",
                 "digest_of_hashes": digest_of_hmacs,
                 "documents": documents,
-                "curr_note_id": note_id
+                "curr_note_id": note_id,
             }
-        
+
         except ValidationError as ve:
             self.logger.error(f"Validation Error: {ve}")
             return {"status": "error", "message": str(ve)}
@@ -107,67 +108,72 @@ class Server:
     def handle_push_request(self, req: PushRequest) -> ResponseModel:
         """
         Handle the push request by processing a list of actions.
-        
+
         Calls the appropriate handler method for each action type.
         """
         try:
             # Verify signature first
             if not self.verify_signature(req):
                 return {"status": "error", "message": "Signature verification failed"}
-            
+
             # user was found for signature verification
             user = self.user_service.get_user(req.username)
-            
+
             # Prepare to collect results of actions
             action_results = []
-            
+
             # Process each action
             for action in req.data:
                 print(action)
-                if 'type' not in action:
+                if "type" not in action:
                     continue
-                handler_method = self._get_action_handler(action.get('type'))
+                handler_method = self._get_action_handler(action.get("type"))
                 if handler_method:
                     try:
                         result = handler_method(action, user)
-                        action_results.append({
-                            'action': action.get('type'),
-                            'status': 'success',
-                            'result': result
-                        })
+                        action_results.append(
+                            {
+                                "action": action.get("type"),
+                                "status": "success",
+                                "result": result,
+                            }
+                        )
                     except Exception as action_error:
-                        action_results.append({
-                            'action': action.get('type'),
-                            'status': 'error',
-                            'message': str(action_error)
-                        })
+                        action_results.append(
+                            {
+                                "action": action.get("type"),
+                                "status": "error",
+                                "message": str(action_error),
+                            }
+                        )
                 else:
-                    action_results.append({
-                        'action': action.get('type'),
-                        'status': 'error',
-                        'message': f'No handler found for action: {action.get("type")}'
-                    })
-            
-        
+                    action_results.append(
+                        {
+                            "action": action.get("type"),
+                            "status": "error",
+                            "message": f'No handler found for action: {action.get("type")}',
+                        }
+                    )
+
             # Construct response
             return {
                 "status": "success",
                 "message": "Actions processed successfully",
-                "action_results": action_results
+                "action_results": action_results,
             }
-        
+
         except ValidationError as ve:
             self.logger.error(f"Validation Error: {ve}")
             return {"status": "error", "message": str(ve)}
         except Exception as e:
-            print('aaaaa')
+            print("aaaaa")
             self.logger.error(f"Error processing request: {e}")
             return {"status": "error", "message": str(e)}
 
     def _get_action_handler(self, action: str):
         """
         Retrieve the appropriate handler method for a given action.
-        
+
         :param action: The action type to handle
         :return: A method to handle the specific action
         """
@@ -176,39 +182,47 @@ class Server:
             ActionType.EDIT_NOTE.value: self._handle_edit_note,
             ActionType.DELETE_NOTE.value: self._handle_delete_note,
             ActionType.ADD_COLABORATOR.value: self._handle_add_colaborator,
-            ActionType.REMOVE_COLABORATOR.value: self._handle_remove_colaborator
+            ActionType.REMOVE_COLABORATOR.value: self._handle_remove_colaborator,
         }
-        
+
         return action_handlers.get(action)
-   
-    def _handle_create_note(self, action: Dict[str, Any], user: Dict[str, Any]) -> Dict[str, Any]:
+
+    def _handle_create_note(
+        self, action: Dict[str, Any], user: Dict[str, Any]
+    ) -> Dict[str, Any]:
         """
         Handle creating a new note for the user.
-        
+
         :param username: The username of the note creator
         :param user: User details
         :return: Details of the created note
         """
         # Criar nota:
         # verificar se id, owner_id existem. Se não criar nota
-        data = action.get('data', {})
-        note = data.get('note')
+        data = action.get("data", {})
+        note = data.get("note")
         if not note:
             raise ValueError("Missing note data")
-        
-        note_id = note.get('_id')
-        note_hmac = note.get('hmac')
-        note_iv = note.get('iv')
-        note_title = note.get('title')
-        note_note = note.get('note')
-        if not note_id or not note_hmac or not note_iv or not note_title or not note_note:
+
+        note_id = note.get("_id")
+        note_hmac = note.get("hmac")
+        note_iv = note.get("iv")
+        note_title = note.get("title")
+        note_note = note.get("note")
+        if (
+            not note_id
+            or not note_hmac
+            or not note_iv
+            or not note_title
+            or not note_note
+        ):
             raise ValueError("Missing required note fields")
-        
-        note = self.notes_service.get_note(note_id,user)
+
+        note = self.notes_service.get_note(note_id, user)
         if note:
-            #TODO: WHAT TO DO HERE?
+            # TODO: WHAT TO DO HERE?
             raise ValueError(f"Note with id {note_id} already exists")
-        
+
         note = self.notes_service.create_note(
             title=note_title,
             content=note_note,
@@ -220,43 +234,55 @@ class Server:
         note_id = note.get("_id")
 
         return {"status": "success", "message": "Note created", "note_id": note_id}
-    
-    def _handle_edit_note(self, action: Dict[str, Any], user: Dict[str, Any]) -> Dict[str, Any]:
+
+    def _handle_edit_note(
+        self, action: Dict[str, Any], user: Dict[str, Any]
+    ) -> Dict[str, Any]:
         """
         Handle editing an existing note.
-        
+
         :param username: The username of the note editor
         :param user: User details
         :return: Details of the edited note
         """
-        
+
         # recebe uma nota com id, title, content, hmac, iv e version.
         # checka a version do documento e a atual
         # se tiver havido um update da parte de um editor, aumenta a versão para a ultima que saiu.
         # se a versão for a mesma, chama o create_note
 
-        sent_note = action.get('data', {}).get('note')
+        sent_note = action.get("data", {}).get("note")
         if not sent_note:
             raise ValueError("Missing note data")
-        
-        owner = sent_note.get('owner')
-        server_note = self.notes_service.get_note(sent_note.get('_id'), owner)
-        
-        perms = self.user_service.check_user_note_permissions(user.get("_id"), server_note)
+
+        owner = sent_note.get("owner")
+        server_note = self.notes_service.get_note(sent_note.get("_id"), owner)
+
+        perms = self.user_service.check_user_note_permissions(
+            user.get("_id"), server_note
+        )
         if not perms.get("is_editor"):
             raise ValueError("User does not have permission to edit this note")
-        
-        note_id = sent_note.get('_id')
-        owner_id = sent_note.get('owner').get('_id')
-        note_hmac = sent_note.get('hmac')
-        note_iv = sent_note.get('iv')
-        note_title = sent_note.get('title')
-        note_note = sent_note.get('note')
-        note_version = sent_note.get('version')
 
-        if not note_id or not note_hmac or not note_iv or not note_title or not note_note or not note_version or not owner_id:
+        note_id = sent_note.get("_id")
+        owner_id = sent_note.get("owner").get("_id")
+        note_hmac = sent_note.get("hmac")
+        note_iv = sent_note.get("iv")
+        note_title = sent_note.get("title")
+        note_note = sent_note.get("note")
+        note_version = sent_note.get("version")
+
+        if (
+            not note_id
+            or not note_hmac
+            or not note_iv
+            or not note_title
+            or not note_note
+            or not note_version
+            or not owner_id
+        ):
             raise ValueError("Missing required note fields")
-        
+
         note = self.notes_service.edit_note(
             title=note_title,
             content=note_note,
@@ -266,57 +292,58 @@ class Server:
             owner=owner,
             editor=user,
             note=note,
-            version=note_version
+            version=note_version,
         )
 
-        return ResponseModel(status='success', message='Note edited')
+        return ResponseModel(status="success", message="Note edited")
 
-    def _handle_delete_note(self, action: Dict[str, Any], user: Dict[str, Any]) -> Dict[str, Any]:
+    def _handle_delete_note(
+        self, action: Dict[str, Any], user: Dict[str, Any]
+    ) -> Dict[str, Any]:
         """
         Handle deleting a note.
-        
+
         :param username: The username of the note deleter
         :param user: User details
         :return: Details of the deleted note
         """
-        
+
         # sent_note = action.get('data', {}).get('note')
         # if not sent_note:
         #     raise ValueError("Missing note data")
 
         owner = user
-        note_id = action.get('data', {}).get('note_id')
+        note_id = action.get("data", {}).get("note_id")
         if not note_id:
             raise ValueError("Missing note data")
-        
+
         server_note = self.notes_service.get_note(note_id, owner)
 
-        perms = self.user_service.check_user_note_permissions(user.get("_id"), server_note)
+        perms = self.user_service.check_user_note_permissions(
+            user.get("_id"), server_note
+        )
         if not perms.get("is_owner"):
             raise ValueError("User does not have permission to delete this note")
-         
-        self.notes_service.delete_note(
-            note_id,
-            owner
-        )
 
-        for editor_id in server_note.get('editors', []):
+        self.notes_service.delete_note(note_id, owner)
+
+        for editor_id in server_note.get("editors", []):
             self.user_service.remove_editor_note(editor_id, note_id)
-        for viewer_id in server_note.get('viewers', []):
+        for viewer_id in server_note.get("viewers", []):
             self.user_service.remove_viewer_note(viewer_id, note_id)
 
-        return ResponseModel(status='success', message='Note deleted')
+        return ResponseModel(status="success", message="Note deleted")
 
-
-
-    def _handle_add_colaborator(self, action: Dict[str, Any], user: Dict[str, Any]) -> Dict[str, Any]:
+    def _handle_add_colaborator(
+        self, action: Dict[str, Any], user: Dict[str, Any]
+    ) -> Dict[str, Any]:
         """
         Handle adding colaborators to a note.
         colaborators can be viewers or editors. (decided in the action data)
         {
             "type": "ADD_COLABORATOR",
             "data": {
-                "note_id": 
+                "note_id":
                 "editorFlag": True/False,
                 "colaborator_name":
             }
@@ -324,71 +351,79 @@ class Server:
 
         """
         action_owner_id = user.get("_id")
-        note_id = action.get('data', {}).get('note_id')
-        colaborator_name = action.get('data', {}).get('colaborator_name')
-        editorFlag = action.get('data', {}).get('editorFlag')
+        note_id = action.get("data", {}).get("note_id")
+        colaborator_name = action.get("data", {}).get("colaborator_name")
+        editorFlag = action.get("data", {}).get("editorFlag")
 
         if not note_id or not colaborator_name or editorFlag is None:
             raise ValueError("Missing required note fields")
-        
+
         colaborator = self.user_service.get_user(colaborator_name)
         if not colaborator:
             raise ValueError(f"User {colaborator_name} not found")
-        
+
         note = self.notes_service.get_note(note_id, user)
         if not note:
             raise ValueError(f"Note with id {note_id} not found")
-        
+
         if editorFlag:
-            self.notes_service.add_editor_to_note( note_id,user.get("_id"),colaborator.get("_id"))
+            self.notes_service.add_editor_to_note(
+                note_id, user.get("_id"), colaborator.get("_id")
+            )
             self.user_service.add_editor_note(colaborator.get("_id"), note_id)
-        
-        self.notes_service.add_viewer_to_note( note_id,user.get("_id"),colaborator.get("_id"))
+
+        self.notes_service.add_viewer_to_note(
+            note_id, user.get("_id"), colaborator.get("_id")
+        )
         self.user_service.add_viewer_note(colaborator.get("_id"), note_id)
 
-        return ResponseModel(status='success', message='Colaborator added')
-        
-    def _handle_remove_colaborator(self, action: Dict[str, Any], user: Dict[str, Any]) -> Dict[str, Any]: 
+        return ResponseModel(status="success", message="Colaborator added")
+
+    def _handle_remove_colaborator(
+        self, action: Dict[str, Any], user: Dict[str, Any]
+    ) -> Dict[str, Any]:
         """
         Handle removing colaborators from a note.
         colaborators can be viewers or editors. (decided in the action data)
         {
             "type": "REMOVE_COLABORATOR",
             "data": {
-                "note_id": 
+                "note_id":
                 "editorFlag": True/False,
                 "colaborator_name":
             }
         }
         """
         action_owner_id = user.get("_id")
-        note_id = action.get('data', {}).get('note_id')
-        colaborator_name = action.get('data', {}).get('colaborator_name')
-        editorFlag = action.get('data', {}).get('editorFlag')
+        note_id = action.get("data", {}).get("note_id")
+        colaborator_name = action.get("data", {}).get("colaborator_name")
+        editorFlag = action.get("data", {}).get("editorFlag")
 
         if not note_id or not colaborator_name or editorFlag is None:
             raise ValueError("Missing required note fields")
-        
+
         colaborator = self.user_service.get_user(colaborator_name)
         if not colaborator:
             raise ValueError(f"User {colaborator_name} not found")
-        
+
         note = self.notes_service.get_note(note_id, user)
         if not note:
             raise ValueError(f"Note with id {note_id} not found")
-        
+
         if editorFlag:
-            self.notes_service.remove_editor_from_note( note_id,user.get("_id"),colaborator.get("_id"))
+            self.notes_service.remove_editor_from_note(
+                note_id, user.get("_id"), colaborator.get("_id")
+            )
             self.user_service.remove_editor_note(colaborator.get("_id"), note_id)
-        
-        self.notes_service.remove_viewer_from_note( note_id,user.get("_id"),colaborator.get("_id"))
+
+        self.notes_service.remove_viewer_from_note(
+            note_id, user.get("_id"), colaborator.get("_id")
+        )
         self.user_service.remove_viewer_note(colaborator.get("_id"), note_id)
 
-        return ResponseModel(status='success', message='Colaborator removed')    
-    
+        return ResponseModel(status="success", message="Colaborator removed")
+
     def handle_request(self, request: BaseRequestModel) -> ResponseModel:
-        
-        
         """
         Handle different document operations by delegating to the appropriate service.
         """
@@ -403,26 +438,26 @@ class Server:
                 return self.handle_push_request(req=request)
 
             else:
-                return ResponseModel(status='error', message='Unsupported operation')
+                return ResponseModel(status="error", message="Unsupported operation")
 
         except ValidationError as ve:
             self.logger.error(f"Validation Error: {ve}")
-            return ResponseModel(status='error', message=str(ve))
+            return ResponseModel(status="error", message=str(ve))
         except Exception as e:
-            print('asdasdasdasdasdasd')
+            print("asdasdasdasdasdasd")
             self.logger.error(f"Error processing request: {e}")
-            return ResponseModel(status='error', message=str(e))
+            return ResponseModel(status="error", message=str(e))
 
     def _receive_data(self, secure_sock) -> str:
-        #TODO: Receive data in chunks
-        #data = b""
-        #while True:
+        # TODO: Receive data in chunks
+        # data = b""
+        # while True:
         chunk = secure_sock.recv(4096)
-            # if not chunk:
-            #     break
-            # data += chunk
+        # if not chunk:
+        #     break
+        # data += chunk
         return chunk.decode("utf-8")
-    
+
     def verify_signature(self, req: SignedRequestModel) -> bool:
         # Fetch public key from database
         username = req.username
@@ -430,7 +465,9 @@ class Server:
         signature = bytes.fromhex(signature)
         data = req.data
         serialized_data = json.dumps(data, separators=(",", ":"), sort_keys=True)
-        public_key_bytes = base64.b64decode(self.user_service.get_user(username)["public_key"])
+        public_key_bytes = base64.b64decode(
+            self.user_service.get_user(username)["public_key"]
+        )
 
         try:
             # Load the public key
@@ -439,9 +476,9 @@ class Server:
             # Verify the signature
             public_key.verify(
                 signature,  # signature should be raw bytes
-                serialized_data.encode('utf-8'),  # data to verify should also be bytes
+                serialized_data.encode("utf-8"),  # data to verify should also be bytes
                 padding.PKCS1v15(),
-                SHA256()
+                SHA256(),
             )
             return True
         except Exception as e:
@@ -469,11 +506,9 @@ class Server:
                         data = self._receive_data(client_socket)
 
                         request_dict = json.loads(data)
-                        
+
                         # Validate and create request using factory
                         request = RequestFactory.create_request(request_dict)
-
-
 
                         # Process request
                         response = self.handle_request(request)
@@ -485,23 +520,31 @@ class Server:
                     except Exception as e:
                         self.logger.error(f"Server error: {e}")
 
-if __name__ == '__main__':#
+
+if __name__ == "__main__":  #
     from users import get_users_service
     from notes import get_notes_service
     from db_manager import get_database_manager
-    
-    MONGO_HOST = '192.168.56.17'
-    MONGO_PORT = '27017'
-    DB_NAME = 'secure_document_db'
-    SERVER_CRT = '/home/vagrant/certs/server/server.pem'
-    SERVER_KEY_PATH = '/home/vagrant/certs/server/server.pem'
-    CA_CRT = '/home/vagrant/certs/ca.crt'
+
+    MONGO_HOST = "192.168.56.17"
+    MONGO_PORT = "27017"
+    DB_NAME = "secure_document_db"
+    SERVER_CRT = "/home/vagrant/certs/server/server.pem"
+    SERVER_KEY_PATH = "/home/vagrant/certs/server/server.pem"
+    CA_CRT = "/home/vagrant/certs/ca.crt"
 
     try:
-        with get_database_manager(MONGO_HOST,MONGO_PORT,DB_NAME,None,SERVER_CRT,CA_CRT) as db_manager:
+        with get_database_manager(
+            MONGO_HOST, MONGO_PORT, DB_NAME, None, SERVER_CRT, CA_CRT
+        ) as db_manager:
             user_service = get_users_service(db_manager)
             notes_service = get_notes_service(db_manager)
-            server = Server(user_service=user_service, notes_service=notes_service,cert_path=SERVER_CRT,key_path=SERVER_KEY_PATH)
+            server = Server(
+                user_service=user_service,
+                notes_service=notes_service,
+                cert_path=SERVER_CRT,
+                key_path=SERVER_KEY_PATH,
+            )
             server.start()
     except Exception as e:
         logging.error(f"Error initializing the server: {e}")

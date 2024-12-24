@@ -13,13 +13,13 @@ class SecureDocumentHandler:
     def _write_json(self, file_path: str, data: dict, indent: int = 2):
         """
         Dumps a dictionary into a JSON file.
-        
+
         :param file_path: Path to the JSON file to be written.
         :param data: Dictionary to write to the file.
         :param indent: Indentation level for pretty-printing. Defaults to 4.
         """
         try:
-            with open(file_path, 'w') as file:
+            with open(file_path, "w") as file:
                 json.dump(data, file, indent=indent)
             print(f"JSON data successfully written to {file_path}")
         except Exception as e:
@@ -28,12 +28,12 @@ class SecureDocumentHandler:
     def _read_json(self, file_path: str) -> dict:
         """
         Reads a JSON file and returns its contents as a dictionary.
-        
+
         :param file_path: Path to the JSON file.
         :return: Dictionary containing the JSON data.
         """
         try:
-            with open(file_path, 'r') as file:
+            with open(file_path, "r") as file:
                 return json.load(file)
         except FileNotFoundError:
             print(f"Error: File not found at {file_path}")
@@ -44,7 +44,7 @@ class SecureDocumentHandler:
         except Exception as e:
             print(f"Unexpected error: {e}")
             return {}
-    
+
     def _parse_encrypted_file(self, input_file: str) -> Tuple[bytes, str, dict]:
         """
         Parse an encrypted JSON file and return its components.
@@ -53,11 +53,11 @@ class SecureDocumentHandler:
             input_file (str): Path to the encrypted file.
 
         Returns:
-            Tuple[bytes, str, dict]: 
+            Tuple[bytes, str, dict]:
                 - IV (bytes): Initialization vector for decryption.
                 - HMAC (str): Stored HMAC from the file.
                 - Encrypted Data (dict): Dictionary of encrypted values.
-        
+
         Raises:
             FileNotFoundError: If the input file does not exist.
             Exception: If the file cannot be parsed or has an invalid format.
@@ -72,10 +72,12 @@ class SecureDocumentHandler:
         # Extract components
         iv = bytes.fromhex(encrypted_json["iv"])
         stored_hmac = encrypted_json["hmac"]
-        encrypted_data = {k: v for k, v in encrypted_json.items() if k not in ["iv", "hmac"]}
+        encrypted_data = {
+            k: v for k, v in encrypted_json.items() if k not in ["iv", "hmac"]
+        }
 
         return iv, stored_hmac, encrypted_data
- 
+
     def _parseKeyFile(self, key_file: str) -> bytes:
         """
         Read and return the encryption key from a key file.
@@ -129,7 +131,7 @@ class SecureDocumentHandler:
                 if k in ["title", "note"]:
                     # Convert value to bytes for encryption
                     # TODO: assuming its string
-                    value_bytes = str(v).encode('utf-8')
+                    value_bytes = str(v).encode("utf-8")
 
                     # Encrypt the value
                     encrypted_value = cipher.encrypt(pad(value_bytes, AES.block_size))
@@ -138,19 +140,16 @@ class SecureDocumentHandler:
                     encrypted_json[k] = encrypted_value.hex()
 
                     # Accumulate data for HMAC
-                    hmac_input += k.encode('utf-8') + value_bytes
+                    hmac_input += k.encode("utf-8") + value_bytes
                 else:
                     encrypted_json[k] = v
 
             # Compute HMAC for all keys and values
             hmac = HMAC.new(key, digestmod=SHA256)
             hmac.update(hmac_input)
-            
+
             # Create final encrypted structure
-            final_encrypted = {
-                "iv": iv.hex(),
-                "hmac": hmac.hexdigest()
-            }
+            final_encrypted = {"iv": iv.hex(), "hmac": hmac.hexdigest()}
 
             for field, val in encrypted_json.items():
                 final_encrypted[field] = val
@@ -159,7 +158,6 @@ class SecureDocumentHandler:
             raise Exception(f"Encryption failed: {e}")
 
         self._write_json(output_file, final_encrypted)
-
 
     def unprotect(self, input_file: str, key_file: str, output_file: str) -> None:
         """
@@ -186,22 +184,26 @@ class SecureDocumentHandler:
                 if k in ["title", "note"]:
                     # Decrypt the value
                     encrypted_value = bytes.fromhex(v)
-                    decrypted_value = unpad(cipher.decrypt(encrypted_value), AES.block_size).decode('utf-8')
+                    decrypted_value = unpad(
+                        cipher.decrypt(encrypted_value), AES.block_size
+                    ).decode("utf-8")
 
                     # Store decrypted value
                     decrypted_json[k] = decrypted_value
 
                     # Accumulate data for HMAC verification
-                    hmac_input += k.encode('utf-8') + decrypted_value.encode('utf-8')
+                    hmac_input += k.encode("utf-8") + decrypted_value.encode("utf-8")
                 else:
                     decrypted_json[k] = v
 
             # Verify HMAC
             hmac = HMAC.new(key, digestmod=SHA256)
             hmac.update(hmac_input)
-            
+
             if hmac.hexdigest() != stored_hmac:
-                raise Exception("Integrity check failed: HMAC verification unsuccessful.")
+                raise Exception(
+                    "Integrity check failed: HMAC verification unsuccessful."
+                )
 
         except Exception as e:
             raise Exception(f"Decryption failed: {e}")
@@ -224,7 +226,7 @@ class SecureDocumentHandler:
             Exception: If the file cannot be parsed or HMAC verification fails.
         """
         key = self._parseKeyFile(key_file)
-        
+
         iv, stored_hmac, encrypted_data = self._parse_encrypted_file(file)
 
         try:
@@ -235,10 +237,12 @@ class SecureDocumentHandler:
                 if k in ["title", "note"]:
                     # Convert encrypted value back to bytes
                     encrypted_value = bytes.fromhex(v)
-                    decrypted_value = unpad(cipher.decrypt(encrypted_value), AES.block_size).decode('utf-8')
+                    decrypted_value = unpad(
+                        cipher.decrypt(encrypted_value), AES.block_size
+                    ).decode("utf-8")
 
                     # Prepare data for HMAC
-                    hmac_input += k.encode('utf-8') + decrypted_value.encode('utf-8')
+                    hmac_input += k.encode("utf-8") + decrypted_value.encode("utf-8")
 
             # Compute HMAC and compare
             hmac = HMAC.new(key, digestmod=SHA256)

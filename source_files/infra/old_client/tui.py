@@ -1,12 +1,20 @@
 import os
 import shutil
 from typing import Optional
-from utils import generate_key, store_key, writeToFile, readJson, unencryptFile, getNoteInfo
+from utils import (
+    generate_key,
+    store_key,
+    writeToFile,
+    readJson,
+    unencryptFile,
+    getNoteInfo,
+)
 from cryptography.hazmat.primitives.asymmetric import rsa
 from key_manager import generate_key_pair, get_public_key_json_serializable
 from secure_request_handler import SecureRequestHandler
 from models import ActionType
 import json
+
 
 class NoteIST:
     def __init__(self, host: str, port: int, cert_path: str):
@@ -27,7 +35,7 @@ class NoteIST:
         # Specific paths
         self.host = host
         self.port = port
-        self.id = 0 # If this is not the first time the client is running, this will get updated by the server later
+        self.id = 0  # If this is not the first time the client is running, this will get updated by the server later
         self.cert_path = cert_path
         self.notes_dir = os.path.join(self.base_data_dir, "notes")
         self.priv_key_path = os.path.join(self.base_config_dir, "priv_key.pem")
@@ -68,21 +76,20 @@ class NoteIST:
             print("falhou login")
             self._register_new_user()
 
-
     def _login(self):
         """
-       Log the user in by loading the username from persistent storage and pulling changes from the server.
+        Log the user in by loading the username from persistent storage and pulling changes from the server.
         """
         with open(self.username_path, "r") as f:
             self.username = json.load(f)["username"]
-            if not self.username: # if the username is empty, register a new user
+            if not self.username:  # if the username is empty, register a new user
                 raise Exception("Username is empty")
-            else: # if there already was a user account, pull changes from remote repository
+            else:  # if there already was a user account, pull changes from remote repository
                 print(f"in else")
                 try:
                     self.request_handler = SecureRequestHandler(
-                    self.username, self.host, self.port, self.cert_path
-                )
+                        self.username, self.host, self.port, self.cert_path
+                    )
                 except Exception as e:
                     print(f"Error creating request handler: {e}")
                 while True:
@@ -92,7 +99,6 @@ class NoteIST:
                     except Exception as e:
                         print(f"Error pulling changes from remote server: {e}")
                 print(response)
-        
 
     def _save_username(self, username: str):
         """
@@ -156,8 +162,12 @@ class NoteIST:
             self.request_handler = SecureRequestHandler(
                 username, self.host, self.port, self.cert_path
             )
-            response = self.request_handler.register_user(get_public_key_json_serializable(public_key))
-            print(f" Server registration response: {response.status} - {response.message}")
+            response = self.request_handler.register_user(
+                get_public_key_json_serializable(public_key)
+            )
+            print(
+                f" Server registration response: {response.status} - {response.message}"
+            )
             if response.status == "error":
                 raise Exception(f"Server registration error: {response.message}")
             print(f"User '{username}' registered successfully!")
@@ -215,12 +225,14 @@ class NoteIST:
             viewers=[],
         )
         encryptedNote = readJson(note_path)
-        self.changes.append({
-            "type": ActionType.CREATE_NOTE.value,
-            "data": {
-                "note": encryptedNote,
+        self.changes.append(
+            {
+                "type": ActionType.CREATE_NOTE.value,
+                "data": {
+                    "note": encryptedNote,
+                },
             }
-        })        
+        )
         print(f"Note '{title}' created successfully!")
 
     def display_notes_list(self):
@@ -358,15 +370,17 @@ class NoteIST:
             viewers=note["viewers"],
         )
         print(f"Note '{selected_note}' version {new_version} updated successfully!")
-        
+
         encrypted_note = readJson(new_filepath)
 
-        self.changes.append({
-            "type": ActionType.EDIT_NOTE.value,
-            "data": {
-                "note": encrypted_note,
-            },
-        })
+        self.changes.append(
+            {
+                "type": ActionType.EDIT_NOTE.value,
+                "data": {
+                    "note": encrypted_note,
+                },
+            }
+        )
 
     def _get_next_version(self, note_dir):
         """Returns the next available version number for the note."""
@@ -386,7 +400,8 @@ class NoteIST:
             return
 
         note_dirs = [
-            d for d in os.listdir(self.notes_dir)
+            d
+            for d in os.listdir(self.notes_dir)
             if os.path.isdir(os.path.join(self.notes_dir, d))
         ]
         if not note_dirs:
@@ -402,18 +417,19 @@ class NoteIST:
 
         versions = [f for f in os.listdir(note_dir) if f.endswith(".notist")]
 
-        if versions: # directory is not empty, get id and add change
+        if versions:  # directory is not empty, get id and add change
             id = getNoteInfo(versions[0])["id"]
-            self.changes.append({
-                "type": ActionType.DELETE_NOTE.value,
-                "data": {
-                    "note_id": id, 
+            self.changes.append(
+                {
+                    "type": ActionType.DELETE_NOTE.value,
+                    "data": {
+                        "note_id": id,
+                    },
                 }
-            })
+            )
 
         shutil.rmtree(note_dir)
         print(f"All versions of note '{selected_note}' deleted successfully!")
-
 
     def push_changes(self):
         """Function to push changes to the server."""
@@ -428,8 +444,10 @@ class NoteIST:
         id = 0  # TODO: extract id from response
         print(f"Pull changes response: {response.status} - {response.message}")
 
+
 def main():
     from models import RequestType
+
     host = "192.168.1.228"  # TODO: server host
     port = 5000  # TODO: server port
     cert_path = "/home/vagrant/certs/ca.crt"  # TODO: certificate path

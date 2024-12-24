@@ -51,7 +51,7 @@ def writeToFile(
     keyFile: str,
     title: str,
     content: str,
-    version: int,   
+    version: int,
     owner: str,
     editors: List[str] = [],
     viewers: List[str] = [],
@@ -107,6 +107,7 @@ def unencryptFile(filePath: str, keyFile: str) -> str:
         if os.path.exists(tempFilePath):
             os.remove(tempFilePath)
 
+
 def getNoteInfo(note_file: str) -> tuple:
     """Extracts id hamc and iv from note"""
     try:
@@ -115,6 +116,7 @@ def getNoteInfo(note_file: str) -> tuple:
         return note_data["id"], note_data["hmac"], note_data["iv"]
     except Exception as e:
         raise Exception(f"Failed to get note info: {e}")
+
 
 def readJson(filePath: str) -> str:
     """Reads the entire note from a file."""

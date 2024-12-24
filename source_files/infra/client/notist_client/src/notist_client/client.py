@@ -8,16 +8,17 @@ from .models.actions import ActionType
 from .models.responses import Response
 from .config.paths import get_config_dir, get_data_dir
 
+
 class NoteISTClient:
     """
     Main client class for the NoteIST application. Handles user management,
     note operations, and synchronization with the server.
     """
-    
+
     def __init__(self, host: str, port: int, cert_path: str):
         """
         Initialize the NoteIST client with server configuration and set up local directories.
-        
+
         Args:
             host: Server hostname
             port: Server port number
@@ -34,7 +35,7 @@ class NoteISTClient:
         self.host = host
         self.port = port
         self.cert_path = cert_path
-        
+
         # Instance attributes
         self.username = None
         self.network_handler = None
@@ -59,7 +60,7 @@ class NoteISTClient:
         if not os.path.exists(self.priv_key_path):
             self._register_new_user()
             return
-        
+
         try:
             self._login()
         except Exception:
@@ -71,21 +72,19 @@ class NoteISTClient:
             # Load username from stored configuration
             user_data = FileHandler.read_json(self.username_path)
             self.username = user_data["username"]
-            
+
             if not self.username:
                 raise ValueError("Username not found in configuration")
 
             # Initialize network handler
             self.network_handler = NetworkHandler(
-                self.username,
-                self.host,
-                self.port,
-                self.cert_path
+                self.username, self.host, self.port, self.cert_path
             )
 
-            # Sync with server
-            self.pull_changes()
-            
+        except Exception as e:
+            raise Exception(f"Login failed: {e}")
+        # TODO: maybe pull from server here. For now, it is done with a command
+
     def _register_new_user(self) -> None:
         """Handle the registration process for a new user."""
         while True:
@@ -99,28 +98,22 @@ class NoteISTClient:
                 # Generate and store key pair
                 self.username = username
                 public_key = KeyManager.generate_key_pair(self.priv_key_path)
-                
+
                 # Initialize network handler
                 self.network_handler = NetworkHandler(
-                    username,
-                    self.host,
-                    self.port,
-                    self.cert_path
+                    username, self.host, self.port, self.cert_path
                 )
 
                 # Register with server
                 response = self.network_handler.register_user(
                     KeyManager.get_public_key_json_serializable(public_key)
                 )
-                
+
                 if response.status == "error":
                     raise Exception(f"Server registration failed: {response.message}")
 
                 # Save username to configuration
-                FileHandler.write_json(
-                    self.username_path,
-                    {"username": username}
-                )
+                FileHandler.write_json(self.username_path, {"username": username})
 
                 print(f"Welcome to NoteIST, {username}!")
                 break
@@ -138,11 +131,11 @@ class NoteISTClient:
             response = self.network_handler.pull_changes(self.priv_key_path)
             if response.status == "error":
                 raise Exception(f"Sync failed: {response.message}")
-            
+
             # Process and apply server changes locally
             if response.documents:
                 self._apply_server_changes(response.documents)
-            return response #TODO: this ret is not required, just cause we printing it in main for now
+            return response  # TODO: this ret is not required, just cause we printing it in main for now
 
         except Exception as e:
             raise Exception(f"Sync failed: {e}")
@@ -150,12 +143,14 @@ class NoteISTClient:
     def _apply_server_changes(self, changes: List[Dict[str, Any]]) -> None:
         """Apply changes received from server to local state."""
         # TODO: use this fuction to apply changes received by pull request
-        print(f"Applying server changes: (this is not implemented yet, but here are the changes we are receiving here: {changes})")
+        print(
+            f"Applying server changes: (this is not implemented yet, but here are the changes we are receiving here: {changes})"
+        )
 
     def create_note(self, title: str, content: str) -> None:
         """
         Create a new note with the given title and content.
-        
+
         Args:
             title: The title of the note
             content: The content of the note
@@ -179,7 +174,7 @@ class NoteISTClient:
             "content": content,
             "owner": self.username,
             "version": 1,
-            "last_modified_by": self.username
+            "last_modified_by": self.username,
         }
 
         # Store note and record change
@@ -189,7 +184,7 @@ class NoteISTClient:
     def _store_note(self, note: Dict[str, Any], note_dir: str) -> None:
         """
         Store a note in the local filesystem.
-        
+
         Args:
             note: The note to store
             note_dir: Directory to store the note in
@@ -200,24 +195,22 @@ class NoteISTClient:
     def _record_change(self, action_type: ActionType, note: Dict[str, Any]) -> None:
         """
         Record a change for later synchronization with the server.
-        
+
         Args:
             action_type: Type of change made
             note: The note that was changed
         """
-        self.changes.append({
-            "type": action_type.value,
-            "data": {
-                "note": note
-            }
-        })
+        self.changes.append({"type": action_type.value, "data": {"note": note}})
 
     def push_changes(self) -> Response:
         """Push recorded changes to the server."""
         # TODO: keep change array in memory for the case were the client crashes/closes wihtout pushing. Maybe store in a file or sm shi.
         if not self.changes:
-            return Response(status="success", message="No changes to push (this wasn't sent by server)")
-            
+            return Response(
+                status="success",
+                message="No changes to push (this wasn't sent by server)",
+            )
+
         return self.network_handler.push_changes(self.priv_key_path, self.changes)
 
     def get_note_list(self) -> List[Dict[str, Any]]:
@@ -229,10 +222,9 @@ class NoteISTClient:
         for note_dir in os.listdir(self.notes_dir):
             note_path = os.path.join(self.notes_dir, note_dir)
             if os.path.isdir(note_path):
-                versions = sorted([
-                    f for f in os.listdir(note_path)
-                    if f.endswith(".notist")
-                ])
+                versions = sorted(
+                    [f for f in os.listdir(note_path) if f.endswith(".notist")]
+                )
                 if versions:
                     latest_version = versions[-1]
                     note_data = FileHandler.read_json(
@@ -242,14 +234,16 @@ class NoteISTClient:
 
         return notes
 
-    def get_note_content(self, title: str, version: Optional[int] = None) -> Dict[str, Any]:
+    def get_note_content(
+        self, title: str, version: Optional[int] = None
+    ) -> Dict[str, Any]:
         """
         Get the content of a specific note version.
-        
+
         Args:
             title: The title of the note to retrieve
             version: Optional specific version to retrieve (latest if not specified)
-            
+
         Returns:
             The note content and metadata
         """
@@ -257,10 +251,7 @@ class NoteISTClient:
         if not os.path.exists(note_dir):
             raise ValueError(f"Note '{title}' not found")
 
-        versions = sorted([
-            f for f in os.listdir(note_dir)
-            if f.endswith(".notist")
-        ])
+        versions = sorted([f for f in os.listdir(note_dir) if f.endswith(".notist")])
         if not versions:
             raise ValueError(f"No versions found for note '{title}'")
 
@@ -276,7 +267,7 @@ class NoteISTClient:
     def edit_note(self, title: str, new_content: str) -> None:
         """
         Edit an existing note with new content.
-        
+
         Args:
             title: The title of the note to edit
             new_content: The new content for the note
@@ -287,14 +278,14 @@ class NoteISTClient:
 
         # Get current note data
         current_note = self.get_note_content(title)
-        
+
         # Create new version
         note = {
             "title": title,
             "content": new_content,
             "owner": current_note["owner"],
             "version": current_note["version"] + 1,
-            "last_modified_by": self.username
+            "last_modified_by": self.username,
         }
 
         # Store note and record change
@@ -304,7 +295,7 @@ class NoteISTClient:
     def delete_note(self, title: str) -> None:
         """
         Delete a note and all its versions.
-        
+
         Args:
             title: The title of the note to delete
         """
@@ -320,10 +311,6 @@ class NoteISTClient:
         shutil.rmtree(note_dir)
 
         # Record change
-        self.changes.append({
-            "type": ActionType.DELETE_NOTE.value,
-            "data": {
-                "note_id": note_id
-            }
-        })
-
+        self.changes.append(
+            {"type": ActionType.DELETE_NOTE.value, "data": {"note_id": note_id}}
+        )
