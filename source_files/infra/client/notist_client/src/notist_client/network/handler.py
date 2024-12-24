@@ -73,7 +73,6 @@ class NetworkHandler:
 
     def register_user(self, public_key: str) -> Response:
         """Registers a new user with the server."""
-        return
         payload = self.secure_handler.create_unsigned_payload(
             RequestType.REGISTER.value,
             self.username,

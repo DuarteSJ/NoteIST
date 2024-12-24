@@ -27,7 +27,8 @@ def display_menu() -> str:
     print("4. Edit a Note")
     print("5. Delete a Note")
     print("6. Push changes to remote server")
-    print("7. Exit")
+    print("7: Pull changes from remote server")
+    print("8. Exit")
     return input("Choose an option: ")
 
 def handle_choice(client: NoteISTClient, choice: str) -> None:
@@ -66,6 +67,10 @@ def handle_choice(client: NoteISTClient, choice: str) -> None:
         
     elif choice == "6":
         response = client.push_changes()
+        print(f"Server response: {response.status} - {response.message}")
+
+    elif choice == "7":
+        response = client.pull_changes()
         print(f"Server response: {response.status} - {response.message}")
 
 if __name__ == "__main__":

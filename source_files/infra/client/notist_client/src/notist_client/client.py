@@ -5,7 +5,6 @@ from .crypto.keys import KeyManager
 from .network.handler import NetworkHandler
 from .utils.file import FileHandler
 from .models.actions import ActionType
-from .models.notes import Note
 from .models.responses import Response
 from .config.paths import get_config_dir, get_data_dir
 
@@ -58,7 +57,6 @@ class NoteISTClient:
     def _load_or_register_user(self) -> None:
         """Load existing user configuration or start new user registration process."""
         if not os.path.exists(self.priv_key_path):
-            print(f"no suh file {priv_key_path}")
             self._register_new_user()
             return
         
@@ -86,11 +84,8 @@ class NoteISTClient:
             )
 
             # Sync with server
-            self._sync_with_server()
+            self.pull_changes()
             
-        except Exception as e:
-            raise Exception(f"Login failed: {e}")
-
     def _register_new_user(self) -> None:
         """Handle the registration process for a new user."""
         while True:
@@ -137,7 +132,7 @@ class NoteISTClient:
                     print("Exiting NoteIST. Goodbye!")
                     exit(0)
 
-    def _sync_with_server(self) -> None:
+    def pull_changes(self) -> None:
         """Synchronize local state with server."""
         try:
             response = self.network_handler.pull_changes(self.priv_key_path)
@@ -147,13 +142,15 @@ class NoteISTClient:
             # Process and apply server changes locally
             if response.documents:
                 self._apply_server_changes(response.documents)
+            return response #TODO: this ret is not required, just cause we printing it in main for now
+
         except Exception as e:
             raise Exception(f"Sync failed: {e}")
 
     def _apply_server_changes(self, changes: List[Dict[str, Any]]) -> None:
         """Apply changes received from server to local state."""
-        # Implementation depends on the specific change format and requirements
-        pass
+        # TODO: use this fuction to apply changes received by pull request
+        print(f"Applying server changes: (this is not implemented yet, but here are the changes we are receiving here: {changes})")
 
     def create_note(self, title: str, content: str) -> None:
         """
@@ -177,19 +174,19 @@ class NoteISTClient:
         FileHandler.store_key(note_key, key_file)
 
         # Create first version of the note
-        note = Note(
-            title=title,
-            content=content,
-            owner=self.username,
-            version=1,
-            last_modified_by=self.username
-        )
+        note = {
+            "title": title,
+            "content": content,
+            "owner": self.username,
+            "version": 1,
+            "last_modified_by": self.username
+        }
 
         # Store note and record change
         self._store_note(note, note_dir)
         self._record_change(ActionType.CREATE_NOTE, note)
 
-    def _store_note(self, note: Note, note_dir: str) -> None:
+    def _store_note(self, note: Dict[str, Any], note_dir: str) -> None:
         """
         Store a note in the local filesystem.
         
@@ -197,10 +194,10 @@ class NoteISTClient:
             note: The note to store
             note_dir: Directory to store the note in
         """
-        note_path = os.path.join(note_dir, f"v{note.version}.notist")
-        FileHandler.write_json(note_path, note.dict())
+        note_path = os.path.join(note_dir, f"v{note['version']}.notist")
+        FileHandler.write_json(note_path, note)
 
-    def _record_change(self, action_type: ActionType, note: Note) -> None:
+    def _record_change(self, action_type: ActionType, note: Dict[str, Any]) -> None:
         """
         Record a change for later synchronization with the server.
         
@@ -211,20 +208,17 @@ class NoteISTClient:
         self.changes.append({
             "type": action_type.value,
             "data": {
-                "note": note.dict()
+                "note": note
             }
         })
 
     def push_changes(self) -> Response:
         """Push recorded changes to the server."""
+        # TODO: keep change array in memory for the case were the client crashes/closes wihtout pushing. Maybe store in a file or sm shi.
         if not self.changes:
-            return Response(status="success", message="No changes to push")
+            return Response(status="success", message="No changes to push (this wasn't sent by server)")
             
         return self.network_handler.push_changes(self.priv_key_path, self.changes)
-
-    def pull_changes(self) -> Response:
-        """Pull changes from the server."""
-        return self.network_handler.pull_changes(self.priv_key_path)
 
     def get_note_list(self) -> List[Dict[str, Any]]:
         """Get a list of all local notes with their latest versions."""
@@ -295,15 +289,13 @@ class NoteISTClient:
         current_note = self.get_note_content(title)
         
         # Create new version
-        note = Note(
-            title=title,
-            content=new_content,
-            owner=current_note["owner"],
-            editors=current_note["editors"],
-            viewers=current_note["viewers"],
-            version=current_note["version"] + 1,
-            last_modified_by=self.username
-        )
+        note = {
+            "title": title,
+            "content": new_content,
+            "owner": current_note["owner"],
+            "version": current_note["version"] + 1,
+            "last_modified_by": self.username
+        }
 
         # Store note and record change
         self._store_note(note, note_dir)
@@ -322,7 +314,7 @@ class NoteISTClient:
 
         # Get note ID before deletion
         note_data = self.get_note_content(title)
-        note_id = note_data["_id"]
+        note_id = note_data.get("_id")
 
         # Delete note directory
         shutil.rmtree(note_dir)
@@ -334,3 +326,4 @@ class NoteISTClient:
                 "note_id": note_id
             }
         })
+

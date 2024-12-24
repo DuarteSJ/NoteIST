@@ -2,7 +2,6 @@ from typing import Dict, Any
 import json
 from cryptography.hazmat.primitives.asymmetric import padding
 from cryptography.hazmat.primitives import hashes
-from ..models.notes import Note
 
 class SecureHandler:
     """Handles secure operations like signing and verifying data."""

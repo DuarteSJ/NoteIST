@@ -1,4 +1,5 @@
-cryptography
+setuptools
+cryptography==3.4.7
 pydantic
 pycryptodome
 bson

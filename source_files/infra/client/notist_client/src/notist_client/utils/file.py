@@ -31,6 +31,7 @@ class FileHandler:
     @staticmethod
     def write_json(filepath: str, data: Dict[str, Any]) -> None:
         """Writes JSON data to a file."""
+        print(f"note dict in write json function: {data}")
         try:
             with open(filepath, "w") as f:
                 json.dump(data, f, indent=4)
