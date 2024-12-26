@@ -57,9 +57,19 @@ class SecureRequestHandler:
         }
 
     def _receive_data(self, secure_sock) -> str:
-        # TODO: Implement a way to receive data in chunks
-        chunk = secure_sock.recv(4096)
-        return chunk.decode("utf-8")
+        chunks = []
+        while True:
+            chunk = secure_sock.recv(4096)
+            if not chunk:  # Connection was closed
+                break
+            chunks.append(chunk)
+            
+            # Check if the socket has more data waiting
+            # By checking the socket's receive buffer
+            if len(chunk) < 4096:
+                break
+        
+        return b''.join(chunks).decode('utf-8')
 
     def _send_request(self, payload: dict) -> ResponseModel:
         try:

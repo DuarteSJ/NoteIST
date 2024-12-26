@@ -18,9 +18,20 @@ class NetworkHandler:
         self.cert_path = cert_path
         self.secure_handler = SecureHandler()
 
-    def _receive_data(self, secure_sock: ssl.SSLSocket) -> str:
-        """Receives data from the secure socket."""
-        return secure_sock.recv(4096).decode("utf-8")
+    def _receive_data(self, secure_sock) -> str:
+        chunks = []
+        while True:
+            chunk = secure_sock.recv(4096)
+            if not chunk:  # Connection was closed
+                break
+            chunks.append(chunk)
+            
+            # Check if the socket has more data waiting
+            # By checking the socket's receive buffer
+            if len(chunk) < 4096:
+                break
+        
+        return b''.join(chunks).decode('utf-8')
 
     def _send_request(self, payload: Dict[str, Any]) -> Response:
         """Sends a request to the server and returns the response."""
@@ -60,10 +71,22 @@ class NetworkHandler:
     def pull_changes(self, private_key_path: str) -> Response:
         """Pulls changes from the server."""
         private_key = KeyManager.load_private_key(private_key_path)
-        signature = self.secure_handler.sign_request([], private_key)
+        data = {"digest_of_hmacs": "todo"}
+        signature = self.secure_handler.sign_request(data, private_key)
+        #TODO: Send the hmac of hashes through this
+        # This is the server code:
+        # sorted_docs = sorted(documents, key=lambda x: x['_id'])
+        # hmac_str = ""
+        # for doc in sorted_docs:
+        #     hmac_str += doc.get("hmac")
+
+        # digest_of_hmacs = hashes.Hash(hashes.SHA256())
+        # digest_of_hmacs.update(hmac_str.encode("utf-8"))
+        # digest_of_hmacs = digest_of_hmacs.finalize().hex()
+
 
         payload = self.secure_handler.create_signed_payload(
-            RequestType.PULL.value, self.username, [], signature
+            RequestType.PULL.value, self.username, data, signature
         )
         return self._send_request(payload)
 

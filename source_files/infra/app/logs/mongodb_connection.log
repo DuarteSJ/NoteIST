@@ -10,3 +10,23 @@
 2024-12-24 00:50:41,877 - __main__ - INFO - Connection from ('192.168.1.200', 38580)
 2024-12-24 00:50:59,292 - __main__ - INFO - Connection from ('192.168.1.200', 60162)
 2024-12-24 01:25:18,226 - db_manager - INFO - MongoDB connection closed
+2024-12-26 10:39:23,051 - db_manager - INFO - Successfully connected to MongoDB
+2024-12-26 10:39:23,052 - __main__ - INFO - Server listening on 0.0.0.0:5000
+2024-12-26 10:39:46,337 - __main__ - INFO - Connection from ('192.168.1.200', 48010)
+2024-12-26 10:39:46,341 - root - ERROR - Signature verification failed: 
+2024-12-26 10:41:01,703 - __main__ - INFO - Connection from ('192.168.1.200', 52016)
+2024-12-26 10:41:01,709 - __main__ - ERROR - Error processing request: __init__() missing 1 required positional argument: 'backend'
+2024-12-26 10:42:33,473 - __main__ - INFO - Connection from ('192.168.1.200', 60972)
+2024-12-26 10:42:33,477 - __main__ - ERROR - Error processing request: __init__() missing 1 required positional argument: 'backend'
+2024-12-26 10:43:26,218 - __main__ - INFO - Connection from ('192.168.1.200', 49104)
+2024-12-26 10:43:26,222 - __main__ - ERROR - Error processing request: __init__() missing 1 required positional argument: 'backend'
+2024-12-26 10:44:10,187 - __main__ - INFO - Connection from ('192.168.1.200', 47472)
+2024-12-26 10:44:10,191 - __main__ - ERROR - Error processing request: __init__() missing 1 required positional argument: 'backend'
+2024-12-26 10:44:27,498 - __main__ - INFO - Connection from ('192.168.1.200', 43374)
+2024-12-26 10:44:27,502 - __main__ - ERROR - Error processing request: __init__() missing 1 required positional argument: 'backend'
+2024-12-26 10:49:30,615 - db_manager - INFO - MongoDB connection closed
+2024-12-26 10:49:33,095 - db_manager - INFO - Successfully connected to MongoDB
+2024-12-26 10:49:33,096 - __main__ - INFO - Server listening on 0.0.0.0:5000
+2024-12-26 10:49:37,869 - __main__ - INFO - Connection from ('192.168.1.200', 50058)
+2024-12-26 10:50:47,058 - __main__ - INFO - Connection from ('192.168.1.200', 50128)
+2024-12-26 10:51:02,107 - __main__ - INFO - Connection from ('192.168.1.200', 53668)

@@ -82,18 +82,26 @@ class Server:
                 return {"status": "error", "message": "Signature verification failed"}
 
             user = self.user_service.get_user(req.username)
-            digest_of_hmacs = user.get("digest_of_hmacs", None)
-            if not digest_of_hmacs:
-                # TODO: Decide what to do here if digest_of_hmacs is not set
-                digest_of_hmacs = "" ""
+            local_hmac = req.data.get("digest_of_hmacs")
 
             documents = self.notes_service.get_user_notes(user.get("_id"))
+            sorted_docs = sorted(documents, key=lambda x: x['_id'])
+            hmac_str = ""
+            for doc in sorted_docs:
+                hmac_str += doc.get("hmac")
+
+            digest_of_hmacs = hashes.Hash(hashes.SHA256(), backend=default_backend())
+            digest_of_hmacs.update(hmac_str.encode("utf-8"))
+            digest_of_hmacs = digest_of_hmacs.finalize().hex()
+
+            if digest_of_hmacs == local_hmac:
+                return {"status": "success", "message": "All files are up to date. Sync successful"}
+
             note_id = self.notes_service.get_next_note_id(user.get("_id"))
 
             return {
                 "status": "success",
                 "message": "Documents retrieved successfully",
-                "digest_of_hashes": digest_of_hmacs,
                 "documents": documents,
                 "curr_note_id": note_id,
             }
@@ -220,8 +228,7 @@ class Server:
 
         note = self.notes_service.get_note(note_id, user)
         if note:
-            # TODO: WHAT TO DO HERE?
-            raise ValueError(f"Note with id {note_id} already exists")
+            raise ValueError(f"Note with id {note_id} already exists. Try deleting this note and creating a new one")
 
         note = self.notes_service.create_note(
             title=note_title,
@@ -449,14 +456,19 @@ class Server:
             return ResponseModel(status="error", message=str(e))
 
     def _receive_data(self, secure_sock) -> str:
-        # TODO: Receive data in chunks
-        # data = b""
-        # while True:
-        chunk = secure_sock.recv(4096)
-        # if not chunk:
-        #     break
-        # data += chunk
-        return chunk.decode("utf-8")
+        chunks = []
+        while True:
+            chunk = secure_sock.recv(4096)
+            if not chunk:  # Connection was closed
+                break
+            chunks.append(chunk)
+            
+            # Check if the socket has more data waiting
+            # By checking the socket's receive buffer
+            if len(chunk) < 4096:
+                break
+        
+        return b''.join(chunks).decode('utf-8')
 
     def verify_signature(self, req: SignedRequestModel) -> bool:
         # Fetch public key from database

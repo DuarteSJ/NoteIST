@@ -3,6 +3,7 @@ from cryptography.hazmat.primitives import serialization, hashes
 from cryptography.hazmat.backends import default_backend
 import base64
 import os
+from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
 
 
 class KeyManager:
@@ -71,3 +72,15 @@ class KeyManager:
     def generate_symmetric_key() -> bytes:
         """Generates a new random 256-bit symmetric encryption key."""
         return os.urandom(32)
+    
+    def _derive_master_key(self, password: str) -> bytes:
+        """Derives a master key from the password using PBKDF2."""
+        salt = b'secure_notes_salt'  # In production, this should be unique per user
+        kdf = PBKDF2HMAC(
+            algorithm=hashes.SHA256(),
+            length=32,
+            salt=salt,
+            iterations=100000,
+            backend=default_backend()
+        )
+        return kdf.derive(password.encode())

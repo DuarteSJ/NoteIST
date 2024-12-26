@@ -30,6 +30,7 @@ class NoteISTClient:
         self.notes_dir = os.path.join(self.base_data_dir, "notes")
         self.priv_key_path = os.path.join(self.base_config_dir, "priv_key.pem")
         self.username_path = os.path.join(self.base_config_dir, "username.json")
+        self.master_key = "Chavemestre"
 
         # Server configuration
         self.host = host
@@ -130,15 +131,16 @@ class NoteISTClient:
         try:
             response = self.network_handler.pull_changes(self.priv_key_path)
             if response.status == "error":
-                raise Exception(f"Sync failed: {response.message}")
+                raise Exception(f"sync failed - {response.message}")
 
             # Process and apply server changes locally
+            
             if response.documents:
                 self._apply_server_changes(response.documents)
             return response  # TODO: this ret is not required, just cause we printing it in main for now
 
         except Exception as e:
-            raise Exception(f"Sync failed: {e}")
+            raise Exception(e)
 
     def _apply_server_changes(self, changes: List[Dict[str, Any]]) -> None:
         """Apply changes received from server to local state."""
@@ -157,6 +159,8 @@ class NoteISTClient:
         """
         if not title.strip():
             raise ValueError("Title cannot be empty.")
+        
+        
 
         note_dir = os.path.join(self.notes_dir, title)
         if os.path.exists(note_dir):
