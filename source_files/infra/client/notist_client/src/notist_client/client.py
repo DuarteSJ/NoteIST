@@ -43,10 +43,17 @@ class NoteISTClient:
         self.username = None
         self.network_handler = None
         self.changes = []
-        self.id_counter = 0
+        self.current_id = (
+            0  # starts at 0, will be incremented when a note is created, edited, etc
+        )
 
         # Set up the environment
         self._initialize_environment()
+
+    def _get_next_id(self) -> int:
+        """Get the next unique ID for a note."""
+        self.current_id += 1
+        return self.current_id
 
     def _initialize_environment(self) -> None:
         """Set up necessary directories and load or create user configuration."""
@@ -71,7 +78,7 @@ class NoteISTClient:
         except Exception as e:
             print(f"Login failed: {e}")
             self._register_new_user()
-            
+
     def _login(self) -> None:
         """Log in existing user and sync with server."""
         try:
@@ -79,11 +86,11 @@ class NoteISTClient:
             auth_path = FileHandler.read_json(self.auth_path)
             self.username = auth_path.get("username")
             local_password = auth_path.get("password")
-            
+
             password = input(f"Hi {self.username}, enter your password: ")
             if not password:
                 raise ValueError("Password cannot be empty.")
-            
+
             AuthManager.verify_password(local_password, password)
 
             if not self.username:
@@ -98,7 +105,7 @@ class NoteISTClient:
 
         except Exception as e:
             raise Exception(f"Login failed: {e}")
-        # TODO: maybe pull from server here. For now, it is done with a command. Dont pull from server <- Massas
+        # TODO: maybe pull from server here. For now, it is done with a command <- Duarte. Dont pull from server <- Massas
         return True
 
     def _register_new_user(self) -> None:
@@ -121,7 +128,9 @@ class NoteISTClient:
                 # Generate and store key pair
                 self.username = username
                 self.master_key = KeyManager._derive_master_key(password)
-                public_key = KeyManager.generate_key_pair(self.priv_key_path, self.master_key)
+                public_key = KeyManager.generate_key_pair(
+                    self.priv_key_path, self.master_key
+                )
 
                 # Initialize network handler
                 self.network_handler = NetworkHandler(
@@ -133,12 +142,13 @@ class NoteISTClient:
                     KeyManager.get_public_key_json_serializable(public_key),
                 )
 
-                
                 if response.status == "error":
                     raise Exception(f"Server registration failed: {response.message}")
 
                 # Save username to configuration
-                FileHandler.write_json(self.auth_path, {"username": username, "password": passwordHash})
+                FileHandler.write_json(
+                    self.auth_path, {"username": username, "password": passwordHash}
+                )
 
                 print(f"Welcome to NoteIST, {username}!")
                 break
@@ -158,7 +168,7 @@ class NoteISTClient:
                 raise Exception(f"sync failed - {response.message}")
 
             # Process and apply server changes locally
-            
+
             if response.documents:
                 self._apply_server_changes(response.documents)
             return response  # TODO: this ret is not required, just cause we printing it in main for now
@@ -170,29 +180,31 @@ class NoteISTClient:
         """Apply changes received from server to local state."""
 
         FileHandler.clean_note_directory(self.notes_dir)
-        
+
         current_folder = None
-        
+
         for document in changes:
             title = document.get("title")
-            
+
             if not title:
                 print("Wrongly formatted document, skipping")
                 continue
-                
+
             # Create new folder name when owner_id or _id changes
             folder_name = SecureHandler.encrypt_string(title, self.master_key)
-            
+
             # If we're processing a new group, create a new folder
             if folder_name != current_folder:
                 current_folder = folder_name
                 folder_path = os.path.join(self.notes_dir, folder_name)
                 FileHandler.ensure_directory(folder_path)
-                
-            FileHandler.write_json(os.path.join(folder_path, f"v{document.get('version')}.notist"), document)
-                
-        #TODO: adicionar as chaves que vieram do server para a pasta correta (adicionou owner)
-         
+
+            FileHandler.write_json(
+                os.path.join(folder_path, f"v{document.get('version')}.notist"),
+                document,
+            )
+
+        # TODO: adicionar as chaves que vieram do server para a pasta correta (adicionou owner)
 
     def create_note(self, title: str, content: str) -> None:
         """
@@ -204,8 +216,6 @@ class NoteISTClient:
         """
         if not title.strip():
             raise ValueError("Title cannot be empty.")
-        
-        
 
         note_dir = os.path.join(self.notes_dir, title)
         if os.path.exists(note_dir):
@@ -219,11 +229,11 @@ class NoteISTClient:
 
         # Create first version of the note
         note = {
+            "_id": self._get_next_id(),
             "title": title,
             "content": content,
             "owner": self.username,
             "version": 1,
-            "last_modified_by": self.username,
         }
 
         # Store note and record change
@@ -239,7 +249,17 @@ class NoteISTClient:
             note_dir: Directory to store the note in
         """
         note_path = os.path.join(note_dir, f"v{note['version']}.notist")
-        FileHandler.write_json(note_path, note)
+        key_path = os.path.join(note_dir, "key")
+        FileHandler.write_encrypted_note(
+            filePath=note_path,
+            keyFile=key_path,
+            id=note["_id"],
+            title=note["title"],
+            content=note["content"],
+            owner=note["owner"],
+            version=note["version"],
+            # TODO: add editors and viewers < - Duarte
+        )
 
     def _record_change(self, action_type: ActionType, note: Dict[str, Any]) -> None:
         """
@@ -330,11 +350,11 @@ class NoteISTClient:
 
         # Create new version
         note = {
+            "_id": current_note["_id"],
             "title": title,
             "content": new_content,
             "owner": current_note["owner"],
             "version": current_note["version"] + 1,
-            "last_modified_by": self.username,
         }
 
         # Store note and record change
@@ -359,7 +379,7 @@ class NoteISTClient:
         # Delete note directory
         shutil.rmtree(note_dir)
 
-        # Record change
+        # Record change manually since the function only works for create and edit
         self.changes.append(
             {"type": ActionType.DELETE_NOTE.value, "data": {"note_id": note_id}}
         )

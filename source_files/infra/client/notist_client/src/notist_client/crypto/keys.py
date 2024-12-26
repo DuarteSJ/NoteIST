@@ -23,7 +23,8 @@ class KeyManager:
 
     @staticmethod
     def store_private_key(
-        private_key: rsa.RSAPrivateKey, private_key_path: str, masterKey: bytes) -> None:
+        private_key: rsa.RSAPrivateKey, private_key_path: str, masterKey: bytes
+    ) -> None:
         """Stores the RSA private key in PEM format."""
         if not os.path.exists(os.path.dirname(private_key_path)):
             os.makedirs(os.path.dirname(private_key_path))
@@ -33,7 +34,9 @@ class KeyManager:
                 private_key.private_bytes(
                     encoding=serialization.Encoding.PEM,
                     format=serialization.PrivateFormat.TraditionalOpenSSL,
-                    encryption_algorithm=serialization.BestAvailableEncryption(masterKey), #password in bytes
+                    encryption_algorithm=serialization.BestAvailableEncryption(
+                        masterKey
+                    ),  # password in bytes
                 )
             )
         print(
@@ -43,16 +46,17 @@ class KeyManager:
         )
 
     @staticmethod
-    def load_private_key(private_key_path: str,masterkey: bytes ) -> rsa.RSAPrivateKey:
+    def load_private_key(private_key_path: str, masterkey: bytes) -> rsa.RSAPrivateKey:
         """Loads an RSA private key from a file."""
         with open(private_key_path, "rb") as key_file:
             return serialization.load_pem_private_key(
                 key_file.read(), password=masterkey, backend=default_backend()
             )
-        
 
     @classmethod
-    def generate_key_pair(cls, private_key_path: str, masterKey: bytes) -> rsa.RSAPublicKey:
+    def generate_key_pair(
+        cls, private_key_path: str, masterKey: bytes
+    ) -> rsa.RSAPublicKey:
         """Generates and stores a new key pair, returning the public key."""
         private_key = cls.generate_private_key()
         public_key = cls.load_public_key(private_key)
@@ -72,25 +76,25 @@ class KeyManager:
     def generate_symmetric_key() -> bytes:
         """Generates a new random 256-bit symmetric encryption key."""
         return os.urandom(32)
-    
+
     @staticmethod
     def _derive_master_key(password: str) -> bytes:
         """
         Derives a master key from a string password using PBKDF2.
-        
+
         Args:
             password: String password to derive key from
-            
+
         Returns:
             bytes: 32-byte derived key
         """
-        #TODO: guardar salt locally?
-        salt = b'password'  # In production, this should be unique per user
+        # TODO: guardar salt locally?
+        salt = b"password"  # In production, this should be unique per user
         kdf = PBKDF2HMAC(
             algorithm=hashes.SHA256(),
             length=32,
             salt=salt,
             iterations=100000,
-            backend=default_backend()
+            backend=default_backend(),
         )
-        return kdf.derive(password.encode('utf-8'))
+        return kdf.derive(password.encode("utf-8"))

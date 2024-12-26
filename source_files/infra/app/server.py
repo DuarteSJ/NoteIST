@@ -72,7 +72,6 @@ class Server:
         except Exception as e:
             self.logger.error(f"Error processing request: {e}")
             return {"status": "error", "message": str(e)}
-        
 
     def handle_pull_request(self, req: PullRequest) -> ResponseModel:
         """
@@ -86,7 +85,7 @@ class Server:
             local_hmac = req.data.get("digest_of_hmacs")
 
             documents = self.notes_service.get_user_notes(user.get("_id"))
-            sorted_docs = sorted(documents, key=lambda x: (x['_id'], x['owner']['_id']))
+            sorted_docs = sorted(documents, key=lambda x: (x["_id"], x["owner"]["_id"]))
             hmac_str = ""
             for doc in sorted_docs:
                 hmac_str += doc.get("hmac")
@@ -96,7 +95,10 @@ class Server:
             digest_of_hmacs = digest_of_hmacs.finalize().hex()
 
             if digest_of_hmacs == local_hmac:
-                return {"status": "success", "message": "All files are up to date. Sync successful"}
+                return {
+                    "status": "success",
+                    "message": "All files are up to date. Sync successful",
+                }
 
             note_id = self.notes_service.get_next_note_id(user.get("_id"))
 
@@ -227,7 +229,9 @@ class Server:
 
         note = self.notes_service.get_note(note_id, user)
         if note:
-            raise ValueError(f"Note with id {note_id} already exists. Try deleting this note and creating a new one")
+            raise ValueError(
+                f"Note with id {note_id} already exists. Try deleting this note and creating a new one"
+            )
 
         note = self.notes_service.create_note(
             title=note_title,
@@ -460,13 +464,13 @@ class Server:
             if not chunk:  # Connection was closed
                 break
             chunks.append(chunk)
-            
+
             # Check if the socket has more data waiting
             # By checking the socket's receive buffer
             if len(chunk) < 4096:
                 break
-        
-        return b''.join(chunks).decode('utf-8')
+
+        return b"".join(chunks).decode("utf-8")
 
     def verify_signature(self, req: SignedRequestModel) -> bool:
         # Fetch public key from database

@@ -57,10 +57,8 @@ def writeToFile(
     viewers: List[str] = [],
 ) -> None:
     """Writes content to a file in the specified format."""
-    editors = editors
-    viewers = viewers
     uuid = str(uuid4())
-    tempFilePath = f"/tmp/notist_temp_{uuid}.json"
+    tempFilePath = f"/tmp/notist_temp_write_{uuid}.json"
 
     note_data = {
         "_id": id,
@@ -87,7 +85,8 @@ def writeToFile(
 
 def unencryptFile(filePath: str, keyFile: str) -> str:
     """Reads teh entire note from a file after verification and decryption."""
-    tempFilePath = "/tmp/notist_temp_read.json"
+    uuid = str(uuid4())
+    tempFilePath = f"/tmp/notist_temp_read_{uuid}.json"
 
     try:
         handler = SecureDocumentHandler()

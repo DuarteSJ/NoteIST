@@ -63,13 +63,13 @@ class SecureRequestHandler:
             if not chunk:  # Connection was closed
                 break
             chunks.append(chunk)
-            
+
             # Check if the socket has more data waiting
             # By checking the socket's receive buffer
             if len(chunk) < 4096:
                 break
-        
-        return b''.join(chunks).decode('utf-8')
+
+        return b"".join(chunks).decode("utf-8")
 
     def _send_request(self, payload: dict) -> ResponseModel:
         try:

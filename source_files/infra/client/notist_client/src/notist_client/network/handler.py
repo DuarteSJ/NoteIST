@@ -11,7 +11,9 @@ from ..models.actions import RequestType
 class NetworkHandler:
     """Handles all network communication with the server."""
 
-    def __init__(self, username: str, host: str, port: int, cert_path: str, masterKey: bytes):
+    def __init__(
+        self, username: str, host: str, port: int, cert_path: str, masterKey: bytes
+    ):
         self.username = username
         self.host = host
         self.port = port
@@ -26,13 +28,13 @@ class NetworkHandler:
             if not chunk:  # Connection was closed
                 break
             chunks.append(chunk)
-            
+
             # Check if the socket has more data waiting
             # By checking the socket's receive buffer
             if len(chunk) < 4096:
                 break
-        
-        return b''.join(chunks).decode('utf-8')
+
+        return b"".join(chunks).decode("utf-8")
 
     def _send_request(self, payload: Dict[str, Any]) -> Response:
         """Sends a request to the server and returns the response."""
@@ -58,10 +60,15 @@ class NetworkHandler:
             )
 
     def push_changes(
-        self, private_key_path: str, changes: List[Dict[str, Any]]) -> Response:
+        self, private_key_path: str, changes: List[Dict[str, Any]]
+    ) -> Response:
         """Pushes changes to the server."""
-        private_key = KeyManager.load_private_key(private_key_path,)
-        signature = self.secure_handler.sign_request(changes, private_key, self.masterKey)
+        private_key = KeyManager.load_private_key(
+            private_key_path,
+        )
+        signature = self.secure_handler.sign_request(
+            changes, private_key, self.masterKey
+        )
 
         payload = self.secure_handler.create_signed_payload(
             RequestType.PUSH.value, self.username, changes, signature
@@ -70,11 +77,11 @@ class NetworkHandler:
 
     def pull_changes(self, private_key_path: str, directory) -> Response:
         """Pulls changes from the server."""
-        private_key = KeyManager.load_private_key(private_key_path,self.masterKey)
+        private_key = KeyManager.load_private_key(private_key_path, self.masterKey)
         data = {"digest_of_hmacs": "TODO"}
-        signature = self.secure_handler.sign_request(data, private_key)                     
+        signature = self.secure_handler.sign_request(data, private_key)
 
-        #TODO: Send the hmac of hashes through this
+        # TODO: Send the hmac of hashes through this
         # This is the server code:
         # sorted_docs = sorted(documents, key=lambda x: x['_id'])
         # hmac_str = ""
@@ -84,7 +91,6 @@ class NetworkHandler:
         # digest_of_hmacs = hashes.Hash(hashes.SHA256())
         # digest_of_hmacs.update(hmac_str.encode("utf-8"))
         # digest_of_hmacs = digest_of_hmacs.finalize().hex()
-
 
         payload = self.secure_handler.create_signed_payload(
             RequestType.PULL.value, self.username, data, signature

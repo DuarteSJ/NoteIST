@@ -4,6 +4,7 @@ from cryptography.hazmat.backends import default_backend
 import os
 import base64
 
+
 class AuthManager:
     @staticmethod
     def hash_password(password: str) -> str:
@@ -14,11 +15,11 @@ class AuthManager:
             length=32,
             salt=salt,
             iterations=100000,
-            backend=default_backend()
+            backend=default_backend(),
         )
         hashed_password = kdf.derive(password.encode())
         # Combine salt and hashed password for storage
-        return base64.b64encode(salt + hashed_password).decode('utf-8')
+        return base64.b64encode(salt + hashed_password).decode("utf-8")
 
     @staticmethod
     def verify_password(stored_hashed_pw: str, input_password: str) -> bool:
@@ -32,7 +33,7 @@ class AuthManager:
             length=32,
             salt=salt,
             iterations=100000,
-            backend=default_backend()
+            backend=default_backend(),
         )
 
         try:
@@ -40,4 +41,4 @@ class AuthManager:
             kdf.verify(input_password.encode(), stored_hash)
             return True
         except Exception:
-            return 
+            return
