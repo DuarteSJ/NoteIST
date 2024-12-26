@@ -170,27 +170,3 @@ class NotesModel(BaseModel):
     date_modified: datetime.datetime = Field(...)
     last_modified_by: int = Field(...)
     version: int = Field(...)
-
-    class Config:
-        arbitrary_types_allowed = True
-        json_encoders = {ObjectId: str, datetime: lambda dt: dt.isoformat() + "Z"}
-
-        # TODO: podemos apagar este garbage por favor?????
-        schema_extra = {
-            "id": 123,
-            "title": "Example Document",
-            "note": "This is an example document.",
-            "data_created": "2022-01-01T12:00:00Z",
-            "date_modified": "2022-01-02T12:00:00Z",
-            "last_modified_by": 456,
-            "version": 3,
-            "owner": {"id": 456, "username": "john"},
-            "editors": [
-                {"id": 789, "username": "jane"},
-                {"id": 1011, "username": "bob"},
-            ],
-            "viewers": [
-                {"id": 1213, "username": "alice"},
-                {"id": 1415, "username": "charlie"},
-            ],
-        }

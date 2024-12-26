@@ -72,6 +72,7 @@ class Server:
         except Exception as e:
             self.logger.error(f"Error processing request: {e}")
             return {"status": "error", "message": str(e)}
+        
 
     def handle_pull_request(self, req: PullRequest) -> ResponseModel:
         """
@@ -85,7 +86,7 @@ class Server:
             local_hmac = req.data.get("digest_of_hmacs")
 
             documents = self.notes_service.get_user_notes(user.get("_id"))
-            sorted_docs = sorted(documents, key=lambda x: x['_id'])
+            sorted_docs = sorted(documents, key=lambda x: (x['_id'], x['owner']['_id']))
             hmac_str = ""
             for doc in sorted_docs:
                 hmac_str += doc.get("hmac")
@@ -205,8 +206,6 @@ class Server:
         :param user: User details
         :return: Details of the created note
         """
-        # Criar nota:
-        # verificar se id, owner_id existem. Se não criar nota
         data = action.get("data", {})
         note = data.get("note")
         if not note:
@@ -451,7 +450,6 @@ class Server:
             self.logger.error(f"Validation Error: {ve}")
             return ResponseModel(status="error", message=str(ve))
         except Exception as e:
-            print("asdasdasdasdasdasd")
             self.logger.error(f"Error processing request: {e}")
             return ResponseModel(status="error", message=str(e))
 

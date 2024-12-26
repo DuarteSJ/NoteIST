@@ -52,3 +52,17 @@ class FileHandler:
     def ensure_directory(directory: str) -> None:
         """Ensures a directory exists, creating it if necessary."""
         os.makedirs(directory, exist_ok=True)
+
+    @staticmethod
+    def clean_note_directory(directory: str) -> None:
+        #clean note files
+        for sub_dir in os.listdir(directory):
+            sub_dir_path = os.path.join(directory, sub_dir)
+            if os.path.isdir(sub_dir_path):
+                for file in os.listdir(sub_dir_path):
+                    file_path = os.path.join(sub_dir_path, file)
+                    if file != "key":
+                        os.remove(file_path)
+
+
+        

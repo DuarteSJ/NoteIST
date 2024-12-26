@@ -101,7 +101,6 @@ class RequestFactory:
 
 
 class ResponseModel(BaseModel):
-    # TODO: MAYBE CHANGE THIS
     status: str
     message: str
     digest_of_hashes: Optional[str] = None

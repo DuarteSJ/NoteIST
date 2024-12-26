@@ -30,3 +30,54 @@
 2024-12-26 10:49:37,869 - __main__ - INFO - Connection from ('192.168.1.200', 50058)
 2024-12-26 10:50:47,058 - __main__ - INFO - Connection from ('192.168.1.200', 50128)
 2024-12-26 10:51:02,107 - __main__ - INFO - Connection from ('192.168.1.200', 53668)
+2024-12-26 14:28:49,801 - db_manager - INFO - Successfully connected to MongoDB
+2024-12-26 14:28:49,803 - __main__ - INFO - Server listening on 0.0.0.0:5000
+2024-12-26 14:28:56,713 - __main__ - INFO - Connection from ('192.168.1.200', 37532)
+2024-12-26 14:28:56,713 - __main__ - ERROR - Error processing request: create_user() takes 3 positional arguments but 4 were given
+2024-12-26 14:29:13,653 - __main__ - INFO - Connection from ('192.168.1.200', 48102)
+2024-12-26 14:29:13,653 - __main__ - ERROR - Error processing request: create_user() takes 3 positional arguments but 4 were given
+2024-12-26 14:29:17,373 - db_manager - INFO - MongoDB connection closed
+2024-12-26 14:29:18,192 - db_manager - INFO - Successfully connected to MongoDB
+2024-12-26 14:29:18,193 - __main__ - INFO - Server listening on 0.0.0.0:5000
+2024-12-26 14:29:27,253 - __main__ - INFO - Connection from ('192.168.1.200', 41916)
+2024-12-26 14:29:27,276 - db_manager - INFO - Inserted document in users with ID: 676d6847e84ce2a532ac5fd6
+2024-12-26 14:29:27,276 - users - INFO - User created with ID: 676d6847e84ce2a532ac5fd6
+2024-12-26 16:23:32,948 - __main__ - INFO - Connection from ('192.168.1.200', 58160)
+2024-12-26 16:23:32,950 - db_manager - INFO - Inserted document in users with ID: 676d8304e84ce2a532ac5fd7
+2024-12-26 16:23:32,951 - users - INFO - User created with ID: 676d8304e84ce2a532ac5fd7
+2024-12-26 16:25:46,222 - __main__ - INFO - Connection from ('192.168.1.200', 53228)
+2024-12-26 16:25:46,224 - users - ERROR - Error creating user: Username already exists
+2024-12-26 16:25:46,224 - __main__ - ERROR - Error processing request: Username already exists
+2024-12-26 16:26:08,893 - __main__ - INFO - Connection from ('192.168.1.200', 39108)
+2024-12-26 16:26:08,895 - db_manager - INFO - Inserted document in users with ID: 676d83a0e84ce2a532ac5fd8
+2024-12-26 16:26:08,895 - users - INFO - User created with ID: 676d83a0e84ce2a532ac5fd8
+2024-12-26 16:30:40,516 - __main__ - INFO - Connection from ('192.168.1.200', 51076)
+2024-12-26 16:30:40,519 - db_manager - INFO - Inserted document in users with ID: 676d84b0e84ce2a532ac5fd9
+2024-12-26 16:30:40,520 - users - INFO - User created with ID: 676d84b0e84ce2a532ac5fd9
+2024-12-26 16:31:13,254 - __main__ - INFO - Connection from ('192.168.1.200', 53550)
+2024-12-26 16:31:13,257 - db_manager - INFO - Inserted document in users with ID: 676d84d1e84ce2a532ac5fda
+2024-12-26 16:31:13,257 - users - INFO - User created with ID: 676d84d1e84ce2a532ac5fda
+2024-12-26 16:36:35,016 - __main__ - INFO - Connection from ('192.168.1.200', 41892)
+2024-12-26 16:36:35,019 - db_manager - INFO - Inserted document in users with ID: 676d8613e84ce2a532ac5fdb
+2024-12-26 16:36:35,019 - users - INFO - User created with ID: 676d8613e84ce2a532ac5fdb
+2024-12-26 16:39:04,856 - __main__ - INFO - Connection from ('192.168.1.200', 55116)
+2024-12-26 16:39:04,859 - db_manager - INFO - Inserted document in users with ID: 676d86a8e84ce2a532ac5fdc
+2024-12-26 16:39:04,859 - users - INFO - User created with ID: 676d86a8e84ce2a532ac5fdc
+2024-12-26 16:40:24,976 - __main__ - INFO - Connection from ('192.168.1.200', 36068)
+2024-12-26 16:40:24,978 - users - ERROR - Error creating user: Username already exists
+2024-12-26 16:40:24,978 - __main__ - ERROR - Error processing request: Username already exists
+2024-12-26 16:40:30,498 - __main__ - INFO - Connection from ('192.168.1.200', 36084)
+2024-12-26 16:40:30,501 - db_manager - INFO - Inserted document in users with ID: 676d86fee84ce2a532ac5fdd
+2024-12-26 16:40:30,502 - users - INFO - User created with ID: 676d86fee84ce2a532ac5fdd
+2024-12-26 16:41:52,789 - __main__ - INFO - Connection from ('192.168.1.200', 49338)
+2024-12-26 16:41:52,791 - db_manager - INFO - Inserted document in users with ID: 676d8750e84ce2a532ac5fde
+2024-12-26 16:41:52,791 - users - INFO - User created with ID: 676d8750e84ce2a532ac5fde
+2024-12-26 16:42:26,985 - __main__ - INFO - Connection from ('192.168.1.200', 41418)
+2024-12-26 16:42:26,988 - db_manager - INFO - Inserted document in users with ID: 676d8772e84ce2a532ac5fdf
+2024-12-26 16:42:26,988 - users - INFO - User created with ID: 676d8772e84ce2a532ac5fdf
+2024-12-26 16:44:22,375 - __main__ - INFO - Connection from ('192.168.1.200', 60208)
+2024-12-26 16:44:22,376 - users - ERROR - Error creating user: Username already exists
+2024-12-26 16:44:22,377 - __main__ - ERROR - Error processing request: Username already exists
+2024-12-26 16:44:27,358 - __main__ - INFO - Connection from ('192.168.1.200', 44578)
+2024-12-26 16:44:27,360 - db_manager - INFO - Inserted document in users with ID: 676d87ebe84ce2a532ac5fe0
+2024-12-26 16:44:27,361 - users - INFO - User created with ID: 676d87ebe84ce2a532ac5fe0

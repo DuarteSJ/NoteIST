@@ -36,7 +36,7 @@ class NotesService:
     ) -> Dict[str, Any]:
         try:
             # Prepare note data
-            owner_id = owner.get("id")
+            owner_id = owner.get("_id")
             note_data = {
                 "_id": id,
                 "iv": iv,
@@ -47,9 +47,9 @@ class NotesService:
                 "date_modified": datetime.datetime.now(datetime.timezone.utc),
                 "last_modified_by": owner_id,
                 "version": 1,
-                "owner": {"id": owner_id, "username": owner.get("username")},
-                "editors": [{"id": editor} for editor in (editors or [])],
-                "viewers": [{"id": viewer} for viewer in (viewers or [])],
+                "owner": {"_id": owner_id, "username": owner.get("username")},
+                "editors": [{"_id": editor} for editor in (editors or [])],
+                "viewers": [{"_id": viewer} for viewer in (viewers or [])],
             }
 
             # Insert note
@@ -83,7 +83,7 @@ class NotesService:
         while retries < max_retries:
             try:
                 # First, retrieve the existing note to get the current version and other details
-                existing_note = self.get_note(id, owner.get("id"))
+                existing_note = self.get_note(id, owner.get("_id"))
                 last_server_version = existing_note.get("version")
 
                 if not existing_note:
@@ -108,7 +108,7 @@ class NotesService:
                         "date_created"
                     ],  # Keep original creation date
                     "date_modified": datetime.datetime.now(datetime.timezone.utc),
-                    "last_modified_by": editor.get("id"),
+                    "last_modified_by": editor.get("_id"),
                     "version": version,
                     "owner": existing_note["owner"],
                     "editors": existing_note.get("editors", []),
@@ -149,7 +149,7 @@ class NotesService:
         try:
             # Find the latest version of the note
             result = self.db_manager.find_document(
-                "notes", {"id": note_id, "owner.id": owner_id}
+                "notes", {"_id": note_id, "owner._id": owner_id}
             )
             if not result:
                 return False
@@ -245,7 +245,7 @@ class NotesService:
         """
         try:
             # Find the maximum existing note ID for this owner
-            max_note_query = {"owner.id": owner_id}
+            max_note_query = {"owner._id": owner_id}
 
             result = self.db_manager.find_document("notes", max_note_query)
             if not result:
@@ -284,7 +284,7 @@ class NotesService:
                 raise ValueError("Note not found")
 
             # Check if the requesting user is the owner
-            if owner_id != note["owner"]:
+            if owner_id != note["owner"]["_id"]:
                 raise PermissionError("Only the note owner can add viewers")
 
             # Check if the user is already a viewer
@@ -325,7 +325,7 @@ class NotesService:
                 raise ValueError("Note not found")
 
             # Check if the requesting user is the owner
-            if owner_id != note["owner"]:
+            if owner_id != note["owner"]["_id"]:
                 raise PermissionError("Only the note owner can remove viewers")
 
             # Check if the user is a viewer
@@ -364,7 +364,7 @@ class NotesService:
                 raise ValueError("Note not found")
 
             # Check if the requesting user is the owner
-            if owner_id != note["owner"]:
+            if owner_id != note["owner"]["_id"]:
                 raise PermissionError("Only the note owner can add editors")
 
             # Check if the user is already an editor
@@ -403,7 +403,7 @@ class NotesService:
                 raise ValueError("Note not found")
 
             # Check if the requesting user is the owner
-            if owner_id != note["owner"]:
+            if owner_id != note["owner"]["_id"]:
                 raise PermissionError("Only the note owner can remove editors")
 
             # Check if the user is an editor

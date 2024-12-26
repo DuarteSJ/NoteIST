@@ -11,12 +11,13 @@ from ..models.actions import RequestType
 class NetworkHandler:
     """Handles all network communication with the server."""
 
-    def __init__(self, username: str, host: str, port: int, cert_path: str):
+    def __init__(self, username: str, host: str, port: int, cert_path: str, masterKey: bytes):
         self.username = username
         self.host = host
         self.port = port
         self.cert_path = cert_path
         self.secure_handler = SecureHandler()
+        self.masterKey = masterKey
 
     def _receive_data(self, secure_sock) -> str:
         chunks = []
@@ -57,22 +58,22 @@ class NetworkHandler:
             )
 
     def push_changes(
-        self, private_key_path: str, changes: List[Dict[str, Any]]
-    ) -> Response:
+        self, private_key_path: str, changes: List[Dict[str, Any]]) -> Response:
         """Pushes changes to the server."""
-        private_key = KeyManager.load_private_key(private_key_path)
-        signature = self.secure_handler.sign_request(changes, private_key)
+        private_key = KeyManager.load_private_key(private_key_path,)
+        signature = self.secure_handler.sign_request(changes, private_key, self.masterKey)
 
         payload = self.secure_handler.create_signed_payload(
             RequestType.PUSH.value, self.username, changes, signature
         )
         return self._send_request(payload)
 
-    def pull_changes(self, private_key_path: str) -> Response:
+    def pull_changes(self, private_key_path: str, directory) -> Response:
         """Pulls changes from the server."""
-        private_key = KeyManager.load_private_key(private_key_path)
-        data = {"digest_of_hmacs": "todo"}
-        signature = self.secure_handler.sign_request(data, private_key)
+        private_key = KeyManager.load_private_key(private_key_path,self.masterKey)
+        data = {"digest_of_hmacs": "TODO"}
+        signature = self.secure_handler.sign_request(data, private_key)                     
+
         #TODO: Send the hmac of hashes through this
         # This is the server code:
         # sorted_docs = sorted(documents, key=lambda x: x['_id'])

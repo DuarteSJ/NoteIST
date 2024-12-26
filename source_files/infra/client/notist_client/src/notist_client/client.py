@@ -4,9 +4,11 @@ from typing import Optional, List, Dict, Any
 from .crypto.keys import KeyManager
 from .network.handler import NetworkHandler
 from .utils.file import FileHandler
+from .utils.auth import AuthManager
 from .models.actions import ActionType
 from .models.responses import Response
 from .config.paths import get_config_dir, get_data_dir
+from .crypto.secure import SecureHandler
 
 
 class NoteISTClient:
@@ -29,8 +31,8 @@ class NoteISTClient:
         self.base_data_dir = get_data_dir()
         self.notes_dir = os.path.join(self.base_data_dir, "notes")
         self.priv_key_path = os.path.join(self.base_config_dir, "priv_key.pem")
-        self.username_path = os.path.join(self.base_config_dir, "username.json")
-        self.master_key = "Chavemestre"
+        self.auth_path = os.path.join(self.base_config_dir, "auth.json")
+        self.master_key = ""
 
         # Server configuration
         self.host = host
@@ -63,28 +65,41 @@ class NoteISTClient:
             return
 
         try:
-            self._login()
-        except Exception:
+            suc = self._login()
+            if not suc:
+                raise Exception("Login failed")
+        except Exception as e:
+            print(f"Login failed: {e}")
             self._register_new_user()
-
+            
     def _login(self) -> None:
         """Log in existing user and sync with server."""
         try:
-            # Load username from stored configuration
-            user_data = FileHandler.read_json(self.username_path)
-            self.username = user_data["username"]
+            # Get username from configuration
+            auth_path = FileHandler.read_json(self.auth_path)
+            self.username = auth_path.get("username")
+            local_password = auth_path.get("password")
+            
+            password = input(f"Hi {self.username}, enter your password: ")
+            if not password:
+                raise ValueError("Password cannot be empty.")
+            
+            AuthManager.verify_password(local_password, password)
 
             if not self.username:
                 raise ValueError("Username not found in configuration")
 
+            self.master_key = KeyManager._derive_master_key(password)
+
             # Initialize network handler
             self.network_handler = NetworkHandler(
-                self.username, self.host, self.port, self.cert_path
+                self.username, self.host, self.port, self.cert_path, self.master_key
             )
 
         except Exception as e:
             raise Exception(f"Login failed: {e}")
-        # TODO: maybe pull from server here. For now, it is done with a command
+        # TODO: maybe pull from server here. For now, it is done with a command. Dont pull from server <- Massas
+        return True
 
     def _register_new_user(self) -> None:
         """Handle the registration process for a new user."""
@@ -96,25 +111,34 @@ class NoteISTClient:
                     print("Username cannot be empty. Please try again.")
                     continue
 
+                password = input("Enter your password: ").strip()
+                if not password:
+                    print("Password cannot be empty. Please try again.")
+                    continue
+
+                passwordHash = AuthManager.hash_password(password)
+
                 # Generate and store key pair
                 self.username = username
-                public_key = KeyManager.generate_key_pair(self.priv_key_path)
+                self.master_key = KeyManager._derive_master_key(password)
+                public_key = KeyManager.generate_key_pair(self.priv_key_path, self.master_key)
 
                 # Initialize network handler
                 self.network_handler = NetworkHandler(
-                    username, self.host, self.port, self.cert_path
+                    username, self.host, self.port, self.cert_path, self.master_key
                 )
 
                 # Register with server
                 response = self.network_handler.register_user(
-                    KeyManager.get_public_key_json_serializable(public_key)
+                    KeyManager.get_public_key_json_serializable(public_key),
                 )
 
+                
                 if response.status == "error":
                     raise Exception(f"Server registration failed: {response.message}")
 
                 # Save username to configuration
-                FileHandler.write_json(self.username_path, {"username": username})
+                FileHandler.write_json(self.auth_path, {"username": username, "password": passwordHash})
 
                 print(f"Welcome to NoteIST, {username}!")
                 break
@@ -144,10 +168,31 @@ class NoteISTClient:
 
     def _apply_server_changes(self, changes: List[Dict[str, Any]]) -> None:
         """Apply changes received from server to local state."""
-        # TODO: use this fuction to apply changes received by pull request
-        print(
-            f"Applying server changes: (this is not implemented yet, but here are the changes we are receiving here: {changes})"
-        )
+
+        FileHandler.clean_note_directory(self.notes_dir)
+        
+        current_folder = None
+        
+        for document in changes:
+            title = document.get("title")
+            
+            if not title:
+                print("Wrongly formatted document, skipping")
+                continue
+                
+            # Create new folder name when owner_id or _id changes
+            folder_name = SecureHandler.encrypt_string(title, self.master_key)
+            
+            # If we're processing a new group, create a new folder
+            if folder_name != current_folder:
+                current_folder = folder_name
+                folder_path = os.path.join(self.notes_dir, folder_name)
+                FileHandler.ensure_directory(folder_path)
+                
+            FileHandler.write_json(os.path.join(folder_path, f"v{document.get('version')}.notist"), document)
+                
+        #TODO: adicionar as chaves que vieram do server para a pasta correta (adicionou owner)
+         
 
     def create_note(self, title: str, content: str) -> None:
         """
@@ -208,7 +253,7 @@ class NoteISTClient:
 
     def push_changes(self) -> Response:
         """Push recorded changes to the server."""
-        # TODO: keep change array in memory for the case were the client crashes/closes wihtout pushing. Maybe store in a file or sm shi.
+        # TODO: keep change array in memory for the case were the client crashes/closes wihtout pushing. Maybe store in a file or sm shi. Is this really needed <- Massas
         if not self.changes:
             return Response(
                 status="success",
