@@ -57,8 +57,12 @@ class NoteISTClient:
 
     def _load_or_register_user(self) -> None:
         """Load existing user configuration or start new user registration process."""
-        #TODO: n sei se isto devia tar assim mas ig que ya
-        if not os.path.exists(self.priv_key_path) or not os.path.exists(self.auth_path) or not os.path.exists(self.notes_dir):
+        # TODO: n sei se isto devia tar assim mas ig que ya
+        if (
+            not os.path.exists(self.priv_key_path)
+            or not os.path.exists(self.auth_path)
+            or not os.path.exists(self.notes_dir)
+        ):
             self._register_new_user()
         else:
             self._login_with_retry()
@@ -124,11 +128,13 @@ class NoteISTClient:
             exit(0)
 
         # Remove all previous user data
-        FileHandler.delete_all([self.priv_key_path, self.base_config_dir, self.base_data_dir])
+        FileHandler.delete_all(
+            [self.priv_key_path, self.base_config_dir, self.base_data_dir]
+        )
         FileHandler.ensure_directory(self.base_config_dir)
         FileHandler.ensure_directory(self.notes_dir)
         FileHandler.ensure_directory(self.base_data_dir)
-        
+
         while True:
             try:
                 # Get username from user
@@ -239,7 +245,9 @@ class NoteISTClient:
         # Create note directory and generate encryption key
         os.makedirs(note_dir)
         key_file = os.path.join(note_dir, "key")
-        encrypted_note_key = KeyManager.generate_encrypted_note_key(self.master_key, key_file)
+        encrypted_note_key = KeyManager.generate_encrypted_note_key(
+            self.master_key, key_file
+        )
         FileHandler.store_key(encrypted_note_key, key_file)
 
         # Create first version of the note
@@ -253,7 +261,10 @@ class NoteISTClient:
 
         # Store note and record change
         self._store_note(note, note_dir)
-        self._record_change(ActionType.CREATE_NOTE, FileHandler.read_json(os.path.join(note_dir, "v1.notist")))
+        self._record_change(
+            ActionType.CREATE_NOTE,
+            FileHandler.read_json(os.path.join(note_dir, "v1.notist")),
+        )
 
     def _store_note(self, note: Dict[str, Any], note_dir: str) -> None:
         """
@@ -297,10 +308,12 @@ class NoteISTClient:
                     message="No changes to push (this wasn't sent by server)",
                 )
 
-            response = self.network_handler.push_changes(self.priv_key_path, self.changes)
+            response = self.network_handler.push_changes(
+                self.priv_key_path, self.changes
+            )
             if response.status == "success":
                 self.changes = []
-            else :
+            else:
                 print(f"Server response: {response.status} - {response.message}")
         except Exception as e:
             raise Exception(f"Failed to push changes: {e}")
@@ -310,8 +323,6 @@ class NoteISTClient:
         notes = []
         if not os.path.exists(self.notes_dir):
             return notes
-
-
 
         for note_dir in os.listdir(self.notes_dir):
             note_path = os.path.join(self.notes_dir, note_dir)
@@ -324,7 +335,9 @@ class NoteISTClient:
                 if versions:
                     lastversionPath = os.path.join(note_path, versions[-1])
                     keyPath = os.path.join(note_path, "key")
-                    note_data =  FileHandler.read_encrypted_note(lastversionPath, keyPath, self.master_key)
+                    note_data = FileHandler.read_encrypted_note(
+                        lastversionPath, keyPath, self.master_key
+                    )
                     notes.append(note_data)
 
         return notes
@@ -360,7 +373,8 @@ class NoteISTClient:
         return FileHandler.read_encrypted_note(
             filePath=os.path.join(note_dir, version_file),
             keyFile=os.path.join(note_dir, "key"),
-            masterKey=self.master_key)
+            masterKey=self.master_key,
+        )
 
     def edit_note(self, title: str, new_content: str) -> None:
         """
@@ -389,7 +403,9 @@ class NoteISTClient:
         # Store note and record change
         self._store_note(note, note_dir)
         self._record_change(
-            ActionType.EDIT_NOTE, FileHandler.read_json(os.path.join(note_dir, f"v{note['version']}.notist")))
+            ActionType.EDIT_NOTE,
+            FileHandler.read_json(os.path.join(note_dir, f"v{note['version']}.notist")),
+        )
 
     def delete_note(self, title: str) -> None:
         """

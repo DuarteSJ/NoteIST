@@ -54,7 +54,7 @@ def handle_choice(client: NoteISTClient, choice: str) -> None:
         notes = client.get_note_list()
         if not notes:
             print("No notes available.")
-        
+
         print("\nAvailable Notes:")
         for i, note in enumerate(notes, 1):
             print(f"{i}. {note['title']} (v{note['version']})")
@@ -86,6 +86,7 @@ def handle_choice(client: NoteISTClient, choice: str) -> None:
 
     elif choice == "8":
         exit(0)
+
 
 if __name__ == "__main__":
     main()

@@ -40,7 +40,9 @@ class KeyManager:
         encryption_key = kdf.derive(master_key)
 
         # Encrypt the data using AES GCM
-        cipher = Cipher(algorithms.AES(encryption_key), modes.GCM(salt), backend=default_backend())
+        cipher = Cipher(
+            algorithms.AES(encryption_key), modes.GCM(salt), backend=default_backend()
+        )
         encryptor = cipher.encryptor()
         encrypted_data = encryptor.update(data) + encryptor.finalize()
 
@@ -65,7 +67,11 @@ class KeyManager:
         decryption_key = kdf.derive(master_key)
 
         # Decrypt the data using AES GCM
-        cipher = Cipher(algorithms.AES(decryption_key), modes.GCM(salt, tag), backend=default_backend())
+        cipher = Cipher(
+            algorithms.AES(decryption_key),
+            modes.GCM(salt, tag),
+            backend=default_backend(),
+        )
         decryptor = cipher.decryptor()
         return decryptor.update(ciphertext) + decryptor.finalize()
 
@@ -85,7 +91,9 @@ class KeyManager:
         )
 
         # Encrypt the private key using the master key
-        encrypted_private_key = KeyManager.encrypt_with_master_key(private_key_pem, master_key)
+        encrypted_private_key = KeyManager.encrypt_with_master_key(
+            private_key_pem, master_key
+        )
 
         with open(private_key_path, "wb") as key_file:
             key_file.write(encrypted_private_key)
@@ -104,7 +112,9 @@ class KeyManager:
                 encrypted_private_key = key_file.read()
 
             # Decrypt the private key using the master key
-            private_key_pem = KeyManager.decrypt_with_master_key(encrypted_private_key, master_key)
+            private_key_pem = KeyManager.decrypt_with_master_key(
+                encrypted_private_key, master_key
+            )
 
             # Deserialize the private key from PEM format
             private_key = serialization.load_pem_private_key(
@@ -144,7 +154,7 @@ class KeyManager:
     def generate_encrypted_note_key(cls, masterKey: bytes, newKeyFile: str):
         """Generates a new random 256-bit symmetric encryption key and encripts it with the master key."""
         return cls.encrypt_with_master_key(cls.generate_symmetric_key(), masterKey)
-    
+
     @classmethod
     def load_note_key(cls, noteKeyFile: str, masterKey: bytes):
         """Loads and decrypts the note's secret key from a file using the master key."""

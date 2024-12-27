@@ -7,6 +7,7 @@ import shutil
 
 from ..crypto.keys import KeyManager
 
+
 class FileHandler:
     """Handles file operations for notes and configuration."""
 
@@ -56,17 +57,18 @@ class FileHandler:
         """Ensures a directory exists, creating it if necessary."""
         os.makedirs(directory, exist_ok=True)
 
-    @staticmethod 
+    @staticmethod
     def delete_all(directories: List[str]) -> None:
         """Deletes all directories in the list, including non-empty ones."""
         for directory in directories:
             if os.path.exists(directory):
                 try:
-                    shutil.rmtree(directory)  # Recursively deletes the directory and its contents
+                    shutil.rmtree(
+                        directory
+                    )  # Recursively deletes the directory and its contents
                     print(f"Successfully deleted: {directory}")
                 except Exception as e:
                     print(f"Error deleting {directory}: {e}")
-
 
     @staticmethod
     def clean_note_directory(directory: str) -> None:
@@ -78,6 +80,7 @@ class FileHandler:
                     file_path = os.path.join(sub_dir_path, file)
                     if file != "key":
                         os.remove(file_path)
+
     @classmethod
     def write_encrypted_note(
         cls,
@@ -158,4 +161,3 @@ class FileHandler:
                 os.remove(tempFilePath)
             if os.path.exists(tempKeyFile):
                 os.remove(tempKeyFile)
-    

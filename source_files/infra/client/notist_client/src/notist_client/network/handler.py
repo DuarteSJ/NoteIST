@@ -19,7 +19,7 @@ class NetworkHandler:
         self.port = port
         self.cert_path = cert_path
         self.secure_handler = SecureHandler()
-        self.masterKey = masterKey # TODO: Make key manager a classa and add this as atrivute? aqui é meio estranho
+        self.masterKey = masterKey  # TODO: Make key manager a classa and add this as atrivute? aqui é meio estranho
 
     def _receive_data(self, secure_sock) -> str:
         chunks = []
@@ -63,12 +63,8 @@ class NetworkHandler:
         self, private_key_path: str, changes: List[Dict[str, Any]]
     ) -> Response:
         """Pushes changes to the server."""
-        private_key = KeyManager.load_private_key(
-            private_key_path, self.masterKey
-        )
-        signature = self.secure_handler.sign_request(
-            changes, private_key
-        )
+        private_key = KeyManager.load_private_key(private_key_path, self.masterKey)
+        signature = self.secure_handler.sign_request(changes, private_key)
 
         payload = self.secure_handler.create_signed_payload(
             RequestType.PUSH.value, self.username, changes, signature

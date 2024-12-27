@@ -107,7 +107,6 @@ def unencryptFile(filePath: str, keyFile: str) -> str:
             os.remove(tempFilePath)
 
 
-
 def getNoteInfo(note_file: str) -> tuple:
     """Extracts id hamc and iv from note"""
     try:
