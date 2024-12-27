@@ -237,7 +237,7 @@ class NoteISTClient:
         """
         if not title.strip():
             raise ValueError("Title cannot be empty.")
-
+        # TODO: see the TODO in edit note
         encrypted_title = KeyManager.encrypt_with_master_key(title, self.master_key)
 
         note_dir = os.path.join(self.notes_dir, encrypted_title)
@@ -335,21 +335,20 @@ class NoteISTClient:
         return notes
 
     def get_note_content(
-        self, title: str, version: Optional[int] = None
+        self, note_dir: str, version: Optional[int] = None
     ) -> Dict[str, Any]:
         """
         Get the content of a specific note version.
 
         Args:
-            title: The title of the note to retrieve
+            note_dir: The path to the directory of the note
             version: Optional specific version to retrieve (latest if not specified)
 
         Returns:
             The note content and metadata
         """
-        note_dir = os.path.join(self.notes_dir, title)
         if not os.path.exists(note_dir):
-            raise ValueError(f"Note '{title}' not found")
+            raise ValueError(f"Get_note_content: {note_dir} not found")
 
         if version is None: # choose the latest version
             version_file = FileHandler.get_highest_version(note_dir)
@@ -359,9 +358,9 @@ class NoteISTClient:
         note_file = os.path.join(note_dir, version_file)
         key_file = os.path.join(note_dir, "key")
         if not os.path.exists(note_file):
-            raise ValueError(f"Version {version} of note '{title}' not found")
+            raise ValueError(f"Get_note_content: Version {version} of note '{note_dir}' not found")
         elif not os.path.exists(key_file):
-            raise ValueError(f"Key file not found for note '{title}'")
+            raise ValueError(f"get_note_content: Key file not found for note '{note_dir}'")
 
         return FileHandler.read_encrypted_note(
             filePath=note_file,
@@ -381,11 +380,9 @@ class NoteISTClient:
         # Options: remove salt or always use the same salt or decript every title until we find the right one
         encrypted_title = KeyManager.encrypt_with_master_key(title, self.master_key)
         note_dir = os.path.join(self.notes_dir, encrypted_title)
-        if not os.path.exists(note_dir):
-            raise ValueError(f"Note '{title}' not found")
-
+        
         # Get current note data
-        current_note = self.get_note_content(title)
+        current_note = self.get_note_content(note_dir)
 
         # Create new version
         note = {
@@ -410,12 +407,12 @@ class NoteISTClient:
         Args:
             title: The title of the note to delete
         """
+        # TODO: see the TODO in edit note
+        title = KeyManager.encrypt_with_master_key(title, self.master_key)
         note_dir = os.path.join(self.notes_dir, title)
-        if not os.path.exists(note_dir):
-            raise ValueError(f"Note '{title}' not found")
 
         # Get note ID before deletion
-        note_data = self.get_note_content(title)
+        note_data = self.get_note_content(note_dir)
         note_id = note_data.get("_id")
 
         # Delete note directory
