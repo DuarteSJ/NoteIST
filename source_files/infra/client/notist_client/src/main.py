@@ -46,9 +46,11 @@ def handle_choice(client: NoteISTClient, choice: str) -> None:
             return
 
         print("\nAvailable Notes:")
-        for i, note in enumerate(notes, 1):
-            # TODO: meter o titulo certo
-            print(f"{i}. {note['title']} (v{note['version']})")
+        #print tuples
+        for note in notes:
+            #note is a tuple
+            print(f"Title: {note[0]} (v{note[1]})")
+            
 
     elif choice == "3":
         notes = client.get_note_list()

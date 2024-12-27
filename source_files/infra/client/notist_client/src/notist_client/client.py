@@ -238,7 +238,9 @@ class NoteISTClient:
         if not title.strip():
             raise ValueError("Title cannot be empty.")
 
-        note_dir = os.path.join(self.notes_dir, title)
+        encrypted_title = KeyManager.encrypt_with_master_key(title, self.master_key)
+
+        note_dir = os.path.join(self.notes_dir, encrypted_title)
         if os.path.exists(note_dir):
             raise ValueError("A note with this title already exists.")
 
@@ -318,27 +320,17 @@ class NoteISTClient:
         except Exception as e:
             raise Exception(f"Failed to push changes: {e}")
 
-    def get_note_list(self) -> List[Dict[str, Any]]:
+    def get_note_list(self) -> List[tuple]:
         """Get a list of all local notes with their latest versions."""
         notes = []
         if not os.path.exists(self.notes_dir):
             return notes
 
         for note_dir in os.listdir(self.notes_dir):
-            note_path = os.path.join(self.notes_dir, note_dir)
-            print(note_path)
-            if os.path.isdir(note_path):
-                versions = sorted(
-                    [f for f in os.listdir(note_path) if f.endswith(".notist")]
-                )
-
-                if versions:
-                    lastversionPath = os.path.join(note_path, versions[-1])
-                    keyPath = os.path.join(note_path, "key")
-                    note_data = FileHandler.read_encrypted_note(
-                        lastversionPath, keyPath, self.master_key
-                    )
-                    notes.append(note_data)
+            title = SecureHandler.decrypt_string(note_dir, self.master_key)
+            last_version = FileHandler.get_highest_version(note_dir)
+            note = tuple(title, last_version)
+            notes.append(note)
 
         return notes
 
@@ -359,20 +351,21 @@ class NoteISTClient:
         if not os.path.exists(note_dir):
             raise ValueError(f"Note '{title}' not found")
 
-        versions = sorted([f for f in os.listdir(note_dir) if f.endswith(".notist")])
-        if not versions:
-            raise ValueError(f"No versions found for note '{title}'")
-
-        if version is None:
-            version_file = versions[-1]
+        if version is None: # choose the latest version
+            version_file = FileHandler.get_highest_version(note_dir)
         else:
             version_file = f"v{version}.notist"
-            if version_file not in versions:
-                raise ValueError(f"Version {version} not found for note '{title}'")
+
+        note_file = os.path.join(note_dir, version_file)
+        key_file = os.path.join(note_dir, "key")
+        if not os.path.exists(note_file):
+            raise ValueError(f"Version {version} of note '{title}' not found")
+        elif not os.path.exists(key_file):
+            raise ValueError(f"Key file not found for note '{title}'")
 
         return FileHandler.read_encrypted_note(
-            filePath=os.path.join(note_dir, version_file),
-            keyFile=os.path.join(note_dir, "key"),
+            filePath=note_file,
+            keyFile=key_file,
             masterKey=self.master_key,
         )
 
@@ -384,7 +377,10 @@ class NoteISTClient:
             title: The title of the note to edit
             new_content: The new content for the note
         """
-        note_dir = os.path.join(self.notes_dir, title)
+        # TODO: this doesnt work because when we encript same thing with master key we get dif results cause salt
+        # Options: remove salt or always use the same salt or decript every title until we find the right one
+        encrypted_title = KeyManager.encrypt_with_master_key(title, self.master_key)
+        note_dir = os.path.join(self.notes_dir, encrypted_title)
         if not os.path.exists(note_dir):
             raise ValueError(f"Note '{title}' not found")
 

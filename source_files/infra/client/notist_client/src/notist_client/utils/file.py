@@ -161,3 +161,28 @@ class FileHandler:
                 os.remove(tempFilePath)
             if os.path.exists(tempKeyFile):
                 os.remove(tempKeyFile)
+
+    def get_highest_version(directory: str) -> str:
+        """
+        Finds the highest version file in the given directory based on the version number.
+
+        Args:
+            directory (str): The directory to search.
+
+        Returns:
+            str: The filename with the highest version number, or None if no versioned files are found.
+        """
+        highest_version = -1
+        highest_file = None
+
+        for filename in os.listdir(directory):
+            if filename.endswith(".notist") and filename.startswith("v"):
+                try:
+                    version = int(filename[1:-7])
+                    if version > highest_version:
+                        highest_version = version
+                        highest_file = filename
+                except ValueError:
+                    continue
+
+        return highest_file
