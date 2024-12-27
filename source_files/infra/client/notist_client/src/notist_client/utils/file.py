@@ -3,7 +3,7 @@ import json
 from typing import Dict, Any, List
 from secure_document import SecureDocumentHandler
 from uuid import uuid4
-
+import shutil
 
 class FileHandler:
     """Handles file operations for notes and configuration."""
@@ -54,6 +54,18 @@ class FileHandler:
         """Ensures a directory exists, creating it if necessary."""
         os.makedirs(directory, exist_ok=True)
 
+    @staticmethod 
+    def delete_all(directories: List[str]) -> None:
+        """Deletes all directories in the list, including non-empty ones."""
+        for directory in directories:
+            if os.path.exists(directory):
+                try:
+                    shutil.rmtree(directory)  # Recursively deletes the directory and its contents
+                    print(f"Successfully deleted: {directory}")
+                except Exception as e:
+                    print(f"Error deleting {directory}: {e}")
+
+
     @staticmethod
     def clean_note_directory(directory: str) -> None:
         # clean note files
@@ -99,6 +111,9 @@ class FileHandler:
                 json.dump(note_data, f, indent=4)
 
             handler = SecureDocumentHandler()
+            # TODO: change the lib to receive key instead of key file?
+            # or else we need to do this
+
             handler.protect(tempFilePath, keyFile, filePath)
         except Exception as e:
             raise Exception(f"Failed to write and encrypt file: {e}")

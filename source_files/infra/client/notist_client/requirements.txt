@@ -1,6 +1,9 @@
-setuptools
+pip>=23.0.0          # Ensure the latest pip version
+setuptools>=65.5.1   # Updated setuptools
+wheel>=0.40.0        # Ensure compatibility for building packages
 cryptography==3.4.7
-pydantic
-pycryptodome
-bson
+pydantic==2.10.4
+pycryptodome==3.21.0
+bson==0.5.10
+importlib_metadata>=4.13.0  # Compatibility for setuptools
 -e ../secure-document

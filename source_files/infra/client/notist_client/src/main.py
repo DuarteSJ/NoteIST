@@ -14,8 +14,6 @@ def main():
         try:
             choice = display_menu()
             handle_choice(client, choice)
-            if choice == "7":
-                break
         except Exception as e:
             print(f"Error: {e}")
 
@@ -77,7 +75,8 @@ def handle_choice(client: NoteISTClient, choice: str) -> None:
     elif choice == "7":
         response = client.pull_changes()
         print(f"Server response: {response.status} - {response.message}")
-
+    elif choice == "8":
+        exit(0)
 
 if __name__ == "__main__":
     main()

@@ -48,68 +48,87 @@ class NoteISTClient:
         )
 
         # Set up the environment
-        self._initialize_environment()
+        self._load_or_register_user()
 
     def _get_next_id(self) -> int:
         """Get the next unique ID for a note."""
         self.current_id += 1
         return self.current_id
 
-    def _initialize_environment(self) -> None:
-        """Set up necessary directories and load or create user configuration."""
-        # Create required directories
+    def _load_or_register_user(self) -> None:
+        """Load existing user configuration or start new user registration process."""
+        #TODO: n sei se isto devia tar assim mas ig que ya
+        if not os.path.exists(self.priv_key_path) or not os.path.exists(self.auth_path) or not os.path.exists(self.notes_dir):
+            self._register_new_user()
+        else:
+            self._login_with_retry()
+
+    def _login_with_retry(self) -> None:
+        """Handle login attempts with retry logic."""
+
+        # Create required directories if they are missing (they shouldn't be)
         FileHandler.ensure_directory(self.base_config_dir)
         FileHandler.ensure_directory(self.base_data_dir)
         FileHandler.ensure_directory(self.notes_dir)
-
-        # Load existing configuration or register new user
-        self._load_or_register_user()
-
-    def _load_or_register_user(self) -> None:
-        """Load existing user configuration or start new user registration process."""
-        if not os.path.exists(self.priv_key_path):
-            self._register_new_user()
-            return
-
-        try:
-            suc = self._login()
-            if not suc:
-                raise Exception("Login failed")
-        except Exception as e:
-            print(f"Login failed: {e}")
-            self._register_new_user()
+        while True:
+            try:
+                self._login()
+                break
+            except ValueError as e:
+                if not self._prompt_user("retry"):
+                    print("Exiting NoteIST. Goodbye!")
+                    exit(0)
+            except Exception as e:
+                self._register_new_user()
+                break
 
     def _login(self) -> None:
         """Log in existing user and sync with server."""
         try:
-            # Get username from configuration
-            auth_path = FileHandler.read_json(self.auth_path)
-            self.username = auth_path.get("username")
-            local_password = auth_path.get("password")
-
-            password = input(f"Hi {self.username}, enter your password: ")
-            if not password:
-                raise ValueError("Password cannot be empty.")
-
-            AuthManager.verify_password(local_password, password)
+            # Get username and password from configuration
+            user_info = FileHandler.read_json(self.auth_path)
+            self.username = user_info.get("username")
+            local_password = user_info.get("password")
 
             if not self.username:
                 raise ValueError("Username not found in configuration")
 
-            self.master_key = KeyManager._derive_master_key(password)
+            password = input(f"Hi {self.username}, enter your password: ")
 
-            # Initialize network handler
+            AuthManager.verify_password(local_password, password)
+
+            self.master_key = KeyManager.derive_master_key(password)
+
             self.network_handler = NetworkHandler(
                 self.username, self.host, self.port, self.cert_path, self.master_key
             )
 
+        except ValueError as e:
+            # password mismatch or missing username
+            print(f"Login failed: {e}")
+            raise ValueError(f"Login failed: {e}")
         except Exception as e:
             raise Exception(f"Login failed: {e}")
-        # TODO: maybe pull from server here. For now, it is done with a command <- Duarte. Dont pull from server <- Massas
-        return True
+
+    def _prompt_user(self, msg) -> bool:
+        """Prompt the user."""
+        retry = input(f"Would you like to {msg}, {self.username}? [yes/no]").lower()
+        return retry in ["yes", "y"]
 
     def _register_new_user(self) -> None:
         """Handle the registration process for a new user."""
+        print("No user found.")
+        print("ATTENTION- This will overwrite any existing user data.")
+        if not self._prompt_user("continue"):
+            print("Exiting NoteIST. Goodbye!")
+            exit(0)
+
+        # Remove all previous user data
+        FileHandler.delete_all([self.priv_key_path, self.base_config_dir, self.base_data_dir])
+        FileHandler.ensure_directory(self.base_config_dir)
+        FileHandler.ensure_directory(self.notes_dir)
+        FileHandler.ensure_directory(self.base_data_dir)
+        
         while True:
             try:
                 # Get username from user
@@ -119,15 +138,12 @@ class NoteISTClient:
                     continue
 
                 password = input("Enter your password: ").strip()
-                if not password:
-                    print("Password cannot be empty. Please try again.")
-                    continue
 
                 passwordHash = AuthManager.hash_password(password)
 
                 # Generate and store key pair
                 self.username = username
-                self.master_key = KeyManager._derive_master_key(password)
+                self.master_key = KeyManager.derive_master_key(password)
                 public_key = KeyManager.generate_key_pair(
                     self.priv_key_path, self.master_key
                 )
@@ -155,8 +171,7 @@ class NoteISTClient:
 
             except Exception as e:
                 print(f"Registration error: {e}")
-                retry = input("Would you like to try again? [yes/no] ")
-                if retry.lower() not in ["yes", "y"]:
+                if not self._prompt_user("try again"):
                     print("Exiting NoteIST. Goodbye!")
                     exit(0)
 
@@ -238,7 +253,7 @@ class NoteISTClient:
 
         # Store note and record change
         self._store_note(note, note_dir)
-        self._record_change(ActionType.CREATE_NOTE, note)
+        self._record_change(ActionType.CREATE_NOTE, FileHandler.read_json(os.path.join(note_dir, "v1.notist")))
 
     def _store_note(self, note: Dict[str, Any], note_dir: str) -> None:
         """
@@ -274,13 +289,20 @@ class NoteISTClient:
     def push_changes(self) -> Response:
         """Push recorded changes to the server."""
         # TODO: keep change array in memory for the case were the client crashes/closes wihtout pushing. Maybe store in a file or sm shi. Is this really needed <- Massas
-        if not self.changes:
-            return Response(
-                status="success",
-                message="No changes to push (this wasn't sent by server)",
-            )
+        try:
+            if not self.changes:
+                return Response(
+                    status="success",
+                    message="No changes to push (this wasn't sent by server)",
+                )
 
-        return self.network_handler.push_changes(self.priv_key_path, self.changes)
+            response = self.network_handler.push_changes(self.priv_key_path, self.changes)
+            if response.status == "success":
+                self.changes = []
+            else :
+                print(f"Server response: {response.status} - {response.message}")
+        except Exception as e:
+            raise Exception(f"Failed to push changes: {e}")
 
     def get_note_list(self) -> List[Dict[str, Any]]:
         """Get a list of all local notes with their latest versions."""
@@ -359,7 +381,8 @@ class NoteISTClient:
 
         # Store note and record change
         self._store_note(note, note_dir)
-        self._record_change(ActionType.EDIT_NOTE, note)
+        self._record_change(
+            ActionType.EDIT_NOTE, FileHandler.read_json(os.path.join(note_dir, f"v{note['version']}.notist")))
 
     def delete_note(self, title: str) -> None:
         """

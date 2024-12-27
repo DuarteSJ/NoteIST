@@ -81,3 +81,21 @@
 2024-12-26 16:44:27,358 - __main__ - INFO - Connection from ('192.168.1.200', 44578)
 2024-12-26 16:44:27,360 - db_manager - INFO - Inserted document in users with ID: 676d87ebe84ce2a532ac5fe0
 2024-12-26 16:44:27,361 - users - INFO - User created with ID: 676d87ebe84ce2a532ac5fe0
+2024-12-26 22:26:34,586 - db_manager - INFO - Successfully connected to MongoDB
+2024-12-26 22:26:34,587 - __main__ - INFO - Server listening on 0.0.0.0:5000
+2024-12-26 22:26:55,390 - __main__ - INFO - Connection from ('192.168.1.200', 44586)
+2024-12-26 22:26:55,401 - db_manager - INFO - Inserted document in users with ID: 676dd82f70d00539eab8a1e2
+2024-12-26 22:26:55,402 - users - INFO - User created with ID: 676dd82f70d00539eab8a1e2
+2024-12-26 22:57:55,404 - __main__ - INFO - Connection from ('192.168.1.200', 59240)
+2024-12-26 22:57:55,408 - db_manager - INFO - Inserted document in users with ID: 676ddf7370d00539eab8a1e3
+2024-12-26 22:57:55,408 - users - INFO - User created with ID: 676ddf7370d00539eab8a1e3
+2024-12-26 23:18:28,516 - __main__ - INFO - Connection from ('192.168.1.200', 53418)
+2024-12-26 23:46:55,351 - __main__ - INFO - Connection from ('192.168.1.200', 40310)
+2024-12-26 23:46:55,357 - db_manager - INFO - Inserted document in users with ID: 676deaef70d00539eab8a1e4
+2024-12-26 23:46:55,357 - users - INFO - User created with ID: 676deaef70d00539eab8a1e4
+2024-12-26 23:48:28,171 - __main__ - INFO - Connection from ('192.168.1.200', 50046)
+2024-12-26 23:48:28,175 - users - ERROR - Error checking note permissions: 'bool' object has no attribute 'get'
+2024-12-26 23:51:10,481 - __main__ - INFO - Connection from ('192.168.1.200', 45446)
+2024-12-26 23:56:28,258 - __main__ - INFO - Connection from ('192.168.1.200', 46738)
+2024-12-26 23:56:28,277 - db_manager - INFO - Inserted document in notes with ID: 1
+2024-12-26 23:56:28,280 - notes - INFO - Note created with ID: 1
