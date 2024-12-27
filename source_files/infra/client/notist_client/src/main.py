@@ -51,13 +51,21 @@ def handle_choice(client: NoteISTClient, choice: str) -> None:
             print(f"{i}. {note['title']} (v{note['version']})")
 
     elif choice == "3":
-        title = input("Enter note title: ")
+        notes = client.get_note_list()
+        if not notes:
+            print("No notes available.")
+        
+        print("\nAvailable Notes:")
+        for i, note in enumerate(notes, 1):
+            print(f"{i}. {note['title']} (v{note['version']})")
+
+        title = input("Note title: ")
         version = input("Enter version number (press Enter for latest): ").strip()
         version = int(version) if version else None
         note = client.get_note_content(title, version)
         # TODO: meter o titulo certo
         print(f"\nTitle: {note['title']}")
-        print(f"Content: {note['content']}")
+        print(f"Content: {note['note']}")
 
     elif choice == "4":
         title = input("Enter note title: ")
@@ -75,6 +83,7 @@ def handle_choice(client: NoteISTClient, choice: str) -> None:
     elif choice == "7":
         response = client.pull_changes()
         print(f"Server response: {response.status} - {response.message}")
+
     elif choice == "8":
         exit(0)
 

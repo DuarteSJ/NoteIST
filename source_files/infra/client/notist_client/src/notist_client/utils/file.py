@@ -5,6 +5,8 @@ from secure_document import SecureDocumentHandler
 from uuid import uuid4
 import shutil
 
+from ..crypto.keys import KeyManager
+
 class FileHandler:
     """Handles file operations for notes and configuration."""
 
@@ -76,11 +78,13 @@ class FileHandler:
                     file_path = os.path.join(sub_dir_path, file)
                     if file != "key":
                         os.remove(file_path)
-
+    @classmethod
     def write_encrypted_note(
+        cls,
         # paths
         filePath: str,
         keyFile: str,
+        masterKey: bytes,
         # note data
         id: int,
         title: str,
@@ -91,10 +95,13 @@ class FileHandler:
         viewers: List[str] = [],
     ) -> None:
         """Writes content to a file in the specified format."""
-        editors = editors
-        viewers = viewers
         uuid = str(uuid4())
+        # TODO: por favor isto é dogwater code race condition vulnerable
         tempFilePath = f"/tmp/notist_temp_{uuid}.json"
+        tempKeyFile = f"/tmp/notist_key_{uuid}.json"
+
+        note_key = KeyManager.load_note_key(keyFile, masterKey)
+        cls.store_key(note_key, tempKeyFile)
 
         note_data = {
             "_id": id,
@@ -114,29 +121,41 @@ class FileHandler:
             # TODO: change the lib to receive key instead of key file?
             # or else we need to do this
 
-            handler.protect(tempFilePath, keyFile, filePath)
+            handler.protect(tempFilePath, tempKeyFile, filePath)
         except Exception as e:
             raise Exception(f"Failed to write and encrypt file: {e}")
         finally:
             if os.path.exists(tempFilePath):
                 os.remove(tempFilePath)
+            if os.path.exists(tempKeyFile):
+                os.remove(tempKeyFile)
 
-    def read_encrypted_note(filePath: str, keyFile: str) -> str:
+    @classmethod
+    def read_encrypted_note(cls, filePath: str, keyFile: str, masterKey: bytes) -> str:
         """Reads teh entire note from a file after verification and decryption."""
-        tempFilePath = "/tmp/notist_temp_read.json"
+        uuid = str(uuid4())
+        # TODO: por favor isto é dogwater code race condition vulnerable
+        tempFilePath = f"/tmp/notist_temp_{uuid}.json"
+        tempKeyFile = f"/tmp/notist_key_{uuid}.json"
+
+        note_key = KeyManager.load_note_key(keyFile, masterKey)
+        cls.store_key(note_key, tempKeyFile)
 
         try:
             handler = SecureDocumentHandler()
 
-            if not handler.checkSingleFile(filePath, keyFile):
+            if not handler.checkSingleFile(filePath, tempKeyFile):
                 raise Exception("The note's integrity is compromised.")
 
-            handler.unprotect(filePath, keyFile, tempFilePath)
+            handler.unprotect(filePath, tempKeyFile, tempFilePath)
 
-            note_data = Exception(tempFilePath)
+            note_data = cls.read_json(tempFilePath)
             return note_data
         except Exception as e:
             raise Exception(f"Failed to read and decrypt file: {e}")
         finally:
             if os.path.exists(tempFilePath):
                 os.remove(tempFilePath)
+            if os.path.exists(tempKeyFile):
+                os.remove(tempKeyFile)
+    

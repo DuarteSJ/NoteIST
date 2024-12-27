@@ -239,8 +239,8 @@ class NoteISTClient:
         # Create note directory and generate encryption key
         os.makedirs(note_dir)
         key_file = os.path.join(note_dir, "key")
-        note_key = KeyManager.generate_symmetric_key()
-        FileHandler.store_key(note_key, key_file)
+        encrypted_note_key = KeyManager.generate_encrypted_note_key(self.master_key, key_file)
+        FileHandler.store_key(encrypted_note_key, key_file)
 
         # Create first version of the note
         note = {
@@ -268,6 +268,7 @@ class NoteISTClient:
         FileHandler.write_encrypted_note(
             filePath=note_path,
             keyFile=key_path,
+            masterKey=self.master_key,
             id=note["_id"],
             title=note["title"],
             content=note["content"],
@@ -310,17 +311,20 @@ class NoteISTClient:
         if not os.path.exists(self.notes_dir):
             return notes
 
+
+
         for note_dir in os.listdir(self.notes_dir):
             note_path = os.path.join(self.notes_dir, note_dir)
+            print(note_path)
             if os.path.isdir(note_path):
                 versions = sorted(
                     [f for f in os.listdir(note_path) if f.endswith(".notist")]
                 )
+
                 if versions:
-                    latest_version = versions[-1]
-                    note_data = FileHandler.read_json(
-                        os.path.join(note_path, latest_version)
-                    )
+                    lastversionPath = os.path.join(note_path, versions[-1])
+                    keyPath = os.path.join(note_path, "key")
+                    note_data =  FileHandler.read_encrypted_note(lastversionPath, keyPath, self.master_key)
                     notes.append(note_data)
 
         return notes
@@ -353,7 +357,10 @@ class NoteISTClient:
             if version_file not in versions:
                 raise ValueError(f"Version {version} not found for note '{title}'")
 
-        return FileHandler.read_json(os.path.join(note_dir, version_file))
+        return FileHandler.read_encrypted_note(
+            filePath=os.path.join(note_dir, version_file),
+            keyFile=os.path.join(note_dir, "key"),
+            masterKey=self.master_key)
 
     def edit_note(self, title: str, new_content: str) -> None:
         """

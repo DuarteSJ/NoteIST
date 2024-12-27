@@ -26,6 +26,8 @@ class KeyManager:
     @staticmethod
     def encrypt_with_master_key(data: bytes, master_key: bytes) -> bytes:
         """Encrypt data (e.g., private key, symmetric key) using AES GCM and master key."""
+        # TODO: this function might be doing to much
+
         # Generate a salt and derive an AES key from the master key
         salt = os.urandom(16)
         kdf = PBKDF2HMAC(
@@ -138,15 +140,24 @@ class KeyManager:
         """Generates a new random 256-bit symmetric encryption key."""
         return os.urandom(32)
 
-    @staticmethod
-    def encrypt_symmetric_key(symmetric_key: bytes, master_key: bytes) -> bytes:
-        """Encrypts the symmetric key using the master key."""
-        return KeyManager.encrypt_with_master_key(symmetric_key, master_key)
+    @classmethod
+    def generate_encrypted_note_key(cls, masterKey: bytes, newKeyFile: str):
+        """Generates a new random 256-bit symmetric encryption key and encripts it with the master key."""
+        return cls.encrypt_with_master_key(cls.generate_symmetric_key(), masterKey)
+    
+    @classmethod
+    def load_note_key(cls, noteKeyFile: str, masterKey: bytes):
+        """Loads and decrypts the note's secret key from a file using the master key."""
+        try:
+            with open(noteKeyFile, "rb") as key_file:
+                encrypted_note_key = key_file.read()
 
-    @staticmethod
-    def decrypt_symmetric_key(encrypted_symmetric_key: bytes, master_key: bytes) -> bytes:
-        """Decrypts the symmetric key using the master key."""
-        return KeyManager.decrypt_with_master_key(encrypted_symmetric_key, master_key)
+            # Decrypt the secret key using the master key
+            note_key = cls.decrypt_with_master_key(encrypted_note_key, masterKey)
+            return note_key
+
+        except Exception as e:
+            raise Exception(f"Failed to load or decrypt the note key: {e}")
 
     @staticmethod
     def derive_master_key(password: str) -> bytes:
