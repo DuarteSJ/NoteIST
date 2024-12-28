@@ -48,15 +48,18 @@ class KeyManager:
 
         # Return salt + encrypted data + tag (for AES GCM)
         return salt + encrypted_data + encryptor.tag
+    
+    
 
     @staticmethod
-    def decrypt_with_master_key(encrypted_data: bytes, master_key: bytes) -> bytes:
-        """Decrypt data (e.g., private key, symmetric key) using AES GCM and master key."""
-        salt = encrypted_data[:16]
-        tag = encrypted_data[-16:]
-        ciphertext = encrypted_data[16:-16]
+    def decrypt_with_master_key(encrypted: bytes, master_key: bytes) -> bytes:
+        """Decrypt data encrypted with the master key using AES GCM."""
+        # Extract the salt, encrypted data, and tag
+        salt = encrypted[:16]
+        tag = encrypted[-16:]
+        encrypted_data = encrypted[16:-16]
 
-        # Derive the AES decryption key from the master key
+        # Derive the encryption key using the salt and master key
         kdf = PBKDF2HMAC(
             algorithm=crypto_hashes.SHA256(),
             length=32,  # AES-256
@@ -64,16 +67,14 @@ class KeyManager:
             iterations=100000,
             backend=default_backend(),
         )
-        decryption_key = kdf.derive(master_key)
+        encryption_key = kdf.derive(master_key)
 
-        # Decrypt the data using AES GCM
+        # Decrypt using AES GCM
         cipher = Cipher(
-            algorithms.AES(decryption_key),
-            modes.GCM(salt, tag),
-            backend=default_backend(),
+            algorithms.AES(encryption_key), modes.GCM(salt, tag), backend=default_backend()
         )
         decryptor = cipher.decryptor()
-        return decryptor.update(ciphertext) + decryptor.finalize()
+        return decryptor.update(encrypted_data) + decryptor.finalize()
 
     @staticmethod
     def store_private_key(

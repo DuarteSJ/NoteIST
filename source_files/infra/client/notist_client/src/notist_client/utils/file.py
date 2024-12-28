@@ -4,6 +4,7 @@ from typing import Dict, Any, List
 from secure_document import SecureDocumentHandler
 from uuid import uuid4
 import shutil
+import re
 
 from ..crypto.keys import KeyManager
 
@@ -184,5 +185,8 @@ class FileHandler:
                         highest_file = filename
                 except ValueError:
                     continue
+        
+        match = re.search(r"v(\d+)", highest_file)
+        number = int(match.group(1)) if match else 0
 
-        return highest_file
+        return number

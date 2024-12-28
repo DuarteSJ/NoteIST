@@ -41,6 +41,7 @@ def handle_choice(client: NoteISTClient, choice: str) -> None:
 
     elif choice == "2":
         notes = client.get_note_list()
+        print(notes)
         if not notes:
             print("No notes available.")
             return

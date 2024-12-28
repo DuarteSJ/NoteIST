@@ -9,6 +9,7 @@ from .models.actions import ActionType
 from .models.responses import Response
 from .config.paths import get_config_dir, get_data_dir
 from .crypto.secure import SecureHandler
+import base64
 
 
 class NoteISTClient:
@@ -212,6 +213,7 @@ class NoteISTClient:
                 continue
 
             # Create new folder name when owner_id or _id changes
+            #TODO: CHANGE THIS
             folder_name = SecureHandler.encrypt_string(title, self.master_key)
 
             # If we're processing a new group, create a new folder
@@ -238,7 +240,8 @@ class NoteISTClient:
         if not title.strip():
             raise ValueError("Title cannot be empty.")
         # TODO: see the TODO in edit note
-        encrypted_title = KeyManager.encrypt_with_master_key(title, self.master_key)
+        encrypted_title = KeyManager.encrypt_with_master_key(title.encode('utf-8'), self.master_key)
+        encrypted_title = base64.urlsafe_b64encode(encrypted_title).decode('utf-8')
 
         note_dir = os.path.join(self.notes_dir, encrypted_title)
         if os.path.exists(note_dir):
@@ -327,9 +330,11 @@ class NoteISTClient:
             return notes
 
         for note_dir in os.listdir(self.notes_dir):
-            title = SecureHandler.decrypt_string(note_dir, self.master_key)
-            last_version = FileHandler.get_highest_version(note_dir)
-            note = tuple(title, last_version)
+            title = base64.urlsafe_b64decode(note_dir.encode('utf-8'))
+            decrypt_title = KeyManager.decrypt_with_master_key(title, self.master_key).decode('utf-8')
+            last_version = FileHandler.get_highest_version(os.path.join(self.notes_dir, note_dir))
+            print(last_version)
+            note = (decrypt_title, last_version)
             notes.append(note)
 
         return notes
