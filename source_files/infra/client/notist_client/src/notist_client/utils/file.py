@@ -130,7 +130,9 @@ class FileHandler:
                 os.remove(tempKeyFile)
 
     @classmethod
-    def read_encrypted_note(cls, filePath: str, keyFile: str, key_manager: KeyManager) -> str:
+    def read_encrypted_note(
+        cls, filePath: str, keyFile: str, key_manager: KeyManager
+    ) -> str:
         """Reads teh entire note from a file after verification and decryption."""
         uuid = str(uuid4())
         # TODO: por favor isto é dogwater code race condition vulnerable
@@ -167,7 +169,7 @@ class FileHandler:
 
         Returns:
             int: The highest version number.
-        
+
         Raises:
             Exception: If no notes are found in the directory.
         """

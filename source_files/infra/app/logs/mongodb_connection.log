@@ -1,14 +1,35 @@
-2024-12-27 18:23:08,724 - db_manager - INFO - Successfully connected to MongoDB
-2024-12-27 18:23:08,729 - __main__ - INFO - Server listening on 0.0.0.0:5000
-2024-12-27 19:07:27,937 - __main__ - INFO - Connection from ('192.168.1.200', 45266)
-2024-12-27 19:07:27,949 - db_manager - INFO - Inserted document in users with ID: 676efaefedb3947efa5b07a6
-2024-12-27 19:07:27,949 - users - INFO - User created with ID: 676efaefedb3947efa5b07a6
-2024-12-27 19:18:43,510 - __main__ - INFO - Connection from ('192.168.1.200', 38146)
-2024-12-27 19:18:43,513 - db_manager - INFO - Inserted document in users with ID: 676efd93edb3947efa5b07a7
-2024-12-27 19:18:43,513 - users - INFO - User created with ID: 676efd93edb3947efa5b07a7
-2024-12-27 19:41:22,712 - __main__ - INFO - Connection from ('192.168.1.200', 46774)
-2024-12-27 19:41:22,725 - users - ERROR - Error checking note permissions: 'bool' object has no attribute 'get'
-2024-12-27 19:41:22,728 - users - ERROR - Error checking note permissions: 'bool' object has no attribute 'get'
-2024-12-27 19:41:53,126 - __main__ - INFO - Connection from ('192.168.1.200', 56512)
-2024-12-27 19:41:53,135 - db_manager - ERROR - Error inserting document in notes: E11000 duplicate key error collection: secure_document_db.notes index: _id_ dup key: { _id: 1 }, full error: {'index': 0, 'code': 11000, 'errmsg': 'E11000 duplicate key error collection: secure_document_db.notes index: _id_ dup key: { _id: 1 }', 'keyPattern': {'_id': 1}, 'keyValue': {'_id': 1}}
-2024-12-27 19:41:53,136 - notes - ERROR - Error creating note: E11000 duplicate key error collection: secure_document_db.notes index: _id_ dup key: { _id: 1 }, full error: {'index': 0, 'code': 11000, 'errmsg': 'E11000 duplicate key error collection: secure_document_db.notes index: _id_ dup key: { _id: 1 }', 'keyPattern': {'_id': 1}, 'keyValue': {'_id': 1}}
+2024-12-28 19:25:00,996 - db_manager - INFO - Successfully connected to MongoDB
+2024-12-28 19:25:00,998 - __main__ - INFO - Server listening on 0.0.0.0:5000
+2024-12-28 19:25:10,207 - __main__ - INFO - Connection from ('192.168.1.200', 56910)
+2024-12-28 19:25:10,216 - db_manager - INFO - Inserted document in users with ID: 67705096704494cd8ef8aed4
+2024-12-28 19:25:10,216 - users - INFO - User created with ID: 67705096704494cd8ef8aed4
+2024-12-28 19:30:25,508 - __main__ - INFO - Connection from ('192.168.1.200', 33146)
+2024-12-28 19:30:25,518 - db_manager - INFO - Inserted document in notes with ID: 125bbcca-6134-4f27-b10a-6cc216855c64
+2024-12-28 19:30:25,520 - notes - INFO - Note created with ID: 125bbcca-6134-4f27-b10a-6cc216855c64
+2024-12-28 19:32:02,162 - __main__ - INFO - Connection from ('192.168.1.200', 34140)
+2024-12-28 19:32:02,168 - db_manager - INFO - Inserted document in notes with ID: 9dcbab9e-4ae1-4d48-ac57-fb2c16d1ac9f
+2024-12-28 19:32:02,169 - notes - INFO - Note created with ID: 9dcbab9e-4ae1-4d48-ac57-fb2c16d1ac9f
+2024-12-28 19:34:53,320 - __main__ - INFO - Connection from ('192.168.1.200', 44858)
+2024-12-28 19:34:53,324 - db_manager - INFO - Inserted document in notes with ID: 264f7753-0bcc-4da4-9ebe-025c0ba0a171
+2024-12-28 19:34:53,325 - notes - INFO - Note created with ID: 264f7753-0bcc-4da4-9ebe-025c0ba0a171
+2024-12-28 19:37:45,404 - __main__ - INFO - Connection from ('192.168.1.200', 50760)
+2024-12-28 19:37:58,758 - __main__ - INFO - Connection from ('192.168.1.200', 40188)
+2024-12-28 19:37:59,339 - __main__ - INFO - Connection from ('192.168.1.200', 40202)
+2024-12-28 19:37:59,794 - __main__ - INFO - Connection from ('192.168.1.200', 40204)
+2024-12-28 19:38:00,211 - __main__ - INFO - Connection from ('192.168.1.200', 40212)
+2024-12-28 19:38:00,595 - __main__ - INFO - Connection from ('192.168.1.200', 40226)
+2024-12-28 19:38:01,086 - __main__ - INFO - Connection from ('192.168.1.200', 40240)
+2024-12-28 19:38:02,035 - __main__ - INFO - Connection from ('192.168.1.200', 40246)
+2024-12-28 19:38:02,821 - __main__ - INFO - Connection from ('192.168.1.200', 40256)
+2024-12-28 19:38:03,590 - __main__ - INFO - Connection from ('192.168.1.200', 40266)
+2024-12-28 19:38:04,390 - __main__ - INFO - Connection from ('192.168.1.200', 40274)
+2024-12-28 19:38:30,849 - __main__ - INFO - Connection from ('192.168.1.200', 54042)
+2024-12-28 19:38:31,586 - __main__ - INFO - Connection from ('192.168.1.200', 54044)
+2024-12-28 19:38:32,055 - __main__ - INFO - Connection from ('192.168.1.200', 54046)
+2024-12-28 19:38:35,672 - __main__ - INFO - Connection from ('192.168.1.200', 54048)
+2024-12-28 19:38:36,381 - __main__ - INFO - Connection from ('192.168.1.200', 54050)
+2024-12-28 19:38:36,826 - __main__ - INFO - Connection from ('192.168.1.200', 54052)
+2024-12-28 19:38:37,221 - __main__ - INFO - Connection from ('192.168.1.200', 54064)
+2024-12-28 19:39:33,552 - __main__ - INFO - Connection from ('192.168.1.200', 33470)
+2024-12-28 19:39:33,558 - db_manager - INFO - Inserted document in notes with ID: 9969319d-c53b-4460-baae-fa26e106faeb
+2024-12-28 19:39:33,560 - notes - INFO - Note created with ID: 9969319d-c53b-4460-baae-fa26e106faeb

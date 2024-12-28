@@ -7,6 +7,7 @@ from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
 from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
 from cryptography.hazmat.primitives import hashes as crypto_hashes
 
+
 class KeyManager:
     """Handles cryptographic key operations including generation, storage, and loading."""
 
@@ -14,18 +15,17 @@ class KeyManager:
         self.master_key = self.derive_master_key(password)
         self.note_title_salt = salt
 
-    def generate_private_key(self,key_size: int = 2048) -> rsa.RSAPrivateKey:
+    def generate_private_key(self, key_size: int = 2048) -> rsa.RSAPrivateKey:
         """Generates a new RSA private key."""
         return rsa.generate_private_key(
             public_exponent=65537, key_size=key_size, backend=default_backend()
         )
 
-    def load_public_key(self,private_key: rsa.RSAPrivateKey) -> rsa.RSAPublicKey:
+    def load_public_key(self, private_key: rsa.RSAPrivateKey) -> rsa.RSAPublicKey:
         """Derives the public key from a private key."""
         return private_key.public_key()
 
     def encrypt_with_master_key(self, data: bytes, salt: bytes) -> bytes:
-
         """Encrypt data (e.g., private key, symmetric key) using AES GCM and master key."""
         # TODO: this function might be doing to much
 
@@ -39,10 +39,7 @@ class KeyManager:
             backend=default_backend(),
         )
 
-        
         encryption_key = kdf.derive(self.master_key)
-
-
 
         # Encrypt the data using AES GCM
         cipher = Cipher(
@@ -52,14 +49,12 @@ class KeyManager:
         encryptor = cipher.encryptor()
         encrypted_data = encryptor.update(data) + encryptor.finalize()
 
-
-        print('encryptor tag')
+        print("encryptor tag")
         print(encryptor.tag)
 
         # Return salt + encrypted data + tag (for AES GCM)
         return encryptor.tag + encrypted_data
-    
-    
+
     def decrypt_with_master_key(self, encrypted: bytes, salt: bytes) -> bytes:
         """Decrypt data encrypted with the master key using AES GCM."""
         # Extract the salt, encrypted data, and tag
@@ -78,43 +73,44 @@ class KeyManager:
 
         # Decrypt using AES GCM
         cipher = Cipher(
-            algorithms.AES(encryption_key), modes.GCM(salt, tag), backend=default_backend()
+            algorithms.AES(encryption_key),
+            modes.GCM(salt, tag),
+            backend=default_backend(),
         )
         decryptor = cipher.decryptor()
         return decryptor.update(encrypted_data) + decryptor.finalize()
 
-
     def encrypt_note_title(self, title: str) -> bytes:
         """Encrypts the note title using the note key."""
-        encrypted_title = self.encrypt_with_master_key(title.encode("utf-8"), self.note_title_salt)
-        encrypted_title = base64.urlsafe_b64encode(encrypted_title).decode('utf-8')
+        encrypted_title = self.encrypt_with_master_key(
+            title.encode("utf-8"), self.note_title_salt
+        )
+        encrypted_title = base64.urlsafe_b64encode(encrypted_title).decode("utf-8")
         return encrypted_title
-    
+
     def decrypt_note_title(self, title: bytes) -> str:
         """Decrypts the note title using the note key."""
-        title = base64.urlsafe_b64decode(title.encode('utf-8'))
+        title = base64.urlsafe_b64decode(title.encode("utf-8"))
         return self.decrypt_with_master_key(title, self.note_title_salt).decode("utf-8")
-    
+
     def encrypt_key_with_master_key(self, key: bytes) -> bytes:
         """Encrypts the note key using the master key."""
         salt = os.urandom(16)
         return salt + self.encrypt_with_master_key(key, salt)
-    
+
     def decrypt_key_with_master_key(self, encrypted_key: bytes) -> bytes:
         salt = encrypted_key[:16]
         return self.decrypt_with_master_key(encrypted_key[16:], salt)
-        
 
-
-    def store_private_key(self,
-        private_key: rsa.RSAPrivateKey, private_key_path: str,
+    def store_private_key(
+        self,
+        private_key: rsa.RSAPrivateKey,
+        private_key_path: str,
     ) -> None:
         """Stores the RSA private key in an encrypted format."""
 
         if not os.path.exists(os.path.dirname(private_key_path)):
             os.makedirs(os.path.dirname(private_key_path))
-
-
 
         # Convert the private key to PEM format (unencrypted)
         private_key_pem = private_key.private_bytes(
@@ -123,11 +119,8 @@ class KeyManager:
             encryption_algorithm=serialization.NoEncryption(),  # Unencrypted for initial conversion
         )
 
+        encrypted_private_key = self.encrypt_key_with_master_key(private_key_pem)
 
-        encrypted_private_key = self.encrypt_key_with_master_key(
-            private_key_pem)
-
-        
         with open(private_key_path, "wb") as key_file:
             key_file.write(encrypted_private_key)
 
@@ -137,17 +130,14 @@ class KeyManager:
             "or YOU WILL LOSE ACCESS TO YOUR ACCOUNT.\n"
         )
 
-
     def load_private_key(self, private_key_path: str) -> rsa.RSAPrivateKey:
         """Loads and decrypts an RSA private key from a file using the master key."""
         try:
             with open(private_key_path, "rb") as key_file:
                 encrypted_private_key = key_file.read()
-            
+
             # Decrypt the private key using the master key
-            private_key_pem = self.decrypt_key_with_master_key(
-                encrypted_private_key
-            )
+            private_key_pem = self.decrypt_key_with_master_key(encrypted_private_key)
 
             # Deserialize the private key from PEM format
             private_key = serialization.load_pem_private_key(
@@ -159,13 +149,9 @@ class KeyManager:
         except Exception as e:
             raise Exception(f"Failed to load or decrypt the private key: {e}")
 
-    def generate_key_pair(
-        self, private_key_path: str
-    ) -> rsa.RSAPublicKey:
+    def generate_key_pair(self, private_key_path: str) -> rsa.RSAPublicKey:
         """Generates and stores a new key pair, returning the public key."""
         private_key = self.generate_private_key()
-
-        
 
         public_key = self.load_public_key(private_key)
 

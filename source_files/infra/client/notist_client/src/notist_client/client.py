@@ -31,8 +31,8 @@ class NoteISTClient:
         self.notes_dir = get_notes_dir()
         self.priv_key_path = get_priv_key_file()
         self.config_path = get_config_file()
+
         self.key_manager = None
-        
 
         # Server configuration
         self.host = host
@@ -53,11 +53,9 @@ class NoteISTClient:
 
     def _load_or_register_user(self) -> None:
         """Load existing user configuration or start new user registration process."""
-        
-        if (
-            not os.path.exists(self.priv_key_path)
-            or not os.path.exists(self.auth_path)
-            or not os.path.exists(self.notes_dir)
+
+        if not os.path.exists(self.priv_key_path) or not os.path.exists(
+            self.config_path
         ):
             self._register_new_user()
         else:
@@ -70,8 +68,6 @@ class NoteISTClient:
         self.notes_dir = get_notes_dir()
         self.priv_key_path = get_priv_key_file()
         self.config_path = get_config_file()
-        FileHandler.ensure_directory(self.notes_dir)
-        FileHandler.ensure_directory(self.base_data_dir)
         FileHandler.ensure_directory(self.notes_dir)
         while True:
             try:
@@ -89,7 +85,7 @@ class NoteISTClient:
         """Log in existing user and sync with server."""
         try:
             # Get username and password from configuration
-            user_info = FileHandler.read_json(self.auth_path)
+            user_info = FileHandler.read_json(self.config_path)
             self.username = user_info.get("username")
             local_password = user_info.get("password")
             self.salt = bytes.fromhex(user_info.get("salt"))
@@ -97,7 +93,7 @@ class NoteISTClient:
             if not self.username:
                 raise Exception("Username not found in configuration")
             if not local_password:
-                #TODO: WHAT TO DO?
+                # TODO: WHAT TO DO?
                 raise Exception("Password not found in configuration")
             if not self.salt:
                 raise Exception("Salt not found in configuration")
@@ -106,7 +102,7 @@ class NoteISTClient:
 
             AuthManager.verify_password(local_password, password)
 
-            self.key_manager = KeyManager(password,self.salt)
+            self.key_manager = KeyManager(password, self.salt)
 
             self.network_handler = NetworkHandler(
                 self.username, self.host, self.port, self.cert_path, self.key_manager
@@ -133,16 +129,11 @@ class NoteISTClient:
             exit(0)
 
         # Remove all previous user data
-        FileHandler.delete_all(
-            [self.priv_key_path, self.base_config_dir, self.base_data_dir]
-        )
-        FileHandler.ensure_directory(self.base_config_dir)
+        FileHandler.delete_all([self.priv_key_path, self.config_path, self.notes_dir])
         FileHandler.ensure_directory(self.notes_dir)
-        FileHandler.ensure_directory(self.base_data_dir)
 
         while True:
             try:
-
 
                 # Get username from user
                 username = input("Enter your username (must be unique): ").strip()
@@ -156,9 +147,7 @@ class NoteISTClient:
                 self.username = username
                 self.salt = os.urandom(16)
                 self.key_manager = KeyManager(password, self.salt)
-                public_key = self.key_manager.generate_key_pair(
-                    self.priv_key_path
-                )
+                public_key = self.key_manager.generate_key_pair(self.priv_key_path)
                 # Initialize network handler
                 self.network_handler = NetworkHandler(
                     username, self.host, self.port, self.cert_path, self.key_manager
@@ -171,7 +160,12 @@ class NoteISTClient:
                     raise Exception(f"Server registration failed: {response.message}")
                 # Save username to configuration
                 FileHandler.write_json(
-                    self.auth_path, {"username": username, "password": passwordHash, "salt": self.salt.hex()}
+                    self.config_path,
+                    {
+                        "username": username,
+                        "password": passwordHash,
+                        "salt": self.salt.hex(),
+                    },
                 )
                 print(f"Welcome to NoteIST, {username}!")
                 break
@@ -213,7 +207,7 @@ class NoteISTClient:
                 continue
 
             # Create new folder name when owner_id or _id changes
-            #TODO: CHANGE THIS
+            # TODO: CHANGE THIS
             folder_name = SecureHandler.encrypt_string(title)
 
             # If we're processing a new group, create a new folder
@@ -264,7 +258,7 @@ class NoteISTClient:
         self._store_note(note, note_dir)
         self._record_change(
             action_type=ActionType.CREATE_NOTE,
-            note=FileHandler.read_json(os.path.join(note_dir, "v1.notist"))
+            note=FileHandler.read_json(os.path.join(note_dir, "v1.notist")),
         )
 
     def _store_note(self, note: Dict[str, Any], note_dir: str) -> None:
@@ -305,25 +299,20 @@ class NoteISTClient:
 
         if action_type not in data_mapping:
             raise ValueError(f"Unsupported action type: {action_type}")
-        self.changes.append({"type": action_type.value, "data": data_mapping[action_type]})
+        self.changes.append(
+            {"type": action_type.value, "data": data_mapping[action_type]}
+        )
 
     def push_changes(self) -> Response:
         """Push recorded changes to the server."""
         # TODO: keep change array in memory for the case were the client crashes/closes wihtout pushing. Maybe store in a file or sm shi. Is this really needed <- Massas
         try:
-            if not self.changes:
-                return Response(
-                    status="success",
-                    message="No changes to push (this wasn't sent by server)",
-                )
-
             response = self.network_handler.push_changes(
                 self.priv_key_path, self.changes
             )
+            print(f"Server response: {response.status} - {response.message}")
             if response.status == "success":
                 self.changes = []
-            else:
-                print(f"Server response: {response.status} - {response.message}")
         except Exception as e:
             raise Exception(f"Failed to push changes: {e}")
 
@@ -335,12 +324,14 @@ class NoteISTClient:
 
         for note_dir in os.listdir(self.notes_dir):
             decrypt_title = self.key_manager.decrypt_note_title(note_dir)
-            last_version = FileHandler.get_highest_version(os.path.join(self.notes_dir, note_dir))
+            last_version = FileHandler.get_highest_version(
+                os.path.join(self.notes_dir, note_dir)
+            )
             note = [decrypt_title, last_version]
             notes.append(note)
 
         return notes
-    
+
     def list_notes(self) -> None:
         """List all notes with their latest versions."""
         notes = self.get_note_list()
@@ -360,7 +351,7 @@ class NoteISTClient:
             title: The title of the note to view
             version: Optional specific version to retrieve (latest if not specified)
         """
-        if not title.strip(): # TODO: add more checks
+        if not title.strip():  # TODO: add more checks
             raise ValueError("Title cannot be empty.")
         encrypted_title = self.key_manager.encrypt_note_title(title)
         note = self.get_note_content(encrypted_title, version)
@@ -381,7 +372,6 @@ class NoteISTClient:
             The note content and metadata
         """
 
-
         note_dir = os.path.join(self.notes_dir, encrypted_title)
 
         if not os.path.exists(note_dir):
@@ -389,23 +379,26 @@ class NoteISTClient:
 
         if version:
             version = int(version)
-        else: # choose the latest version
+        else:  # choose the latest version
             version = FileHandler.get_highest_version(note_dir)
         version_file = f"v{version}.notist"
 
         note_file = os.path.join(note_dir, version_file)
         key_file = os.path.join(note_dir, "key")
         if not os.path.exists(note_file):
-            raise ValueError(f"Get_note_content: Version {version_file} of note '{note_dir}' not found")
+            raise ValueError(
+                f"Get_note_content: Version {version_file} of note '{note_dir}' not found"
+            )
         elif not os.path.exists(key_file):
-            raise ValueError(f"get_note_content: Key file not found for note '{note_dir}'")
+            raise ValueError(
+                f"get_note_content: Key file not found for note '{note_dir}'"
+            )
 
         return FileHandler.read_encrypted_note(
             filePath=note_file,
             keyFile=key_file,
             key_manager=self.key_manager,
         )
-    
 
     def edit_note(self, title: str, new_content: str) -> None:
         """
@@ -438,7 +431,9 @@ class NoteISTClient:
         self._store_note(note, note_dir)
         self._record_change(
             action_type=ActionType.EDIT_NOTE,
-            note=FileHandler.read_json(os.path.join(note_dir, f"v{note['version']}.notist")),
+            note=FileHandler.read_json(
+                os.path.join(note_dir, f"v{note['version']}.notist")
+            ),
         )
 
     def delete_note(self, title: str) -> None:

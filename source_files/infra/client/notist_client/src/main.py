@@ -40,7 +40,7 @@ def handle_choice(client: NoteISTClient, choice: str) -> None:
         client.create_note(title, content)
 
     elif choice == "2":
-        client.list_notes() 
+        client.list_notes()
 
     elif choice == "3":
         client.list_notes()
@@ -60,12 +60,10 @@ def handle_choice(client: NoteISTClient, choice: str) -> None:
         client.delete_note(title)
 
     elif choice == "6":
-        response = client.push_changes()
-        print(f"Server response: {response.status} - {response.message}")
+        client.push_changes()
 
     elif choice == "7":
-        response = client.pull_changes()
-        print(f"Server response: {response.status} - {response.message}")
+        client.pull_changes()
 
     elif choice == "8":
         exit(0)

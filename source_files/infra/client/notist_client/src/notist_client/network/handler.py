@@ -12,7 +12,12 @@ class NetworkHandler:
     """Handles all network communication with the server."""
 
     def __init__(
-        self, username: str, host: str, port: int, cert_path: str, key_manager: KeyManager
+        self,
+        username: str,
+        host: str,
+        port: int,
+        cert_path: str,
+        key_manager: KeyManager,
     ):
         self.username = username
         self.host = host
@@ -56,13 +61,21 @@ class NetworkHandler:
             raise Exception(f"Network error: {e}")
         except Exception as e:
             return Response(
-                status="error", message=str(e), documents=None, document=None
+                status="error",
+                message=str(e) + " this did not come from the server",
+                documents=None,
+                document=None,
             )
 
     def push_changes(
         self, private_key_path: str, changes: List[Dict[str, Any]]
     ) -> Response:
         """Pushes changes to the server."""
+        if not changes:
+            return Response(
+                status="success",
+                message="No changes to push (this wasn't sent by server)",
+            )
         private_key = self.key_manager.load_private_key(private_key_path)
         signature = self.secure_handler.sign_request(changes, private_key)
 

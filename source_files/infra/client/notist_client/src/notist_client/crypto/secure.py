@@ -41,12 +41,15 @@ class SecureHandler:
         req_type: str, username: str, request_data: Dict[str, Any], signature: str
     ) -> Dict[str, Any]:
         """Creates a signed request payload."""
-        return {
-            "type": req_type,
-            "username": username,
-            "signature": signature,
-            "data": request_data,
-        }
+        try:
+            return {
+                "type": req_type,
+                "username": username,
+                "signature": signature,
+                "data": request_data,
+            }
+        except Exception as e:
+            raise Exception(f"Error creating signed payload: {e}")
 
     @staticmethod
     def encrypt_string(plaintext: str, key) -> str:
