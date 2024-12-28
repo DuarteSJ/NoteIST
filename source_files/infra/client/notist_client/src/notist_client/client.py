@@ -7,9 +7,9 @@ from .utils.file import FileHandler
 from .utils.auth import AuthManager
 from .models.actions import ActionType
 from .models.responses import Response
-from .config.paths import get_config_dir, get_data_dir
+from .config.paths import get_config_file, get_notes_dir, get_priv_key_file
 from .crypto.secure import SecureHandler
-import base64
+from uuid import uuid4
 
 
 class NoteISTClient:
@@ -28,12 +28,11 @@ class NoteISTClient:
             cert_path: Path to SSL certificate
         """
         # Initialize configuration paths
-        self.base_config_dir = get_config_dir()
-        self.base_data_dir = get_data_dir()
-        self.notes_dir = os.path.join(self.base_data_dir, "notes")
-        self.priv_key_path = os.path.join(self.base_config_dir, "priv_key.pem")
-        self.auth_path = os.path.join(self.base_config_dir, "auth.json")
-        self.master_key = ""
+        self.notes_dir = get_notes_dir()
+        self.priv_key_path = get_priv_key_file()
+        self.config_path = get_config_file()
+        self.key_manager = None
+        
 
         # Server configuration
         self.host = host
@@ -44,21 +43,17 @@ class NoteISTClient:
         self.username = None
         self.network_handler = None
         self.changes = []
-        self.current_id = (
-            0  # starts at 0, will be incremented when a note is created, edited, etc
-        )
 
         # Set up the environment
         self._load_or_register_user()
 
     def _get_next_id(self) -> int:
         """Get the next unique ID for a note."""
-        self.current_id += 1
-        return self.current_id
+        return str(uuid4())
 
     def _load_or_register_user(self) -> None:
         """Load existing user configuration or start new user registration process."""
-        # TODO: n sei se isto devia tar assim mas ig que ya
+        
         if (
             not os.path.exists(self.priv_key_path)
             or not os.path.exists(self.auth_path)
@@ -72,18 +67,21 @@ class NoteISTClient:
         """Handle login attempts with retry logic."""
 
         # Create required directories if they are missing (they shouldn't be)
-        FileHandler.ensure_directory(self.base_config_dir)
+        self.notes_dir = get_notes_dir()
+        self.priv_key_path = get_priv_key_file()
+        self.config_path = get_config_file()
+        FileHandler.ensure_directory(self.notes_dir)
         FileHandler.ensure_directory(self.base_data_dir)
         FileHandler.ensure_directory(self.notes_dir)
         while True:
             try:
                 self._login()
                 break
-            except ValueError as e:
+            except ValueError:
                 if not self._prompt_user("retry"):
                     print("Exiting NoteIST. Goodbye!")
                     exit(0)
-            except Exception as e:
+            except Exception:
                 self._register_new_user()
                 break
 
@@ -94,18 +92,24 @@ class NoteISTClient:
             user_info = FileHandler.read_json(self.auth_path)
             self.username = user_info.get("username")
             local_password = user_info.get("password")
+            self.salt = bytes.fromhex(user_info.get("salt"))
 
             if not self.username:
-                raise ValueError("Username not found in configuration")
+                raise Exception("Username not found in configuration")
+            if not local_password:
+                #TODO: WHAT TO DO?
+                raise Exception("Password not found in configuration")
+            if not self.salt:
+                raise Exception("Salt not found in configuration")
 
             password = input(f"Hi {self.username}, enter your password: ")
 
             AuthManager.verify_password(local_password, password)
 
-            self.master_key = KeyManager.derive_master_key(password)
+            self.key_manager = KeyManager(password,self.salt)
 
             self.network_handler = NetworkHandler(
-                self.username, self.host, self.port, self.cert_path, self.master_key
+                self.username, self.host, self.port, self.cert_path, self.key_manager
             )
 
         except ValueError as e:
@@ -122,7 +126,7 @@ class NoteISTClient:
 
     def _register_new_user(self) -> None:
         """Handle the registration process for a new user."""
-        print("No user found.")
+        print("No user found. Proceeding with registration.")
         print("ATTENTION- This will overwrite any existing user data.")
         if not self._prompt_user("continue"):
             print("Exiting NoteIST. Goodbye!")
@@ -138,41 +142,37 @@ class NoteISTClient:
 
         while True:
             try:
+
+
                 # Get username from user
                 username = input("Enter your username (must be unique): ").strip()
                 if not username:
                     print("Username cannot be empty. Please try again.")
                     continue
-
                 password = input("Enter your password: ").strip()
 
                 passwordHash = AuthManager.hash_password(password)
-
                 # Generate and store key pair
                 self.username = username
-                self.master_key = KeyManager.derive_master_key(password)
-                public_key = KeyManager.generate_key_pair(
-                    self.priv_key_path, self.master_key
+                self.salt = os.urandom(16)
+                self.key_manager = KeyManager(password, self.salt)
+                public_key = self.key_manager.generate_key_pair(
+                    self.priv_key_path
                 )
-
                 # Initialize network handler
                 self.network_handler = NetworkHandler(
-                    username, self.host, self.port, self.cert_path, self.master_key
+                    username, self.host, self.port, self.cert_path, self.key_manager
                 )
-
                 # Register with server
                 response = self.network_handler.register_user(
-                    KeyManager.get_public_key_json_serializable(public_key),
+                    self.key_manager.get_public_key_json_serializable(public_key),
                 )
-
                 if response.status == "error":
                     raise Exception(f"Server registration failed: {response.message}")
-
                 # Save username to configuration
                 FileHandler.write_json(
-                    self.auth_path, {"username": username, "password": passwordHash}
+                    self.auth_path, {"username": username, "password": passwordHash, "salt": self.salt.hex()}
                 )
-
                 print(f"Welcome to NoteIST, {username}!")
                 break
 
@@ -214,7 +214,7 @@ class NoteISTClient:
 
             # Create new folder name when owner_id or _id changes
             #TODO: CHANGE THIS
-            folder_name = SecureHandler.encrypt_string(title, self.master_key)
+            folder_name = SecureHandler.encrypt_string(title)
 
             # If we're processing a new group, create a new folder
             if folder_name != current_folder:
@@ -239,9 +239,7 @@ class NoteISTClient:
         """
         if not title.strip():
             raise ValueError("Title cannot be empty.")
-        # TODO: see the TODO in edit note
-        encrypted_title = KeyManager.encrypt_with_master_key(title.encode('utf-8'), self.master_key)
-        encrypted_title = base64.urlsafe_b64encode(encrypted_title).decode('utf-8')
+        encrypted_title = self.key_manager.encrypt_note_title(title)
 
         note_dir = os.path.join(self.notes_dir, encrypted_title)
         if os.path.exists(note_dir):
@@ -250,9 +248,7 @@ class NoteISTClient:
         # Create note directory and generate encryption key
         os.makedirs(note_dir)
         key_file = os.path.join(note_dir, "key")
-        encrypted_note_key = KeyManager.generate_encrypted_note_key(
-            self.master_key, key_file
-        )
+        encrypted_note_key = self.key_manager.generate_encrypted_note_key()
         FileHandler.store_key(encrypted_note_key, key_file)
 
         # Create first version of the note
@@ -267,8 +263,8 @@ class NoteISTClient:
         # Store note and record change
         self._store_note(note, note_dir)
         self._record_change(
-            ActionType.CREATE_NOTE,
-            FileHandler.read_json(os.path.join(note_dir, "v1.notist")),
+            action_type=ActionType.CREATE_NOTE,
+            note=FileHandler.read_json(os.path.join(note_dir, "v1.notist"))
         )
 
     def _store_note(self, note: Dict[str, Any], note_dir: str) -> None:
@@ -284,7 +280,7 @@ class NoteISTClient:
         FileHandler.write_encrypted_note(
             filePath=note_path,
             keyFile=key_path,
-            masterKey=self.master_key,
+            key_manager=self.key_manager,
             id=note["_id"],
             title=note["title"],
             content=note["content"],
@@ -293,15 +289,23 @@ class NoteISTClient:
             # TODO: add editors and viewers < - Duarte
         )
 
-    def _record_change(self, action_type: ActionType, note: Dict[str, Any]) -> None:
+    def _record_change(self, action_type: ActionType, **kwargs: Any) -> None:
         """
         Record a change for later synchronization with the server.
 
         Args:
             action_type: Type of change made
-            note: The note that was changed
+            kwargs: Additional arguments like `note` or `note_id`
         """
-        self.changes.append({"type": action_type.value, "data": {"note": note}})
+        data_mapping = {
+            ActionType.DELETE_NOTE: {"note_id": kwargs.get("note_id")},
+            ActionType.EDIT_NOTE: {"note": kwargs.get("note")},
+            ActionType.CREATE_NOTE: {"note": kwargs.get("note")},
+        }
+
+        if action_type not in data_mapping:
+            raise ValueError(f"Unsupported action type: {action_type}")
+        self.changes.append({"type": action_type.value, "data": data_mapping[action_type]})
 
     def push_changes(self) -> Response:
         """Push recorded changes to the server."""
@@ -330,17 +334,41 @@ class NoteISTClient:
             return notes
 
         for note_dir in os.listdir(self.notes_dir):
-            title = base64.urlsafe_b64decode(note_dir.encode('utf-8'))
-            decrypt_title = KeyManager.decrypt_with_master_key(title, self.master_key).decode('utf-8')
+            decrypt_title = self.key_manager.decrypt_note_title(note_dir)
             last_version = FileHandler.get_highest_version(os.path.join(self.notes_dir, note_dir))
-            print(last_version)
-            note = (decrypt_title, last_version)
+            note = [decrypt_title, last_version]
             notes.append(note)
 
         return notes
+    
+    def list_notes(self) -> None:
+        """List all notes with their latest versions."""
+        notes = self.get_note_list()
+        if not notes:
+            print("No notes found.")
+            return
+
+        print("Available notes:")
+        for note in notes:
+            print(f"{note[0]} (v{note[1]})")
+
+    def view_note(self, title: str, version: Optional[int] = None) -> None:
+        """
+        View the content of a specific note version.
+
+        Args:
+            title: The title of the note to view
+            version: Optional specific version to retrieve (latest if not specified)
+        """
+        if not title.strip(): # TODO: add more checks
+            raise ValueError("Title cannot be empty.")
+        encrypted_title = self.key_manager.encrypt_note_title(title)
+        note = self.get_note_content(encrypted_title, version)
+        print(f"\nTitle: {note['title']}")
+        print(f"Content: {note['note']}")
 
     def get_note_content(
-        self, note_dir: str, version: Optional[int] = None
+        self, encrypted_title: str, version: Optional[int] = None
     ) -> Dict[str, Any]:
         """
         Get the content of a specific note version.
@@ -352,26 +380,32 @@ class NoteISTClient:
         Returns:
             The note content and metadata
         """
+
+
+        note_dir = os.path.join(self.notes_dir, encrypted_title)
+
         if not os.path.exists(note_dir):
             raise ValueError(f"Get_note_content: {note_dir} not found")
 
-        if version is None: # choose the latest version
-            version_file = FileHandler.get_highest_version(note_dir)
-        else:
-            version_file = f"v{version}.notist"
+        if version:
+            version = int(version)
+        else: # choose the latest version
+            version = FileHandler.get_highest_version(note_dir)
+        version_file = f"v{version}.notist"
 
         note_file = os.path.join(note_dir, version_file)
         key_file = os.path.join(note_dir, "key")
         if not os.path.exists(note_file):
-            raise ValueError(f"Get_note_content: Version {version} of note '{note_dir}' not found")
+            raise ValueError(f"Get_note_content: Version {version_file} of note '{note_dir}' not found")
         elif not os.path.exists(key_file):
             raise ValueError(f"get_note_content: Key file not found for note '{note_dir}'")
 
         return FileHandler.read_encrypted_note(
             filePath=note_file,
             keyFile=key_file,
-            masterKey=self.master_key,
+            key_manager=self.key_manager,
         )
+    
 
     def edit_note(self, title: str, new_content: str) -> None:
         """
@@ -381,13 +415,15 @@ class NoteISTClient:
             title: The title of the note to edit
             new_content: The new content for the note
         """
-        # TODO: this doesnt work because when we encript same thing with master key we get dif results cause salt
-        # Options: remove salt or always use the same salt or decript every title until we find the right one
-        encrypted_title = KeyManager.encrypt_with_master_key(title, self.master_key)
+        if not title.strip():
+            raise ValueError("Title cannot be empty.")
+
+        encrypted_title = self.key_manager.encrypt_note_title(title)
+
         note_dir = os.path.join(self.notes_dir, encrypted_title)
-        
+
         # Get current note data
-        current_note = self.get_note_content(note_dir)
+        current_note = self.get_note_content(encrypted_title)
 
         # Create new version
         note = {
@@ -401,8 +437,8 @@ class NoteISTClient:
         # Store note and record change
         self._store_note(note, note_dir)
         self._record_change(
-            ActionType.EDIT_NOTE,
-            FileHandler.read_json(os.path.join(note_dir, f"v{note['version']}.notist")),
+            action_type=ActionType.EDIT_NOTE,
+            note=FileHandler.read_json(os.path.join(note_dir, f"v{note['version']}.notist")),
         )
 
     def delete_note(self, title: str) -> None:
@@ -412,18 +448,14 @@ class NoteISTClient:
         Args:
             title: The title of the note to delete
         """
-        # TODO: see the TODO in edit note
-        title = KeyManager.encrypt_with_master_key(title, self.master_key)
-        note_dir = os.path.join(self.notes_dir, title)
+        encrypted_title = self.key_manager.encrypt_note_title(title)
+        note_dir = os.path.join(self.notes_dir, encrypted_title)
 
         # Get note ID before deletion
-        note_data = self.get_note_content(note_dir)
+        note_data = self.get_note_content(encrypted_title)
         note_id = note_data.get("_id")
 
         # Delete note directory
         shutil.rmtree(note_dir)
 
-        # Record change manually since the function only works for create and edit
-        self.changes.append(
-            {"type": ActionType.DELETE_NOTE.value, "data": {"note_id": note_id}}
-        )
+        self._record_change(action_type=ActionType.DELETE_NOTE, note_id=note_id)

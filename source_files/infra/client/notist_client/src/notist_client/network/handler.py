@@ -12,14 +12,14 @@ class NetworkHandler:
     """Handles all network communication with the server."""
 
     def __init__(
-        self, username: str, host: str, port: int, cert_path: str, masterKey: bytes
+        self, username: str, host: str, port: int, cert_path: str, key_manager: KeyManager
     ):
         self.username = username
         self.host = host
         self.port = port
         self.cert_path = cert_path
+        self.key_manager = key_manager
         self.secure_handler = SecureHandler()
-        self.masterKey = masterKey  # TODO: Make key manager a classa and add this as atrivute? aqui é meio estranho
 
     def _receive_data(self, secure_sock) -> str:
         chunks = []
@@ -63,7 +63,7 @@ class NetworkHandler:
         self, private_key_path: str, changes: List[Dict[str, Any]]
     ) -> Response:
         """Pushes changes to the server."""
-        private_key = KeyManager.load_private_key(private_key_path, self.masterKey)
+        private_key = self.key_manager.load_private_key(private_key_path)
         signature = self.secure_handler.sign_request(changes, private_key)
 
         payload = self.secure_handler.create_signed_payload(
@@ -71,9 +71,9 @@ class NetworkHandler:
         )
         return self._send_request(payload)
 
-    def pull_changes(self, private_key_path: str, directory) -> Response:
+    def pull_changes(self, private_key_path: str) -> Response:
         """Pulls changes from the server."""
-        private_key = KeyManager.load_private_key(private_key_path, self.masterKey)
+        private_key = self.key_manager.load_private_key(private_key_path)
         data = {"digest_of_hmacs": "TODO"}
         signature = self.secure_handler.sign_request(data, private_key)
 

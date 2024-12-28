@@ -40,42 +40,22 @@ def handle_choice(client: NoteISTClient, choice: str) -> None:
         client.create_note(title, content)
 
     elif choice == "2":
-        notes = client.get_note_list()
-        print(notes)
-        if not notes:
-            print("No notes available.")
-            return
-
-        print("\nAvailable Notes:")
-        #print tuples
-        for note in notes:
-            #note is a tuple
-            print(f"Title: {note[0]} (v{note[1]})")
-            
+        client.list_notes() 
 
     elif choice == "3":
-        notes = client.get_note_list()
-        if not notes:
-            print("No notes available.")
-
-        print("\nAvailable Notes:")
-        for i, note in enumerate(notes, 1):
-            print(f"{i}. {note['title']} (v{note['version']})")
-
-        title = input("Note title: ")
+        client.list_notes()
+        title = input("\nNote title: ")
         version = input("Enter version number (press Enter for latest): ").strip()
-        version = int(version) if version else None
-        note = client.get_note_content(title, version)
-        # TODO: meter o titulo certo
-        print(f"\nTitle: {note['title']}")
-        print(f"Content: {note['note']}")
+        client.view_note(title, version)
 
     elif choice == "4":
-        title = input("Enter note title: ")
+        client.list_notes()
+        title = input("\nNote title: ")
         new_content = input("Enter new content: ")
         client.edit_note(title, new_content)
 
     elif choice == "5":
+        client.list_notes()
         title = input("Enter note title: ")
         client.delete_note(title)
 

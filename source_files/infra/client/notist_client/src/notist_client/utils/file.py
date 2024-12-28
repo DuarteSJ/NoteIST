@@ -4,7 +4,6 @@ from typing import Dict, Any, List
 from secure_document import SecureDocumentHandler
 from uuid import uuid4
 import shutil
-import re
 
 from ..crypto.keys import KeyManager
 
@@ -88,7 +87,7 @@ class FileHandler:
         # paths
         filePath: str,
         keyFile: str,
-        masterKey: bytes,
+        key_manager: KeyManager,
         # note data
         id: int,
         title: str,
@@ -103,8 +102,7 @@ class FileHandler:
         # TODO: por favor isto é dogwater code race condition vulnerable
         tempFilePath = f"/tmp/notist_temp_{uuid}.json"
         tempKeyFile = f"/tmp/notist_key_{uuid}.json"
-
-        note_key = KeyManager.load_note_key(keyFile, masterKey)
+        note_key = key_manager.load_note_key(keyFile)
         cls.store_key(note_key, tempKeyFile)
 
         note_data = {
@@ -122,9 +120,6 @@ class FileHandler:
                 json.dump(note_data, f, indent=4)
 
             handler = SecureDocumentHandler()
-            # TODO: change the lib to receive key instead of key file?
-            # or else we need to do this
-
             handler.protect(tempFilePath, tempKeyFile, filePath)
         except Exception as e:
             raise Exception(f"Failed to write and encrypt file: {e}")
@@ -135,14 +130,14 @@ class FileHandler:
                 os.remove(tempKeyFile)
 
     @classmethod
-    def read_encrypted_note(cls, filePath: str, keyFile: str, masterKey: bytes) -> str:
+    def read_encrypted_note(cls, filePath: str, keyFile: str, key_manager: KeyManager) -> str:
         """Reads teh entire note from a file after verification and decryption."""
         uuid = str(uuid4())
         # TODO: por favor isto é dogwater code race condition vulnerable
         tempFilePath = f"/tmp/notist_temp_{uuid}.json"
         tempKeyFile = f"/tmp/notist_key_{uuid}.json"
 
-        note_key = KeyManager.load_note_key(keyFile, masterKey)
+        note_key = key_manager.load_note_key(keyFile)
         cls.store_key(note_key, tempKeyFile)
 
         try:
@@ -163,18 +158,20 @@ class FileHandler:
             if os.path.exists(tempKeyFile):
                 os.remove(tempKeyFile)
 
-    def get_highest_version(directory: str) -> str:
+    def get_highest_version(directory: str) -> int:
         """
-        Finds the highest version file in the given directory based on the version number.
+        Finds the highest version in the given directory based on the version number.
 
         Args:
             directory (str): The directory to search.
 
         Returns:
-            str: The filename with the highest version number, or None if no versioned files are found.
+            int: The highest version number.
+        
+        Raises:
+            Exception: If no notes are found in the directory.
         """
         highest_version = -1
-        highest_file = None
 
         for filename in os.listdir(directory):
             if filename.endswith(".notist") and filename.startswith("v"):
@@ -182,11 +179,10 @@ class FileHandler:
                     version = int(filename[1:-7])
                     if version > highest_version:
                         highest_version = version
-                        highest_file = filename
                 except ValueError:
                     continue
-        
-        match = re.search(r"v(\d+)", highest_file)
-        number = int(match.group(1)) if match else 0
 
-        return number
+        if highest_version != -1:
+            return highest_version
+        else:
+            raise Exception("No notes found in the directory.")

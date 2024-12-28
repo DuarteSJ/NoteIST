@@ -163,7 +163,7 @@ class NoteIST:
                 username, self.host, self.port, self.cert_path
             )
             response = self.request_handler.register_user(
-                get_public_key_json_serializable(public_key)
+                self.key_manager.get_public_key_json_serializable(public_key)
             )
             print(
                 f" Server registration response: {response.status} - {response.message}"

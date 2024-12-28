@@ -1,5 +1,5 @@
-from cryptography.hazmat.primitives.asymmetric import rsa, padding
-from cryptography.hazmat.primitives import serialization, hashes
+from cryptography.hazmat.primitives.asymmetric import rsa
+from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.backends import default_backend
 import base64
 import os
@@ -7,29 +7,30 @@ from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
 from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
 from cryptography.hazmat.primitives import hashes as crypto_hashes
 
-
 class KeyManager:
     """Handles cryptographic key operations including generation, storage, and loading."""
 
-    @staticmethod
-    def generate_private_key(key_size: int = 2048) -> rsa.RSAPrivateKey:
+    def __init__(self, password: str, salt: bytes):
+        self.master_key = self.derive_master_key(password)
+        self.note_title_salt = salt
+
+    def generate_private_key(self,key_size: int = 2048) -> rsa.RSAPrivateKey:
         """Generates a new RSA private key."""
         return rsa.generate_private_key(
             public_exponent=65537, key_size=key_size, backend=default_backend()
         )
 
-    @staticmethod
-    def load_public_key(private_key: rsa.RSAPrivateKey) -> rsa.RSAPublicKey:
+    def load_public_key(self,private_key: rsa.RSAPrivateKey) -> rsa.RSAPublicKey:
         """Derives the public key from a private key."""
         return private_key.public_key()
 
-    @staticmethod
-    def encrypt_with_master_key(data: bytes, master_key: bytes) -> bytes:
+    def encrypt_with_master_key(self, data: bytes, salt: bytes) -> bytes:
+
         """Encrypt data (e.g., private key, symmetric key) using AES GCM and master key."""
         # TODO: this function might be doing to much
 
         # Generate a salt and derive an AES key from the master key
-        salt = os.urandom(16)
+
         kdf = PBKDF2HMAC(
             algorithm=crypto_hashes.SHA256(),
             length=32,  # AES-256
@@ -37,27 +38,33 @@ class KeyManager:
             iterations=100000,
             backend=default_backend(),
         )
-        encryption_key = kdf.derive(master_key)
+
+        
+        encryption_key = kdf.derive(self.master_key)
+
+
 
         # Encrypt the data using AES GCM
         cipher = Cipher(
             algorithms.AES(encryption_key), modes.GCM(salt), backend=default_backend()
         )
+
         encryptor = cipher.encryptor()
         encrypted_data = encryptor.update(data) + encryptor.finalize()
 
-        # Return salt + encrypted data + tag (for AES GCM)
-        return salt + encrypted_data + encryptor.tag
-    
-    
 
-    @staticmethod
-    def decrypt_with_master_key(encrypted: bytes, master_key: bytes) -> bytes:
+        print('encryptor tag')
+        print(encryptor.tag)
+
+        # Return salt + encrypted data + tag (for AES GCM)
+        return encryptor.tag + encrypted_data
+    
+    
+    def decrypt_with_master_key(self, encrypted: bytes, salt: bytes) -> bytes:
         """Decrypt data encrypted with the master key using AES GCM."""
         # Extract the salt, encrypted data, and tag
-        salt = encrypted[:16]
-        tag = encrypted[-16:]
-        encrypted_data = encrypted[16:-16]
+        tag = encrypted[:16]
+        encrypted_data = encrypted[16:]
 
         # Derive the encryption key using the salt and master key
         kdf = PBKDF2HMAC(
@@ -67,7 +74,7 @@ class KeyManager:
             iterations=100000,
             backend=default_backend(),
         )
-        encryption_key = kdf.derive(master_key)
+        encryption_key = kdf.derive(self.master_key)
 
         # Decrypt using AES GCM
         cipher = Cipher(
@@ -76,13 +83,38 @@ class KeyManager:
         decryptor = cipher.decryptor()
         return decryptor.update(encrypted_data) + decryptor.finalize()
 
-    @staticmethod
-    def store_private_key(
-        private_key: rsa.RSAPrivateKey, private_key_path: str, master_key: bytes
+
+    def encrypt_note_title(self, title: str) -> bytes:
+        """Encrypts the note title using the note key."""
+        encrypted_title = self.encrypt_with_master_key(title.encode("utf-8"), self.note_title_salt)
+        encrypted_title = base64.urlsafe_b64encode(encrypted_title).decode('utf-8')
+        return encrypted_title
+    
+    def decrypt_note_title(self, title: bytes) -> str:
+        """Decrypts the note title using the note key."""
+        title = base64.urlsafe_b64decode(title.encode('utf-8'))
+        return self.decrypt_with_master_key(title, self.note_title_salt).decode("utf-8")
+    
+    def encrypt_key_with_master_key(self, key: bytes) -> bytes:
+        """Encrypts the note key using the master key."""
+        salt = os.urandom(16)
+        return salt + self.encrypt_with_master_key(key, salt)
+    
+    def decrypt_key_with_master_key(self, encrypted_key: bytes) -> bytes:
+        salt = encrypted_key[:16]
+        return self.decrypt_with_master_key(encrypted_key[16:], salt)
+        
+
+
+    def store_private_key(self,
+        private_key: rsa.RSAPrivateKey, private_key_path: str,
     ) -> None:
         """Stores the RSA private key in an encrypted format."""
+
         if not os.path.exists(os.path.dirname(private_key_path)):
             os.makedirs(os.path.dirname(private_key_path))
+
+
 
         # Convert the private key to PEM format (unencrypted)
         private_key_pem = private_key.private_bytes(
@@ -91,11 +123,11 @@ class KeyManager:
             encryption_algorithm=serialization.NoEncryption(),  # Unencrypted for initial conversion
         )
 
-        # Encrypt the private key using the master key
-        encrypted_private_key = KeyManager.encrypt_with_master_key(
-            private_key_pem, master_key
-        )
 
+        encrypted_private_key = self.encrypt_key_with_master_key(
+            private_key_pem)
+
+        
         with open(private_key_path, "wb") as key_file:
             key_file.write(encrypted_private_key)
 
@@ -105,16 +137,16 @@ class KeyManager:
             "or YOU WILL LOSE ACCESS TO YOUR ACCOUNT.\n"
         )
 
-    @staticmethod
-    def load_private_key(private_key_path: str, master_key: bytes) -> rsa.RSAPrivateKey:
+
+    def load_private_key(self, private_key_path: str) -> rsa.RSAPrivateKey:
         """Loads and decrypts an RSA private key from a file using the master key."""
         try:
             with open(private_key_path, "rb") as key_file:
                 encrypted_private_key = key_file.read()
-
+            
             # Decrypt the private key using the master key
-            private_key_pem = KeyManager.decrypt_with_master_key(
-                encrypted_private_key, master_key
+            private_key_pem = self.decrypt_key_with_master_key(
+                encrypted_private_key
             )
 
             # Deserialize the private key from PEM format
@@ -127,14 +159,18 @@ class KeyManager:
         except Exception as e:
             raise Exception(f"Failed to load or decrypt the private key: {e}")
 
-    @classmethod
     def generate_key_pair(
-        cls, private_key_path: str, master_key: bytes
+        self, private_key_path: str
     ) -> rsa.RSAPublicKey:
         """Generates and stores a new key pair, returning the public key."""
-        private_key = cls.generate_private_key()
-        public_key = cls.load_public_key(private_key)
-        cls.store_private_key(private_key, private_key_path, master_key)
+        private_key = self.generate_private_key()
+
+        
+
+        public_key = self.load_public_key(private_key)
+
+        self.store_private_key(private_key, private_key_path)
+
         return public_key
 
     @staticmethod
@@ -151,27 +187,24 @@ class KeyManager:
         """Generates a new random 256-bit symmetric encryption key."""
         return os.urandom(32)
 
-    @classmethod
-    def generate_encrypted_note_key(cls, masterKey: bytes, newKeyFile: str):
+    def generate_encrypted_note_key(cls):
         """Generates a new random 256-bit symmetric encryption key and encripts it with the master key."""
-        return cls.encrypt_with_master_key(cls.generate_symmetric_key(), masterKey)
+        return cls.encrypt_key_with_master_key(cls.generate_symmetric_key())
 
-    @classmethod
-    def load_note_key(cls, noteKeyFile: str, masterKey: bytes):
+    def load_note_key(cls, noteKeyFile: str):
         """Loads and decrypts the note's secret key from a file using the master key."""
         try:
             with open(noteKeyFile, "rb") as key_file:
                 encrypted_note_key = key_file.read()
 
             # Decrypt the secret key using the master key
-            note_key = cls.decrypt_with_master_key(encrypted_note_key, masterKey)
+            note_key = cls.decrypt_key_with_master_key(encrypted_note_key)
             return note_key
 
         except Exception as e:
             raise Exception(f"Failed to load or decrypt the note key: {e}")
 
-    @staticmethod
-    def derive_master_key(password: str) -> bytes:
+    def derive_master_key(self, password: str) -> bytes:
         """
         Derives a master key from a string password using PBKDF2.
 
