@@ -394,7 +394,7 @@ class Server:
         }
 
         """
-        self.logger.info(f"Adding collaborator {user.get("username")} to note {action.get('data', {}).get('note_id')}")
+        #self.logger.info(f"Adding collaborator {user.get("username")} to note {action.get('data', {}).get('note_id')}")
         note_id = action.get("data", {}).get("note_id")
         collaborator_username = action.get("data", {}).get("collaborator_username")
         editorFlag = action.get("data", {}).get("is_editor")
@@ -442,7 +442,7 @@ class Server:
             }
         }
         """
-        self.logger.info(f"Removing collaborator {user.get("username")} to note {action.get('data', {}).get('note_id')}")
+        # self.logger.info(f"Removing collaborator {user.get("username")} to note {action.get('data', {}).get('note_id')}")
         note_id = action.get("data", {}).get("note_id")
         collaborator_username = action.get("data", {}).get("collaborator_username")
         editorFlag = action.get("data", {}).get("editorFlag")

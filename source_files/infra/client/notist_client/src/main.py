@@ -45,33 +45,19 @@ def handle_choice(client: NoteISTClient, choice: str) -> None:
         client.list_notes()
 
     elif choice == "3":
-        client.list_notes()
-        title = input("\nNote title: ")
-        version = input("Enter version number (press Enter for latest): ").strip()
-        client.view_note(title, version)
+        client.view_note()
 
     elif choice == "4":
-        client.list_notes()
-        title = input("\nNote title: ")
-        new_content = input("Enter new content: ")
-        client.edit_note(title, new_content)
+        client.edit_note()
 
     elif choice == "5":
-        client.list_notes()
-        title = input("Enter note title: ")
-        client.delete_note(title)
+        client.delete_note()
 
     elif choice == "6":
-        client.list_notes()
-        title = input("Enter note title: ")
-        contributor = input("Enter contributor username: ")
-        client.add_contributor(title, contributor)
+        client.add_contributor()
 
     elif choice == "7":
-        client.list_notes()
-        title = input("Enter note title: ")
-        contributor = input("Enter contributor username: ")
-        client.remove_contributor(title, contributor) 
+        client.remove_contributor() 
 
     elif choice == "8":
         client.push_changes()

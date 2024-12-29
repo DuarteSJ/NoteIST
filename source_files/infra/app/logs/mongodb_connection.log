@@ -919,3 +919,6 @@ id
 2024-12-29 20:09:55,148 - db_manager - INFO - Updated document in users
 2024-12-29 20:10:42,089 - __main__ - INFO - Connection from ('192.168.1.200', 35300)
 2024-12-29 20:11:01,884 - __main__ - INFO - Connection from ('192.168.1.200', 33082)
+2024-12-29 21:53:41,858 - db_manager - INFO - MongoDB connection closed
+2024-12-29 21:55:41,253 - db_manager - INFO - Successfully connected to MongoDB
+2024-12-29 21:55:41,255 - __main__ - INFO - Server listening on 0.0.0.0:5000
