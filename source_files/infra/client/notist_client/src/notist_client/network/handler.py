@@ -1,11 +1,11 @@
 import ssl
 import socket
-import json
 from typing import Dict, Any, List
 from ..crypto.secure import SecureHandler
 from ..crypto.keys import KeyManager
 from ..models.responses import Response
 from ..models.actions import RequestType
+import json
 
 
 class NetworkHandler:
@@ -97,19 +97,6 @@ class NetworkHandler:
         data = {"digest_of_hmacs":hash_of_hmacs}
 
         signature = self.secure_handler.sign_request(data, private_key)
-
-        # TODO: Send the hmac of hashes through this
-        # This is the server code:
-        # sorted_docs = sorted(documents, key=lambda x: x['_id'])
-        # hmac_str = ""
-        # for doc in sorted_docs:
-        #     hmac_str += doc.get("hmac")
-
-
-        # digest_of_hmacs = hashes.Hash(hashes.SHA256())
-        # digest_of_hmacs.update(hmac_str.encode("utf-8"))
-        # digest_of_hmacs = digest_of_hmacs.finalize().hex()
-
 
         payload = self.secure_handler.create_signed_payload(
             RequestType.PULL.value, self.username, data, signature

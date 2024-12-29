@@ -1,9 +1,9 @@
 import os
-import json
 from typing import Dict, Any, List
 from secure_document import SecureDocumentHandler
 from uuid import uuid4
 import shutil
+import json
 
 from ..crypto.keys import KeyManager
 
@@ -36,7 +36,6 @@ class FileHandler:
     @staticmethod
     def write_json(filepath: str, data: Dict[str, Any]) -> None:
         """Writes JSON data to a file."""
-        print(f"note dict in write json function: {data}")
         try:
             with open(filepath, "w") as f:
                 json.dump(data, f, indent=4)
@@ -50,7 +49,7 @@ class FileHandler:
             with open(filepath, "r") as f:
                 return json.load(f)
         except Exception as e:
-            raise Exception(f"Failed to read JSON file: {e}")
+            raise Exception (f"Failed to read JSON file: {e}")
 
     @staticmethod
     def ensure_directory(directory: str) -> None:
@@ -204,13 +203,43 @@ class FileHandler:
         except Exception as e:
             raise Exception(f"Failed to clean file: {e}")
 
-    def get_changes(changes_file: str) -> List[dict]:
-        """Get the changes from the changes file."""
-        try:
-            with open(changes_file, "r") as file:
-                return [json.loads(line) for line in file if line.strip()]
-        except FileNotFoundError:
-            return []  # No file means no changes
-        except Exception as e:
-            raise Exception(f"Failed to read changes file: {e}")
 
+    def save_change(filepath: str, data: Dict[str, Any]) -> None:
+        """Appends a dictionary to a JSON file as part of a valid JSON array."""
+        try:
+            if os.path.exists(filepath):
+                with open(filepath, "r") as f:
+                    try:
+                        existing_data = json.load(f)
+                        if not isinstance(existing_data, list):
+                            raise ValueError(f"The existing file ({filepath}) does not contain a JSON array.")
+                    except json.JSONDecodeError:
+                        existing_data = []
+            else:
+                existing_data = []
+
+            existing_data.append(data)
+
+            with open(filepath, "w") as f:
+                json.dump(existing_data, f, indent=4)
+        except Exception as e:
+            raise Exception(f"Failed to save change for file {filepath}: {e}")
+
+    def read_changes(filepath: str) -> List[Dict[str, Any]]:
+        """Reads a JSON file containing a list of dictionaries."""
+        try:
+            with open(filepath, "r") as f:
+                content = f.read().strip()
+                if not content:  # Handle empty file
+                    return []
+                data = json.loads(content)
+                if not isinstance(data, list):
+                    raise ValueError("The file does not contain a JSON array.")
+                return data
+        except FileNotFoundError:
+            # Return an empty list if the file does not exist
+            return []
+        except json.JSONDecodeError as e:
+            raise Exception(f"Invalid JSON file: {e}")
+        except Exception as e:
+            raise Exception(f"Failed to read changes: {e}")

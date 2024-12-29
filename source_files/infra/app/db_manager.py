@@ -114,7 +114,7 @@ class DatabaseManager:
         self,
         collection_name: str,
         query: Dict[str, Any],
-        projection: Optional[Dict[str, Any]] = None,
+        projection: Optional[Dict[str, Any]] = {"_id": 0},
     ) -> Optional[Dict[str, Any]]:
         """
         Find a single document matching the query
@@ -132,9 +132,8 @@ class DatabaseManager:
             document = collection.find_one(query, projection)
 
             if document:
-                # Convert ObjectId to string if present
-                if "id" in document:
-                    document["id"] = str(document["id"])
+                if "_id" in document:
+                    del document["_id"]
 
             return document
         except Exception as e:
@@ -145,7 +144,7 @@ class DatabaseManager:
         self,
         collection_name: str,
         query: Dict[str, Any],
-        projection: Optional[Dict[str, Any]] = None,
+        projection: Optional[Dict[str, Any]] = {"_id": 0},
         limit: Optional[int] = None,
     ) -> List[Dict[str, Any]]:
         """
@@ -169,12 +168,8 @@ class DatabaseManager:
 
             documents = list(cursor)
 
-            # Convert ObjectIds to strings
-            for doc in documents:
-                if "id" in doc:
-                    doc["id"] = str(doc["id"])
-
             return documents
+        
         except Exception as e:
             self.logger.error(f"Error finding documents in {collection_name}: {e}")
             raise
@@ -205,7 +200,6 @@ class DatabaseManager:
             )
 
             if result:
-                result["id"] = str(result["id"])
                 self.logger.info(f"Updated document in {collection_name}")
                 return result
 
@@ -214,7 +208,7 @@ class DatabaseManager:
             self.logger.error(f"Error updating document in {collection_name}: {e}")
             raise
 
-    def delete_document(self, collection_name: str, query: Dict[str, Any]) -> int:
+    def delete_documents(self, collection_name: str, query: Dict[str, Any]) -> int:
         """
         Delete document(s) matching the query
 

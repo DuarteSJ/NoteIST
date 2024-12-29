@@ -35,6 +35,7 @@ class NotesService:
         try:
             # Prepare note data
             owner_id = owner.get("id")
+
             note_data = {
                 "id": id,
                 "iv": iv,
@@ -53,11 +54,11 @@ class NotesService:
             # Insert note
             note_id = self.db_manager.insert_document("notes", note_data)
 
+
             # Update user's owned notes
             self.db_manager.update_document(
                 "users", {"id": owner_id}, {"$push": {"owned_notes": note_id}}
             )
-
             # Log and return
             self.logger.info(f"Note created with ID: {note_id}")
             return {**note_data, "id": note_id}
@@ -146,6 +147,8 @@ class NotesService:
             Dict containing the latest version of the note, or None if not found
         """
         try:
+
+
             # Find the latest version of the note
             result = self.db_manager.find_document(
                 "notes", {"id": note_id, "owner.id": owner_id}
@@ -207,12 +210,12 @@ class NotesService:
             self.logger.error(f"Error deleting notes: {e}")
             raise
 
-    def get_user_notes(self, user_id: int) -> List[Dict[str, Any]]:
+    def get_user_notes(self, user_id: str) -> List[Dict[str, Any]]:
         """
         Retrieve all notes a user has access to
 
         Args:
-            user_id (int): ID of the user
+            user_id (str): ID of the user
 
         Returns:
             List of notes the user can access
@@ -258,7 +261,7 @@ class NotesService:
 
         # Check if the user is already a viewer
         if user_id in note.get("viewers", []):
-            raise ValueError("User is already a viewer")
+            raise ValueError(f"User {user_id} is already a viewer for the note {note_id}")
 
         # Add user as a viewer
         self.db_manager.update_document(
@@ -312,7 +315,6 @@ class NotesService:
         Returns:
             Dict with status of the operation
         """
-
         note_id = note.get("id")
 
         # Check if the requesting user is the owner
@@ -327,6 +329,7 @@ class NotesService:
         self.db_manager.update_document(
             "notes", {"id": note_id}, {"$push": {"editors": user_id}}
         )
+
 
 
     def remove_editor_from_note(

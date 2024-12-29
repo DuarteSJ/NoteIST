@@ -1,5 +1,4 @@
 from pydantic import BaseModel, Field, GetCoreSchemaHandler
-from bson import ObjectId
 from pydantic_core import CoreSchema, core_schema
 import datetime
 from enum import Enum

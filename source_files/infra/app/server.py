@@ -85,7 +85,8 @@ class Server:
             local_hmac = req.data.get("digest_of_hmacs")
 
             documents = self.notes_service.get_user_notes(user.get("id"))
-            sorted_docs = sorted(documents, key=lambda x: x["id"])
+
+            sorted_docs = sorted(documents, key=lambda x: x["hmac"])
             hmac_str = ""
             for doc in sorted_docs:
                 hmac_str += doc.get("hmac")
@@ -102,7 +103,6 @@ class Server:
                     "status": "synced",
                     "message": "All files are up to date. Sync successful",
                 }
-
 
             return {
                 "status": "success",
@@ -246,7 +246,6 @@ class Server:
         note = data.get("note")
         if not note:
             raise ValueError("Missing note data")
-        
         note_id = note.get("id")
         note_hmac = note.get("hmac")
         note_iv = note.get("iv")
@@ -260,8 +259,7 @@ class Server:
             or not note_note
         ):
             raise ValueError("Missing required note fields")
-
-        note = self.notes_service.get_note(note_id, user)
+        note = self.notes_service.get_note(note_id, user.get("id"))
         if note:
             raise ValueError(
                 f"Note with id {note_id} already exists. Try deleting this note and creating a new one"
@@ -275,6 +273,7 @@ class Server:
             hmac=note_hmac,
             owner=user,
         )
+
         note_id = note.get("id")
         return {"status": "success", "message": f"Note {note_id} created", }
 
@@ -363,17 +362,15 @@ class Server:
         note_id = action.get("data", {}).get("note_id")
         if not note_id:
             raise ValueError("Missing note data")
-
-        server_note = self.notes_service.get_note(note_id, owner)
-
+        server_note = self.notes_service.get_note(note_id, owner.get("id"))
+        if not server_note:
+            raise ValueError("Note not found")
         perms = self.user_service.check_user_note_permissions(
             user.get("id"), server_note
         )
         if not perms.get("is_owner"):
             raise ValueError("User does not have permission to delete this note")
-
-        self.notes_service.delete_note(note_id, owner)
-
+        self.notes_service.delete_note(note_id, owner.get("id"))
         for editor_id in server_note.get("editors", []):
             self.user_service.remove_editor_note(editor_id, note_id)
         for viewer_id in server_note.get("viewers", []):
@@ -397,20 +394,26 @@ class Server:
         }
 
         """
+        self.logger.info(f"Adding collaborator {user.get("username")} to note {action.get('data', {}).get('note_id')}")
         note_id = action.get("data", {}).get("note_id")
         collaborator_username = action.get("data", {}).get("collaborator_username")
         editorFlag = action.get("data", {}).get("is_editor")
 
         if not note_id or not collaborator_username or editorFlag is None:
             raise ValueError("Missing required note fields")
+        
 
         collaborator = self.user_service.get_user(collaborator_username)
         if not collaborator:
             raise ValueError(f"User {collaborator_username} not found")
+        
+        if collaborator.get("id") == user.get("id"):
+            raise ValueError("User cannot add themselves as a collaborator")
 
-        note = self.notes_service.get_note(note_id, user)
+        note = self.notes_service.get_note(note_id, user.get("id"))
         if not note:
             raise ValueError(f"Note with id {note_id} not found")
+        
 
         if editorFlag:
             self.notes_service.add_editor_to_note(
@@ -421,9 +424,9 @@ class Server:
         self.notes_service.add_viewer_to_note(
             note, user.get("id"), collaborator.get("id")
         )
-        self.user_service.add_viewer_note(collaborator.get("id"), note_id)
+        self.user_service.add_viewer_note(collaborator, note_id)
 
-        return {"status": "success", "message": f"Collaborator {collaborator_username} added"}
+        return {"status": "success", "message": f"Collaborator {collaborator_username} added to note {note_id}"}
 
     def _handle_remove_collaborator(
         self, action: Dict[str, Any], user: Dict[str, Any]
@@ -439,6 +442,7 @@ class Server:
             }
         }
         """
+        self.logger.info(f"Removing collaborator {user.get("username")} to note {action.get('data', {}).get('note_id')}")
         note_id = action.get("data", {}).get("note_id")
         collaborator_username = action.get("data", {}).get("collaborator_username")
         editorFlag = action.get("data", {}).get("editorFlag")
@@ -449,8 +453,11 @@ class Server:
         collaborator = self.user_service.get_user(collaborator_username)
         if not collaborator:
             raise ValueError(f"User {collaborator_username} not found")
+        
+        if collaborator.get("id") == user.get("id"):
+            raise ValueError("User cannot add themselves as a collaborator")
 
-        note = self.notes_service.get_note(note_id, user)
+        note = self.notes_service.get_note(note_id, user.get("id"))
         if not note:
             raise ValueError(f"Note with id {note_id} not found")
 
@@ -458,14 +465,14 @@ class Server:
             self.notes_service.remove_editor_from_note(
                 note, user.get("id"), collaborator.get("id")
             )
-            self.user_service.remove_editor_note(collaborator.get("id"), note_id)
+            self.user_service.remove_editor_note(collaborator, note_id)
 
         self.notes_service.remove_viewer_from_note(
             note, user.get("id"), collaborator.get("id")
         )
-        self.user_service.remove_viewer_note(collaborator.get("id"), note_id)
+        self.user_service.remove_viewer_note(collaborator, note_id)
 
-        return {"status": "success", "message": f"Collaborator {collaborator_username} removed"}
+        return {"status": "success", "message": f"Collaborator {collaborator_username} removed from note {note_id}"}
 
     def handle_request(self, request: BaseRequestModel) -> ResponseModel:
         """
@@ -482,7 +489,7 @@ class Server:
                 return self.handle_push_request(req=request)
 
             else:
-                return ResponseModel(status="error", message="Unsupported operation")
+                return {"status": "error", "message": "Unsupported request type"}
 
         except ValidationError as ve:
             self.logger.error(f"Validation Error: {ve}")
@@ -533,6 +540,19 @@ class Server:
             logging.error(f"Signature verification failed: {e}")
             return False
 
+    def _serialize_document(self,doc):
+        from datetime import datetime
+        for key, value in doc.items():
+            if isinstance(value, datetime):
+                doc[key] = value.isoformat()  # Convert datetime to ISO 8601 string
+            elif isinstance(value, dict):  # Recursively handle nested documents
+                self._serialize_document(value)
+            elif isinstance(value, list):  # Handle lists of items
+                for item in value:
+                    if isinstance(item, dict):
+                        self._serialize_document(item)
+        return doc
+
     def start(self):
         """
         Start the secure TLS socket server
@@ -560,6 +580,8 @@ class Server:
 
                         # Process request
                         response = self.handle_request(request)
+
+                        response = self._serialize_document(response)
 
                         # Send response
                         client_socket.send(json.dumps(response).encode("utf-8"))

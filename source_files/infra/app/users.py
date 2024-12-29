@@ -96,6 +96,9 @@ class UsersService:
             Dict[str, bool]: A dictionary containing permission flags
         """
         try:
+
+
+
             # Check if user is the owner
             is_owner = note.get("owner", {}).get("id") == user_id
 
@@ -133,6 +136,9 @@ class UsersService:
         # Get user document
         user_id = user.get("id")
 
+        if note_id in user.get("viewer_notes"):
+            raise ValueError("Note already exists in viewer notes")
+
         # Update user document
         self.db_manager.update_document(
             "users", {"id": user_id}, {"$addToSet": {"viewer_notes": note_id}}
@@ -154,6 +160,10 @@ class UsersService:
         # Get user document
 
         user_id = user.get("id")
+
+        if note_id not in user.get("viewer_notes"):
+            raise ValueError(f"Note {note_id} does not exist in viewer ({user_id}) notes")
+
         # Update user document
         self.db_manager.update_document(
             "users", {"id": user_id}, {"$pull": {"viewer_notes": note_id}}
@@ -176,13 +186,16 @@ class UsersService:
 
         user_id = user.get("id")
 
+        if note_id in user.get("editor_notes"):
+            raise ValueError("Note already exists in editor notes")
+
         # Update user document
         self.db_manager.update_document(
             "users", {"id": user_id}, {"$addToSet": {"editor_notes": note_id}}
         )
         
 
-    def remove_editor_note(self, user: int, note_id: int) -> Dict[str, Any]:
+    def remove_editor_note(self, user: Dict[str, any], note_id: int) -> Dict[str, Any]:
         """
         Remove a note from the list of notes the user can edit
 
@@ -195,6 +208,9 @@ class UsersService:
         """
         # Get user document
         user_id = user.get("id")
+
+        if note_id not in user.get("editor_notes"):
+            raise ValueError(f"Note {note_id} does not exist in editor ({user_id}) notes")
 
         # Update user document
         self.db_manager.update_document(

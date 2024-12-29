@@ -100,6 +100,45 @@ class SecureDocumentHandler:
         except Exception as e:
             raise Exception(f"Unable to read key file '{key_file}'. Details: {e}")
         return key
+    
+    def protect_string(input_string: str, key: bytes) -> str:
+        """
+        Encrypt a string and add integrity protection.
+        
+        Args:
+            input_string (str): String to be encrypted
+            key (bytes): Encryption key
+            
+        Returns:
+            str: JSON string containing the encrypted data, IV, and HMAC
+            
+        Raises:
+            Exception: If encryption fails
+        """
+        try:
+            # Create IV for encryption
+            iv = get_random_bytes(16)
+            cipher = AES.new(key, AES.MODE_CBC, iv)
+            
+            # Convert string to bytes and encrypt
+            value_bytes = input_string.encode('utf-8')
+            encrypted_value = cipher.encrypt(pad(value_bytes, AES.block_size))
+            
+            # Compute HMAC
+            hmac = HMAC.new(key, digestmod=SHA256)
+            hmac.update(value_bytes)
+            
+            # Create protected structure
+            protected_data = {
+                "iv": iv.hex(),
+                "hmac": hmac.hexdigest(),
+                "data": encrypted_value.hex()
+            }
+            
+            return json.dumps(protected_data)
+            
+        except Exception as e:
+            raise Exception(f"String encryption failed: {e}")
 
     def protect(self, input_file: str, key_file: str, output_file: str) -> None:
         """
@@ -159,6 +198,50 @@ class SecureDocumentHandler:
 
         self._write_json(output_file, final_encrypted)
 
+    def unprotect_string(protected_string: str, key: bytes) -> str:
+        """
+        Decrypt a protected string and verify its integrity.
+        
+        Args:
+            protected_string (str): JSON string containing encrypted data
+            key (bytes): Encryption key
+            
+        Returns:
+            str: Decrypted string
+            
+        Raises:
+            Exception: If decryption or integrity verification fails
+        """
+        try:
+            # Parse protected data
+            protected_data = json.loads(protected_string)
+            
+            # Validate structure
+            if not all(k in protected_data for k in ["iv", "hmac", "data"]):
+                raise Exception("Invalid protected string format")
+            
+            # Extract components
+            iv = bytes.fromhex(protected_data["iv"])
+            stored_hmac = protected_data["hmac"]
+            encrypted_value = bytes.fromhex(protected_data["data"])
+            
+            # Decrypt
+            cipher = AES.new(key, AES.MODE_CBC, iv)
+            decrypted_bytes = unpad(cipher.decrypt(encrypted_value), AES.block_size)
+            decrypted_string = decrypted_bytes.decode('utf-8')
+            
+            # Verify HMAC
+            hmac = HMAC.new(key, digestmod=SHA256)
+            hmac.update(decrypted_bytes)
+            
+            if hmac.hexdigest() != stored_hmac:
+                raise Exception("Integrity check failed: HMAC verification unsuccessful")
+                
+            return decrypted_string
+            
+        except Exception as e:
+            raise Exception(f"String decryption failed: {e}")
+
     def unprotect(self, input_file: str, key_file: str, output_file: str) -> None:
         """
         Decrypt a protected JSON file and verify its integrity.
@@ -209,6 +292,43 @@ class SecureDocumentHandler:
             raise Exception(f"Decryption failed: {e}")
 
         self._write_json(output_file, decrypted_json)
+
+    def check_string(protected_string: str, key: bytes) -> bool:
+        """
+        Verify the integrity of a protected string by checking its HMAC.
+        
+        Args:
+            protected_string (str): JSON string containing encrypted data
+            key (bytes): Encryption key
+            
+        Returns:
+            bool: True if the string's HMAC matches the computed HMAC, False otherwise
+        """
+        try:
+            # Parse protected data
+            protected_data = json.loads(protected_string)
+            
+            # Validate structure
+            if not all(k in protected_data for k in ["iv", "hmac", "data"]):
+                return False
+            
+            # Extract components
+            iv = bytes.fromhex(protected_data["iv"])
+            stored_hmac = protected_data["hmac"]
+            encrypted_value = bytes.fromhex(protected_data["data"])
+            
+            # Decrypt
+            cipher = AES.new(key, AES.MODE_CBC, iv)
+            decrypted_bytes = unpad(cipher.decrypt(encrypted_value), AES.block_size)
+            
+            # Compute and verify HMAC
+            hmac = HMAC.new(key, digestmod=SHA256)
+            hmac.update(decrypted_bytes)
+            
+            return hmac.hexdigest() == stored_hmac
+            
+        except Exception:
+            return False
 
     def checkSingleFile(self, file: str, key_file: str) -> bool:
         """

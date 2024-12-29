@@ -1,3 +1,0 @@
-[console_scripts]
-secure-document = secure_document.cli:main
-

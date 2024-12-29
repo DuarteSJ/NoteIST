@@ -10,7 +10,6 @@ from .models.responses import Response
 from .config.paths import get_config_file, get_notes_dir, get_priv_key_file, get_note_changes_file, get_user_changes_file
 from .crypto.secure import SecureHandler
 from uuid import uuid4
-import json
 
 class NoteISTClient:
     """
@@ -185,16 +184,22 @@ class NoteISTClient:
 
         current_folder = None
 
-        for document in changes:
-            title = document.get("title")
+        for note in changes:
+            title = note.get("title")
+            
+            title = FileHandler.read_encrypted_note(
+                filePath=temp_file,
+                keyFile=None, 
+                key_manager=self.key_manager,
+                )["title"]          
 
             if not title:
                 print("Wrongly formatted document, skipping")
                 continue
 
             # Create new folder name when owner_id or _id changes
-            # TODO: CHANGE THIS
-            folder_name = SecureHandler.encrypt_string(title)
+
+            folder_name = self.key_manager.encrypt_note_title(title)
 
             # If we're processing a new group, create a new folder
             if folder_name != current_folder:
@@ -203,11 +208,12 @@ class NoteISTClient:
                 FileHandler.ensure_directory(folder_path)
 
             FileHandler.write_json(
-                os.path.join(folder_path, f"v{document.get('version')}.notist"),
-                document,
+                os.path.join(folder_path, f"v{note.get('version')}.notist"),
+                note,
             )
-
+            
         # TODO: adicionar as chaves que vieram do server para a pasta correta (adicionou owner)
+
 
     def create_note(self, title: str, content: str) -> None:
         """
@@ -284,8 +290,8 @@ class NoteISTClient:
             ActionType.EDIT_NOTE: (self.note_changes_path, {"note": kwargs.get("note")}),
             ActionType.DELETE_NOTE: (self.note_changes_path, {"note_id": kwargs.get("note_id")}),
 
-            ActionType.ADD_USER: (self.user_changes_path, {"username": kwargs.get("collaborator_username"), "note_id": kwargs.get("note_id"), "is_editor": kwargs.get("is_editor")}),
-            ActionType.REMOVE_USER: (self.user_changes_path, {"username": kwargs.get("collaborator_username"), "note_id": kwargs.get("note_id"), "is_editor": kwargs.get("is_editor")}),
+            ActionType.ADD_USER: (self.user_changes_path, {"collaborator_username": kwargs.get("collaborator_username"), "note_id": kwargs.get("note_id"), "is_editor": kwargs.get("is_editor")}),
+            ActionType.REMOVE_USER: (self.user_changes_path, {"collaborator_username": kwargs.get("collaborator_username"), "note_id": kwargs.get("note_id"), "is_editor": kwargs.get("is_editor")}),
         }
 
         if action_type not in action_mapping:
@@ -296,15 +302,13 @@ class NoteISTClient:
         change_record = {"type": action_type.value, "data": data}
 
         # Open the file and append the JSON-encoded string
-        with open(changes_path, "a") as changes_file:
-            json.dump(change_record, changes_file)
-            changes_file.write("\n")  # Write a newline after each record
+        FileHandler.save_change(changes_path, change_record)
 
     def push_changes(self) -> Response:
         """Push recorded changes to the server."""
         try:
-            note_changes = FileHandler.get_changes(self.note_changes_path)
-            user_changes = FileHandler.get_changes(self.user_changes_path)
+            note_changes = FileHandler.read_changes(self.note_changes_path)
+            user_changes = FileHandler.read_changes(self.user_changes_path)
             response = self.network_handler.push_changes(
                 self.priv_key_path, note_changes, user_changes
             )
@@ -327,17 +331,15 @@ class NoteISTClient:
 
             response = self.network_handler.pull_changes(self.priv_key_path, hash_of_hmacs)
             print(f"Server response: {response.status} - {response.message}")
-            if response.status == "synced":
-                print("Same Same.")
-            elif response.status == "success" :
+            if response.status == "success" :
                 self._apply_server_changes(response.documents)
-            return response
+            print(response.message)
         except Exception as e:
             raise Exception(f"Failed to pull changes: {e}")
 
     def get_hash_hmac_from_encrypted_notes(self) -> str:
         """Get the hash of hmac of a specific note with all its versions."""
-        notes=[]
+        hmacs=[]
         note=[]
 
         for encrypted_title in os.listdir(self.notes_dir):
@@ -347,10 +349,10 @@ class NoteISTClient:
                 if version == "key":
                     continue
                 note = FileHandler.read_json(os.path.join(note_dir, version))
-                notes.append([note.get("hmac"), note.get("id")])
+                hmacs.append(note.get("hmac"))
         # sort notes by id
-        sorted_notes = sorted(notes, key=lambda x: x[1])
-        hmac_str = ''.join(note[0] for note in sorted_notes)
+        sorted_notes = sorted(hmacs)
+        hmac_str = ''.join(sorted_notes)
         hash =  SecureHandler.hash_hmacs_str(hmac_str)
         return  hash
         
@@ -509,6 +511,7 @@ class NoteISTClient:
         if self.username != encrypted_note["owner"]["username"]:
             raise Exception(f"Only the owner can add contributors to the note")
 
+        #TODO: should we do this locally? no need to, just send to the server and he will retrieve it well. <- Massas
         if is_editor:
             encrypted_note["editors"].append({"username": contributor})
         
