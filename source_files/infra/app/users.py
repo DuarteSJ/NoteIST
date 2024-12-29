@@ -29,8 +29,10 @@ class UsersService:
             if existing_user:
                 raise ValueError("Username already exists")
 
+            from uuid import uuid4
             # Prepare user data
             user_data = {
+                "id": uuid4(),
                 "username": username,
                 "public_key": public_key,
                 "owned_notes": [],
