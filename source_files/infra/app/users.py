@@ -32,7 +32,7 @@ class UsersService:
             from uuid import uuid4
             # Prepare user data
             user_data = {
-                "id": uuid4(),
+                "id": str(uuid4()),
                 "username": username,
                 "public_key": public_key,
                 "owned_notes": [],
@@ -68,7 +68,7 @@ class UsersService:
             Dict: A dictionary containing user details (excluding sensitive fields).
         """
         try:
-            query = {"username": identifier} if by_username else {"_id": identifier}
+            query = {"username": identifier} if by_username else {"id": identifier}
 
             user = self.db_manager.find_document("users", query)
 
@@ -97,16 +97,16 @@ class UsersService:
         """
         try:
             # Check if user is the owner
-            is_owner = note.get("owner", {}).get("_id") == user_id
+            is_owner = note.get("owner", {}).get("id") == user_id
 
             # Check if user is an editor
             is_editor = any(
-                editor.get("_id") == user_id for editor in note.get("editors", [])
+                editor.get("id") == user_id for editor in note.get("editors", [])
             )
 
             # Check if user is a viewer
             is_viewer = any(
-                viewer.get("_id") == user_id for viewer in note.get("viewers", [])
+                viewer.get("id") == user_id for viewer in note.get("viewers", [])
             )
 
             return {
@@ -131,11 +131,11 @@ class UsersService:
             Dict[str, Any]: A dictionary containing the updated user document
         """
         # Get user document
-        user_id = user.get("_id")
+        user_id = user.get("id")
 
         # Update user document
         self.db_manager.update_document(
-            "users", {"_id": user_id}, {"$addToSet": {"viewer_notes": note_id}}
+            "users", {"id": user_id}, {"$addToSet": {"viewer_notes": note_id}}
         )
 
 
@@ -153,10 +153,10 @@ class UsersService:
         """
         # Get user document
 
-        user_id = user.get("_id")
+        user_id = user.get("id")
         # Update user document
         self.db_manager.update_document(
-            "users", {"_id": user_id}, {"$pull": {"viewer_notes": note_id}}
+            "users", {"id": user_id}, {"$pull": {"viewer_notes": note_id}}
         )
 
 
@@ -174,11 +174,11 @@ class UsersService:
         """
         # Get user document
 
-        user_id = user.get("_id")
+        user_id = user.get("id")
 
         # Update user document
         self.db_manager.update_document(
-            "users", {"_id": user_id}, {"$addToSet": {"editor_notes": note_id}}
+            "users", {"id": user_id}, {"$addToSet": {"editor_notes": note_id}}
         )
         
 
@@ -194,11 +194,11 @@ class UsersService:
             Dict[str, Any]: A dictionary containing the updated user document
         """
         # Get user document
-        user_id = user.get("_id")
+        user_id = user.get("id")
 
         # Update user document
         self.db_manager.update_document(
-            "users", {"_id": user_id}, {"$pull": {"editor_notes": note_id}}
+            "users", {"id": user_id}, {"$pull": {"editor_notes": note_id}}
         )
 
 

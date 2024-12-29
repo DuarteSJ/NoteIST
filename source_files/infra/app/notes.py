@@ -34,9 +34,9 @@ class NotesService:
     ) -> Dict[str, Any]:
         try:
             # Prepare note data
-            owner_id = owner.get("_id")
+            owner_id = owner.get("id")
             note_data = {
-                "_id": id,
+                "id": id,
                 "iv": iv,
                 "hmac": hmac,
                 "title": title,
@@ -45,9 +45,9 @@ class NotesService:
                 "date_modified": datetime.datetime.now(datetime.timezone.utc),
                 "last_modified_by": owner_id,
                 "version": 1,
-                "owner": {"_id": owner_id, "username": owner.get("username")},
-                "editors": [{"_id": editor} for editor in (editors or [])],
-                "viewers": [{"_id": viewer} for viewer in (viewers or [])],
+                "owner": {"id": owner_id, "username": owner.get("username")},
+                "editors": [{"id": editor} for editor in (editors or [])],
+                "viewers": [{"id": viewer} for viewer in (viewers or [])],
             }
 
             # Insert note
@@ -55,12 +55,12 @@ class NotesService:
 
             # Update user's owned notes
             self.db_manager.update_document(
-                "users", {"_id": owner_id}, {"$push": {"owned_notes": note_id}}
+                "users", {"id": owner_id}, {"$push": {"owned_notes": note_id}}
             )
 
             # Log and return
             self.logger.info(f"Note created with ID: {note_id}")
-            return {**note_data, "_id": note_id}
+            return {**note_data, "id": note_id}
 
         except Exception as e:
             self.logger.error(f"Error creating note: {e}")
@@ -82,7 +82,7 @@ class NotesService:
         while retries < max_retries:
             try:
                 # First, retrieve the existing note to get the current version and other details
-                existing_note = self.get_note(id, owner.get("_id"))
+                existing_note = self.get_note(id, owner.get("id"))
                 last_server_version = existing_note.get("version")
 
                 if not existing_note:
@@ -98,7 +98,7 @@ class NotesService:
 
                 # Prepare note data for the new version
                 note_data = {
-                    "_id": id,
+                    "id": id,
                     "iv": iv,
                     "hmac": hmac,
                     "title": title,
@@ -107,7 +107,7 @@ class NotesService:
                         "date_created"
                     ],  # Keep original creation date
                     "date_modified": datetime.datetime.now(datetime.timezone.utc),
-                    "last_modified_by": editor.get("_id"),
+                    "last_modified_by": editor.get("id"),
                     "version": version,
                     "owner": existing_note["owner"],
                     "editors": existing_note.get("editors", []),
@@ -121,7 +121,7 @@ class NotesService:
                 self.logger.info(
                     f"Note edited with ID: {note_id}, new version: {version}"
                 )
-                return {**note_data, "_id": note_id}
+                return {**note_data, "id": note_id}
 
             except Exception as e:
                 self.logger.error(f"Error editing note: {e}")
@@ -134,7 +134,7 @@ class NotesService:
                 )
         raise ValueError("Failed to insert a new version after multiple retries")
 
-    def get_note(self, note_id: str, owner_id: int) -> Dict[str, Any]:
+    def get_note(self, note_id: str, owner_id: str) -> Dict[str, Any]:
         """
         Retrieve the latest version of a note for a given note ID and owner
 
@@ -148,7 +148,7 @@ class NotesService:
         try:
             # Find the latest version of the note
             result = self.db_manager.find_document(
-                "notes", {"_id": note_id, "owner._id": owner_id}
+                "notes", {"id": note_id, "owner.id": owner_id}
             )
 
             if not result:
@@ -178,7 +178,7 @@ class NotesService:
         """
         try:
             # Query to find notes with matching _id and owner._id
-            query = {"_id": note_id, "owner._id": user_id}
+            query = {"id": note_id, "owner.id": user_id}
 
             # Find matching notes
             notes = self.db_manager.find_documents("notes", query)
@@ -191,7 +191,7 @@ class NotesService:
 
             # Update the user's owned notes list
             self.db_manager.update_document(
-                "users", {"_id": user_id}, {"$pull": {"owned_notes": note_id}}
+                "users", {"id": user_id}, {"$pull": {"owned_notes": note_id}}
             )
 
             if delete_count:
@@ -223,9 +223,9 @@ class NotesService:
             "notes",
                 {
                     "$or": [
-                        {"owner._id": user_id},
-                        {"editors._id": user_id},
-                        {"viewers._id": user_id},
+                        {"owner.id": user_id},
+                        {"editors.id": user_id},
+                        {"viewers.id": user_id},
                     ]
                 },
             )
@@ -250,10 +250,10 @@ class NotesService:
         Returns:
             Dict with status of the operation
         """
-        note_id = note.get("_id")
+        note_id = note.get("id")
 
         # Check if the requesting user is the owner
-        if owner_id != note["owner"]["_id"]:
+        if owner_id != note["owner"]["id"]:
             raise PermissionError("Only the note owner can add viewers")
 
         # Check if the user is already a viewer
@@ -262,7 +262,7 @@ class NotesService:
 
         # Add user as a viewer
         self.db_manager.update_document(
-            "notes", {"_id": note_id}, {"$push": {"viewers": user_id}}
+            "notes", {"id": note_id}, {"$push": {"viewers": user_id}}
         )
 
     def remove_viewer_from_note(
@@ -280,10 +280,10 @@ class NotesService:
             Dict with status of the operation
         """
         # Find the note
-        note_id = note.get("_id")
+        note_id = note.get("id")
 
         # Check if the requesting user is the owner
-        if owner_id != note["owner"]["_id"]:
+        if owner_id != note["owner"]["id"]:
             raise PermissionError("Only the note owner can remove viewers")
 
         # Check if the user is a viewer
@@ -292,7 +292,7 @@ class NotesService:
 
         # Remove user as a viewer
         self.db_manager.update_document(
-            "notes", {"_id": note_id}, {"$pull": {"viewers": user_id}}
+            "notes", {"id": note_id}, {"$pull": {"viewers": user_id}}
         )
 
 
@@ -313,10 +313,10 @@ class NotesService:
             Dict with status of the operation
         """
 
-        note_id = note.get("_id")
+        note_id = note.get("id")
 
         # Check if the requesting user is the owner
-        if owner_id != note["owner"]["_id"]:
+        if owner_id != note["owner"]["id"]:
             raise PermissionError("Only the note owner can add editors")
 
         # Check if the user is already an editor
@@ -325,7 +325,7 @@ class NotesService:
 
         # Add user as an editor
         self.db_manager.update_document(
-            "notes", {"_id": note_id}, {"$push": {"editors": user_id}}
+            "notes", {"id": note_id}, {"$push": {"editors": user_id}}
         )
 
 
@@ -344,10 +344,10 @@ class NotesService:
             Dict with status of the operation
         """
         # Find the note
-        note_id = note.get("_id")
+        note_id = note.get("id")
 
         # Check if the requesting user is the owner
-        if owner_id != note["owner"]["_id"]:
+        if owner_id != note["owner"]["id"]:
             raise PermissionError("Only the note owner can remove editors")
 
         # Check if the user is an editor
@@ -356,7 +356,7 @@ class NotesService:
 
         # Remove user as an editor
         self.db_manager.update_document(
-            "notes", {"_id": note_id}, {"$pull": {"editors": user_id}}
+            "notes", {"id": note_id}, {"$pull": {"editors": user_id}}
         )
 
 

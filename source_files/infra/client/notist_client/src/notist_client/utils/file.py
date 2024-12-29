@@ -108,7 +108,7 @@ class FileHandler:
         cls.store_key(note_key, tempKeyFile)
 
         note_data = {
-            "_id": id,
+            "id": id,
             "title": title,
             "note": content,
             "owner": owner,
@@ -175,6 +175,7 @@ class FileHandler:
         Raises:
             Exception: If no notes are found in the directory.
         """
+        # TODO: try catch maybe idrk
         highest_version = -1
 
         for filename in os.listdir(directory):

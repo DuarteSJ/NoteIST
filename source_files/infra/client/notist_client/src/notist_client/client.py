@@ -233,7 +233,7 @@ class NoteISTClient:
 
         # Create first version of the note
         note = {
-            "_id": self._get_next_id(),
+            "id": self._get_next_id(),
             "title": title,
             "content": content,
             "owner": {
@@ -263,7 +263,7 @@ class NoteISTClient:
             filePath=note_path,
             keyFile=key_path,
             key_manager=self.key_manager,
-            id=note["_id"],
+            id=note["id"],
             title=note["title"],
             content=note["content"],
             owner=note["owner"],
@@ -284,8 +284,8 @@ class NoteISTClient:
             ActionType.EDIT_NOTE: (self.note_changes_path, {"note": kwargs.get("note")}),
             ActionType.DELETE_NOTE: (self.note_changes_path, {"note_id": kwargs.get("note_id")}),
 
-            ActionType.ADD_USER: (self.user_changes_path, {"username": kwargs.get("user_name"), "note_id": kwargs.get("note_id"), "is_editor": kwargs.get("is_editor")}),
-            ActionType.REMOVE_USER: (self.user_changes_path, {"username": kwargs.get("user_name"), "note_id": kwargs.get("note_id")}),
+            ActionType.ADD_USER: (self.user_changes_path, {"username": kwargs.get("collaborator_username"), "note_id": kwargs.get("note_id"), "is_editor": kwargs.get("is_editor")}),
+            ActionType.REMOVE_USER: (self.user_changes_path, {"username": kwargs.get("collaborator_username"), "note_id": kwargs.get("note_id"), "is_editor": kwargs.get("is_editor")}),
         }
 
         if action_type not in action_mapping:
@@ -347,7 +347,7 @@ class NoteISTClient:
                 if version == "key":
                     continue
                 note = FileHandler.read_json(os.path.join(note_dir, version))
-                notes.append([note.get("hmac"), note.get("_id")])
+                notes.append([note.get("hmac"), note.get("id")])
         # sort notes by id
         sorted_notes = sorted(notes, key=lambda x: x[1])
         hmac_str = ''.join(note[0] for note in sorted_notes)
@@ -458,7 +458,7 @@ class NoteISTClient:
 
         # Create new version
         note = {
-            "_id": current_note["_id"],
+            "id": current_note["id"],
             "title": title,
             "content": new_content,
             "owner": current_note["owner"],
@@ -486,7 +486,7 @@ class NoteISTClient:
 
         # Get note ID before deletion
         note_data = self.get_note_content(encrypted_title)
-        note_id = note_data.get("_id")
+        note_id = note_data.get("id")
 
         # Delete note directory
         shutil.rmtree(note_dir)
@@ -494,53 +494,70 @@ class NoteISTClient:
         self._record_change(action_type=ActionType.DELETE_NOTE, note_id=note_id)
 
     def add_contributor(self, title: str, contributor: str) -> None:
+        if title.strip() == "" or not title:
+            raise ValueError("Title cannot be empty.")
+        if contributor.strip() == "" or not contributor:
+            raise ValueError("Contributor cannot be empty.")
+
         is_editor = self._prompt_user(f"give {contributor} editing permissions to this note")
         encrypted_title = self.key_manager.encrypt_note_title(title)
-        note_id = self.get_note_content(encrypted_title).get("_id")
-        
-        last_version = FileHandler.get_highest_version(os.path.join(self.notes_dir, title))
+
+        last_version = FileHandler.get_highest_version(os.path.join(self.notes_dir, encrypted_title))
         note_path = os.path.join(self.notes_dir, encrypted_title, f"v{last_version}.notist")
         encrypted_note = FileHandler.read_json(note_path)
 
-        #check if the current client is the editor
-        #check if self.username is in editors
-
-        if self.username not in [editor.get("username") for editor in encrypted_note["editors"]] and is_editor:
-            raise Exception(f"Only editors can add editors")
-
-        editor = {
-            "username": contributor,
-        }
-        
-        viewer = {
-            "username": contributor,
-        }
+        if self.username != encrypted_note["owner"]["username"]:
+            raise Exception(f"Only the owner can add contributors to the note")
 
         if is_editor:
-            encrypted_note["editors"].append(editor)
+            encrypted_note["editors"].append({"username": contributor})
         
-        encrypted_note["viewers"].append(viewer)
+        encrypted_note["viewers"].append({"username": contributor}) # editors are also viewers
         
 
         FileHandler.write_json(note_path, encrypted_note)
 
         self._record_change(
             action_type=ActionType.ADD_USER,
-            user_name=contributor,
-            note_id=note_id,
+            collaborator_username=contributor,
+            note_id=encrypted_note.get("id"),
             is_editor=is_editor
         )
-        
+
 
     def remove_contributor(self, title: str, contributor: str) -> None:
+        if title.strip() == "" or not title:
+            raise ValueError("Title cannot be empty.")
+        if contributor.strip() == "" or not contributor:
+            raise ValueError("Contributor cannot be empty.")
+
         encrypted_title = self.key_manager.encrypt_note_title(title)
-        # TODO: missing local remove
-        note_id = self.get_note_content(encrypted_title).get("_id")
-        is_editor = ""
+
+        last_version = FileHandler.get_highest_version(os.path.join(self.notes_dir, encrypted_title))
+        note_path = os.path.join(self.notes_dir, encrypted_title, f"v{last_version}.notist")
+        encrypted_note = FileHandler.read_json(note_path)
+
+        if self.username != encrypted_note["owner"]["username"]:
+            raise Exception(f"Only the owner can remove contributors from the note")
+
+        # TODO: podiamos so meter o if is editor dentro do if is viewer,
+        # mas se alguem mudar localmente pode estar um gajo nos editors
+        # que nao esta nos viewers por isso fiz assim, mas n sei vejam o que acham
+        is_editor = None
+        if any(editor.get("username") == contributor for editor in encrypted_note["editors"]):
+            is_editor = True
+            encrypted_note["editors"].remove({"username": contributor})
+        if any(viewer.get("username") == contributor for viewer in encrypted_note["viewers"]):
+            is_editor = False
+            encrypted_note["viewers"].remove({"username": contributor})
+        if is_editor is None:
+            raise Exception(f"{contributor} is not a contributor to the note")
+
+        FileHandler.write_json(note_path, encrypted_note)
+
         self._record_change(
             action_type=ActionType.REMOVE_USER,
-            user_name=contributor,
-            note_id=note_id,
+            collaborator_username=contributor,
+            note_id=encrypted_note.get("id"),
             is_editor=is_editor
         )
-        pass

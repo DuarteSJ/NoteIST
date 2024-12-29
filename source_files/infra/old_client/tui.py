@@ -363,7 +363,7 @@ class NoteIST:
             content=new_content,
             version=new_version,
             # these are not changed
-            id=note["_id"],
+            id=note["id"],
             title=note["title"],
             owner=note["owner"],
             editors=note["editors"],

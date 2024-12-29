@@ -147,7 +147,7 @@ class PyObjectId(ObjectId):
 
 
 class UsersModel(BaseModel):
-    id: Optional[PyObjectId] = Field(default_factory=PyObjectId, alias="_id")
+    id: Optional[PyObjectId] = Field(default_factory=PyObjectId, alias="id")
     username: str = Field(...)
     public_key: bytes = Field(...)
     digest_of_hmacs: str = Field(...)
@@ -159,7 +159,7 @@ class UsersModel(BaseModel):
 class NotesModel(BaseModel):
     """Pydantic model for documents"""
 
-    id: Optional[PyObjectId] = Field(default_factory=PyObjectId, alias="_id")
+    id: Optional[PyObjectId] = Field(default_factory=PyObjectId, alias="id")
     hmac: str = Field(...)
     title: str = Field(...)
     content: str = Field(...)

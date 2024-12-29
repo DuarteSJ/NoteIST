@@ -133,8 +133,8 @@ class DatabaseManager:
 
             if document:
                 # Convert ObjectId to string if present
-                if "_id" in document:
-                    document["_id"] = str(document["_id"])
+                if "id" in document:
+                    document["id"] = str(document["id"])
 
             return document
         except Exception as e:
@@ -171,8 +171,8 @@ class DatabaseManager:
 
             # Convert ObjectIds to strings
             for doc in documents:
-                if "_id" in doc:
-                    doc["_id"] = str(doc["_id"])
+                if "id" in doc:
+                    doc["id"] = str(doc["id"])
 
             return documents
         except Exception as e:
@@ -205,7 +205,7 @@ class DatabaseManager:
             )
 
             if result:
-                result["_id"] = str(result["_id"])
+                result["id"] = str(result["id"])
                 self.logger.info(f"Updated document in {collection_name}")
                 return result
 

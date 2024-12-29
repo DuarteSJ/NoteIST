@@ -84,8 +84,8 @@ class Server:
             user = self.user_service.get_user(req.username)
             local_hmac = req.data.get("digest_of_hmacs")
 
-            documents = self.notes_service.get_user_notes(user.get("_id"))
-            sorted_docs = sorted(documents, key=lambda x: x["_id"])
+            documents = self.notes_service.get_user_notes(user.get("id"))
+            sorted_docs = sorted(documents, key=lambda x: x["id"])
             hmac_str = ""
             for doc in sorted_docs:
                 hmac_str += doc.get("hmac")
@@ -247,7 +247,7 @@ class Server:
         if not note:
             raise ValueError("Missing note data")
         
-        note_id = note.get("_id")
+        note_id = note.get("id")
         note_hmac = note.get("hmac")
         note_iv = note.get("iv")
         note_title = note.get("title")
@@ -275,7 +275,7 @@ class Server:
             hmac=note_hmac,
             owner=user,
         )
-        note_id = note.get("_id")
+        note_id = note.get("id")
         return {"status": "success", "message": f"Note {note_id} created", }
 
     def _handle_edit_note(
@@ -300,21 +300,20 @@ class Server:
             raise ValueError("Missing note data")
 
         owner = self.user_service.get_user(sent_note.get("owner").get("username"))
-        owner_id = owner.get("_id")
+        owner_id = owner.get("id")
 
-        server_note = self.notes_service.get_note(sent_note.get("_id"), owner_id)
+        server_note = self.notes_service.get_note(sent_note.get("id"), owner_id)
         if not server_note:
             raise ValueError("Note not found")
 
-
         perms = self.user_service.check_user_note_permissions(
-            user.get("_id"), server_note
+            user.get("id"), server_note
         )
 
         if not perms.get("is_editor"):
             raise ValueError("User does not have permission to edit this note")
 
-        note_id = sent_note.get("_id")
+        note_id = sent_note.get("id")
         note_hmac = sent_note.get("hmac")
         note_iv = sent_note.get("iv")
         note_title = sent_note.get("title")
@@ -368,7 +367,7 @@ class Server:
         server_note = self.notes_service.get_note(note_id, owner)
 
         perms = self.user_service.check_user_note_permissions(
-            user.get("_id"), server_note
+            user.get("id"), server_note
         )
         if not perms.get("is_owner"):
             raise ValueError("User does not have permission to delete this note")
@@ -400,7 +399,7 @@ class Server:
         """
         note_id = action.get("data", {}).get("note_id")
         collaborator_username = action.get("data", {}).get("collaborator_username")
-        editorFlag = action.get("data", {}).get("editorFlag")
+        editorFlag = action.get("data", {}).get("is_editor")
 
         if not note_id or not collaborator_username or editorFlag is None:
             raise ValueError("Missing required note fields")
@@ -415,14 +414,14 @@ class Server:
 
         if editorFlag:
             self.notes_service.add_editor_to_note(
-                note, user.get("_id"), collaborator.get("_id")
+                note, user.get("id"), collaborator.get("id")
             )
             self.user_service.add_editor_note(collaborator, note_id)
 
         self.notes_service.add_viewer_to_note(
-            note, user.get("_id"), collaborator.get("_id")
+            note, user.get("id"), collaborator.get("id")
         )
-        self.user_service.add_viewer_note(collaborator.get("_id"), note_id)
+        self.user_service.add_viewer_note(collaborator.get("id"), note_id)
 
         return {"status": "success", "message": f"Collaborator {collaborator_username} added"}
 
@@ -457,14 +456,14 @@ class Server:
 
         if editorFlag:
             self.notes_service.remove_editor_from_note(
-                note, user.get("_id"), collaborator.get("_id")
+                note, user.get("id"), collaborator.get("id")
             )
-            self.user_service.remove_editor_note(collaborator.get("_id"), note_id)
+            self.user_service.remove_editor_note(collaborator.get("id"), note_id)
 
         self.notes_service.remove_viewer_from_note(
-            note, user.get("_id"), collaborator.get("_id")
+            note, user.get("id"), collaborator.get("id")
         )
-        self.user_service.remove_viewer_note(collaborator.get("_id"), note_id)
+        self.user_service.remove_viewer_note(collaborator.get("id"), note_id)
 
         return {"status": "success", "message": f"Collaborator {collaborator_username} removed"}
 

@@ -61,7 +61,7 @@ def writeToFile(
     tempFilePath = f"/tmp/notist_temp_write_{uuid}.json"
 
     note_data = {
-        "_id": id,
+        "id": id,
         "title": title,
         "note": content,
         "owner": owner,
