@@ -1,35 +1,242 @@
-2024-12-28 19:25:00,996 - db_manager - INFO - Successfully connected to MongoDB
-2024-12-28 19:25:00,998 - __main__ - INFO - Server listening on 0.0.0.0:5000
-2024-12-28 19:25:10,207 - __main__ - INFO - Connection from ('192.168.1.200', 56910)
-2024-12-28 19:25:10,216 - db_manager - INFO - Inserted document in users with ID: 67705096704494cd8ef8aed4
-2024-12-28 19:25:10,216 - users - INFO - User created with ID: 67705096704494cd8ef8aed4
-2024-12-28 19:30:25,508 - __main__ - INFO - Connection from ('192.168.1.200', 33146)
-2024-12-28 19:30:25,518 - db_manager - INFO - Inserted document in notes with ID: 125bbcca-6134-4f27-b10a-6cc216855c64
-2024-12-28 19:30:25,520 - notes - INFO - Note created with ID: 125bbcca-6134-4f27-b10a-6cc216855c64
-2024-12-28 19:32:02,162 - __main__ - INFO - Connection from ('192.168.1.200', 34140)
-2024-12-28 19:32:02,168 - db_manager - INFO - Inserted document in notes with ID: 9dcbab9e-4ae1-4d48-ac57-fb2c16d1ac9f
-2024-12-28 19:32:02,169 - notes - INFO - Note created with ID: 9dcbab9e-4ae1-4d48-ac57-fb2c16d1ac9f
-2024-12-28 19:34:53,320 - __main__ - INFO - Connection from ('192.168.1.200', 44858)
-2024-12-28 19:34:53,324 - db_manager - INFO - Inserted document in notes with ID: 264f7753-0bcc-4da4-9ebe-025c0ba0a171
-2024-12-28 19:34:53,325 - notes - INFO - Note created with ID: 264f7753-0bcc-4da4-9ebe-025c0ba0a171
-2024-12-28 19:37:45,404 - __main__ - INFO - Connection from ('192.168.1.200', 50760)
-2024-12-28 19:37:58,758 - __main__ - INFO - Connection from ('192.168.1.200', 40188)
-2024-12-28 19:37:59,339 - __main__ - INFO - Connection from ('192.168.1.200', 40202)
-2024-12-28 19:37:59,794 - __main__ - INFO - Connection from ('192.168.1.200', 40204)
-2024-12-28 19:38:00,211 - __main__ - INFO - Connection from ('192.168.1.200', 40212)
-2024-12-28 19:38:00,595 - __main__ - INFO - Connection from ('192.168.1.200', 40226)
-2024-12-28 19:38:01,086 - __main__ - INFO - Connection from ('192.168.1.200', 40240)
-2024-12-28 19:38:02,035 - __main__ - INFO - Connection from ('192.168.1.200', 40246)
-2024-12-28 19:38:02,821 - __main__ - INFO - Connection from ('192.168.1.200', 40256)
-2024-12-28 19:38:03,590 - __main__ - INFO - Connection from ('192.168.1.200', 40266)
-2024-12-28 19:38:04,390 - __main__ - INFO - Connection from ('192.168.1.200', 40274)
-2024-12-28 19:38:30,849 - __main__ - INFO - Connection from ('192.168.1.200', 54042)
-2024-12-28 19:38:31,586 - __main__ - INFO - Connection from ('192.168.1.200', 54044)
-2024-12-28 19:38:32,055 - __main__ - INFO - Connection from ('192.168.1.200', 54046)
-2024-12-28 19:38:35,672 - __main__ - INFO - Connection from ('192.168.1.200', 54048)
-2024-12-28 19:38:36,381 - __main__ - INFO - Connection from ('192.168.1.200', 54050)
-2024-12-28 19:38:36,826 - __main__ - INFO - Connection from ('192.168.1.200', 54052)
-2024-12-28 19:38:37,221 - __main__ - INFO - Connection from ('192.168.1.200', 54064)
-2024-12-28 19:39:33,552 - __main__ - INFO - Connection from ('192.168.1.200', 33470)
-2024-12-28 19:39:33,558 - db_manager - INFO - Inserted document in notes with ID: 9969319d-c53b-4460-baae-fa26e106faeb
-2024-12-28 19:39:33,560 - notes - INFO - Note created with ID: 9969319d-c53b-4460-baae-fa26e106faeb
+2024-12-29 00:52:36,836 - db_manager - INFO - MongoDB connection closed
+2024-12-29 00:52:39,543 - db_manager - INFO - Successfully connected to MongoDB
+2024-12-29 00:52:39,544 - __main__ - INFO - Server listening on 0.0.0.0:5000
+2024-12-29 00:53:03,797 - __main__ - INFO - Connection from ('192.168.1.200', 52134)
+2024-12-29 00:54:14,914 - __main__ - INFO - Connection from ('192.168.1.200', 50570)
+2024-12-29 00:54:14,918 - __main__ - ERROR - Error processing request: 'dict' object has no attribute 'note_actions'
+2024-12-29 00:55:10,067 - db_manager - INFO - MongoDB connection closed
+2024-12-29 00:55:12,333 - db_manager - INFO - Successfully connected to MongoDB
+2024-12-29 00:55:12,334 - __main__ - INFO - Server listening on 0.0.0.0:5000
+2024-12-29 01:02:44,317 - __main__ - INFO - Connection from ('192.168.1.200', 52032)
+2024-12-29 01:02:44,320 - __main__ - ERROR - Error processing request: 'dict' object has no attribute 'note_changes'
+2024-12-29 01:03:35,676 - db_manager - INFO - MongoDB connection closed
+2024-12-29 01:03:37,084 - db_manager - INFO - Successfully connected to MongoDB
+2024-12-29 01:03:37,085 - __main__ - INFO - Server listening on 0.0.0.0:5000
+2024-12-29 01:03:39,651 - __main__ - INFO - Connection from ('192.168.1.200', 38540)
+2024-12-29 01:03:39,658 - __main__ - ERROR - Error processing request: 'dict' object has no attribute 'note_changes'
+2024-12-29 01:04:38,614 - db_manager - INFO - MongoDB connection closed
+2024-12-29 01:04:40,776 - db_manager - INFO - Successfully connected to MongoDB
+2024-12-29 01:04:40,777 - __main__ - INFO - Server listening on 0.0.0.0:5000
+2024-12-29 01:04:46,148 - __main__ - INFO - Connection from ('192.168.1.200', 57442)
+2024-12-29 01:04:46,151 - __main__ - ERROR - Error processing request: 'NoneType' object is not iterable
+2024-12-29 01:05:00,516 - db_manager - INFO - MongoDB connection closed
+2024-12-29 01:05:01,803 - db_manager - INFO - Successfully connected to MongoDB
+2024-12-29 01:05:01,805 - __main__ - INFO - Server listening on 0.0.0.0:5000
+2024-12-29 01:05:10,699 - __main__ - INFO - Connection from ('192.168.1.200', 41646)
+2024-12-29 01:05:10,717 - __main__ - ERROR - Error processing request: ADD_COLLABORATOR
+2024-12-29 01:07:17,219 - db_manager - INFO - MongoDB connection closed
+2024-12-29 01:07:19,959 - db_manager - INFO - Successfully connected to MongoDB
+2024-12-29 01:07:19,964 - __main__ - INFO - Server listening on 0.0.0.0:5000
+2024-12-29 01:07:25,256 - __main__ - INFO - Connection from ('192.168.1.200', 39160)
+2024-12-29 01:07:25,265 - __main__ - ERROR - Error processing request: ADD_COLLABORATOR
+2024-12-29 01:08:19,851 - db_manager - INFO - MongoDB connection closed
+2024-12-29 01:08:22,840 - db_manager - INFO - Successfully connected to MongoDB
+2024-12-29 01:08:22,854 - __main__ - INFO - Server listening on 0.0.0.0:5000
+2024-12-29 01:08:25,967 - __main__ - INFO - Connection from ('192.168.1.200', 36460)
+2024-12-29 01:08:25,970 - __main__ - ERROR - Error processing request: ADD_COLLABORATOR
+2024-12-29 01:08:43,245 - db_manager - INFO - MongoDB connection closed
+2024-12-29 01:08:45,853 - db_manager - INFO - Successfully connected to MongoDB
+2024-12-29 01:08:45,855 - __main__ - INFO - Server listening on 0.0.0.0:5000
+2024-12-29 01:08:52,203 - __main__ - INFO - Connection from ('192.168.1.200', 43424)
+2024-12-29 01:08:52,213 - __main__ - ERROR - Error processing request: ADD_COLLABORATOR
+2024-12-29 01:09:21,752 - db_manager - INFO - MongoDB connection closed
+2024-12-29 01:09:24,113 - db_manager - INFO - Successfully connected to MongoDB
+2024-12-29 01:09:24,115 - __main__ - INFO - Server listening on 0.0.0.0:5000
+2024-12-29 01:09:28,531 - __main__ - INFO - Connection from ('192.168.1.200', 37746)
+2024-12-29 01:09:28,535 - __main__ - ERROR - Error processing request: 'dict' object has no attribute 'user_changes'
+2024-12-29 01:11:06,524 - __main__ - INFO - Connection from ('192.168.1.200', 42094)
+2024-12-29 01:11:06,531 - __main__ - ERROR - Error processing request: 'dict' object has no attribute 'user_changes'
+2024-12-29 01:11:07,253 - __main__ - INFO - Connection from ('192.168.1.200', 42110)
+2024-12-29 01:11:07,260 - __main__ - ERROR - Error processing request: 'dict' object has no attribute 'user_changes'
+2024-12-29 01:11:07,718 - __main__ - INFO - Connection from ('192.168.1.200', 42118)
+2024-12-29 01:11:07,724 - __main__ - ERROR - Error processing request: 'dict' object has no attribute 'user_changes'
+2024-12-29 01:11:08,063 - __main__ - INFO - Connection from ('192.168.1.200', 42126)
+2024-12-29 01:11:08,066 - __main__ - ERROR - Error processing request: 'dict' object has no attribute 'user_changes'
+2024-12-29 01:11:08,433 - __main__ - INFO - Connection from ('192.168.1.200', 42138)
+2024-12-29 01:11:08,436 - __main__ - ERROR - Error processing request: 'dict' object has no attribute 'user_changes'
+2024-12-29 01:11:08,750 - __main__ - INFO - Connection from ('192.168.1.200', 42140)
+2024-12-29 01:11:08,753 - __main__ - ERROR - Error processing request: 'dict' object has no attribute 'user_changes'
+2024-12-29 01:11:09,204 - __main__ - INFO - Connection from ('192.168.1.200', 42144)
+2024-12-29 01:11:09,212 - __main__ - ERROR - Error processing request: 'dict' object has no attribute 'user_changes'
+2024-12-29 01:11:10,065 - __main__ - INFO - Connection from ('192.168.1.200', 42154)
+2024-12-29 01:11:10,067 - __main__ - ERROR - Error processing request: 'dict' object has no attribute 'user_changes'
+2024-12-29 01:11:10,565 - __main__ - INFO - Connection from ('192.168.1.200', 42168)
+2024-12-29 01:11:10,567 - __main__ - ERROR - Error processing request: 'dict' object has no attribute 'user_changes'
+2024-12-29 01:11:12,369 - db_manager - INFO - MongoDB connection closed
+2024-12-29 01:11:14,936 - db_manager - INFO - Successfully connected to MongoDB
+2024-12-29 01:11:14,938 - __main__ - INFO - Server listening on 0.0.0.0:5000
+2024-12-29 01:11:18,680 - __main__ - INFO - Connection from ('192.168.1.200', 51716)
+2024-12-29 01:11:19,154 - __main__ - INFO - Connection from ('192.168.1.200', 51720)
+2024-12-29 01:11:19,558 - __main__ - INFO - Connection from ('192.168.1.200', 51728)
+2024-12-29 01:11:21,338 - __main__ - INFO - Connection from ('192.168.1.200', 53030)
+2024-12-29 01:11:21,658 - __main__ - INFO - Connection from ('192.168.1.200', 53038)
+2024-12-29 01:13:45,942 - __main__ - INFO - Connection from ('192.168.1.200', 38012)
+2024-12-29 01:18:48,510 - __main__ - INFO - Connection from ('192.168.1.200', 48462)
+2024-12-29 01:18:48,513 - users - ERROR - Error creating user: 1 validation error for UsersModel
+digest_of_hmacs
+  Field required [type=missing, input_value={'username': 'massinhas',... [], 'viewer_notes': []}, input_type=dict]
+    For further information visit https://errors.pydantic.dev/2.10/v/missing
+2024-12-29 01:18:48,513 - __main__ - ERROR - Validation Error: 1 validation error for UsersModel
+digest_of_hmacs
+  Field required [type=missing, input_value={'username': 'massinhas',... [], 'viewer_notes': []}, input_type=dict]
+    For further information visit https://errors.pydantic.dev/2.10/v/missing
+2024-12-29 01:19:45,417 - db_manager - INFO - MongoDB connection closed
+2024-12-29 01:19:47,595 - db_manager - INFO - Successfully connected to MongoDB
+2024-12-29 01:19:47,596 - __main__ - INFO - Server listening on 0.0.0.0:5000
+2024-12-29 01:19:51,351 - __main__ - INFO - Connection from ('192.168.1.200', 45732)
+2024-12-29 01:19:51,354 - db_manager - INFO - Inserted document in users with ID: 6770a3b78e705b415c3d5cb5
+2024-12-29 01:19:51,355 - users - INFO - User created with ID: 6770a3b78e705b415c3d5cb5
+2024-12-29 01:20:09,451 - __main__ - INFO - Connection from ('192.168.1.200', 46316)
+2024-12-29 01:20:32,016 - db_manager - INFO - MongoDB connection closed
+2024-12-29 01:20:34,189 - db_manager - INFO - Successfully connected to MongoDB
+2024-12-29 01:20:34,189 - __main__ - INFO - Server listening on 0.0.0.0:5000
+2024-12-29 01:20:51,071 - __main__ - INFO - Connection from ('192.168.1.200', 59830)
+2024-12-29 01:21:19,270 - db_manager - INFO - MongoDB connection closed
+2024-12-29 01:21:21,010 - db_manager - INFO - Successfully connected to MongoDB
+2024-12-29 01:21:21,012 - __main__ - INFO - Server listening on 0.0.0.0:5000
+2024-12-29 01:21:35,011 - __main__ - INFO - Connection from ('192.168.1.200', 54884)
+2024-12-29 01:24:08,149 - db_manager - INFO - MongoDB connection closed
+2024-12-29 01:24:13,299 - db_manager - INFO - Successfully connected to MongoDB
+2024-12-29 01:24:13,300 - __main__ - INFO - Server listening on 0.0.0.0:5000
+2024-12-29 01:24:15,279 - __main__ - INFO - Connection from ('192.168.1.200', 56512)
+2024-12-29 01:24:32,334 - db_manager - INFO - MongoDB connection closed
+2024-12-29 01:24:43,430 - db_manager - INFO - Successfully connected to MongoDB
+2024-12-29 01:24:43,431 - __main__ - INFO - Server listening on 0.0.0.0:5000
+2024-12-29 01:24:59,571 - __main__ - INFO - Connection from ('192.168.1.200', 50154)
+2024-12-29 01:25:12,427 - db_manager - INFO - MongoDB connection closed
+2024-12-29 01:25:14,501 - db_manager - INFO - Successfully connected to MongoDB
+2024-12-29 01:25:14,502 - __main__ - INFO - Server listening on 0.0.0.0:5000
+2024-12-29 01:25:19,562 - __main__ - INFO - Connection from ('192.168.1.200', 36780)
+2024-12-29 01:29:37,137 - db_manager - INFO - MongoDB connection closed
+2024-12-29 01:29:39,392 - db_manager - INFO - Successfully connected to MongoDB
+2024-12-29 01:29:39,393 - __main__ - INFO - Server listening on 0.0.0.0:5000
+2024-12-29 01:30:37,169 - __main__ - INFO - Connection from ('192.168.1.200', 36792)
+2024-12-29 01:30:37,172 - db_manager - INFO - Inserted document in users with ID: 6770a63d67b4bea982905e89
+2024-12-29 01:30:37,173 - users - INFO - User created with ID: 6770a63d67b4bea982905e89
+2024-12-29 01:31:24,306 - __main__ - INFO - Connection from ('192.168.1.200', 57542)
+2024-12-29 01:31:24,308 - db_manager - INFO - Inserted document in users with ID: 6770a66c67b4bea982905e8a
+2024-12-29 01:31:24,309 - users - INFO - User created with ID: 6770a66c67b4bea982905e8a
+2024-12-29 01:34:03,293 - __main__ - INFO - Connection from ('192.168.1.200', 33678)
+2024-12-29 01:34:03,296 - db_manager - INFO - Inserted document in users with ID: 6770a70b67b4bea982905e8b
+2024-12-29 01:34:03,297 - users - INFO - User created with ID: 6770a70b67b4bea982905e8b
+2024-12-29 01:34:09,618 - __main__ - INFO - Connection from ('192.168.1.200', 33690)
+2024-12-29 01:36:26,768 - db_manager - INFO - MongoDB connection closed
+2024-12-29 01:36:29,295 - db_manager - INFO - Successfully connected to MongoDB
+2024-12-29 01:36:29,296 - __main__ - INFO - Server listening on 0.0.0.0:5000
+2024-12-29 01:36:53,840 - __main__ - INFO - Connection from ('192.168.1.200', 44686)
+2024-12-29 01:36:53,860 - db_manager - INFO - Inserted document in notes with ID: 24d0a64d-95a8-4ff5-8115-be5469b49287
+2024-12-29 01:36:53,863 - notes - INFO - Note created with ID: 24d0a64d-95a8-4ff5-8115-be5469b49287
+2024-12-29 01:37:27,804 - __main__ - INFO - Connection from ('192.168.1.200', 54156)
+2024-12-29 01:37:27,815 - users - ERROR - Error checking note permissions: 'bool' object has no attribute 'get'
+2024-12-29 01:42:24,439 - __main__ - INFO - Connection from ('192.168.1.200', 48174)
+2024-12-29 01:42:24,453 - db_manager - INFO - Inserted document in notes with ID: 9e928757-89b2-4862-aa5f-1ba2cb3fc7bb
+2024-12-29 01:42:24,454 - notes - INFO - Note created with ID: 9e928757-89b2-4862-aa5f-1ba2cb3fc7bb
+2024-12-29 01:42:39,477 - db_manager - INFO - MongoDB connection closed
+2024-12-29 01:42:41,806 - db_manager - INFO - Successfully connected to MongoDB
+2024-12-29 01:42:41,808 - __main__ - INFO - Server listening on 0.0.0.0:5000
+2024-12-29 01:42:49,687 - __main__ - INFO - Connection from ('192.168.1.200', 34916)
+2024-12-29 01:42:49,699 - users - ERROR - Error checking note permissions: 'bool' object has no attribute 'get'
+2024-12-29 01:44:11,639 - db_manager - INFO - MongoDB connection closed
+2024-12-29 01:44:14,156 - db_manager - INFO - Successfully connected to MongoDB
+2024-12-29 01:44:14,157 - __main__ - INFO - Server listening on 0.0.0.0:5000
+2024-12-29 01:44:24,957 - __main__ - INFO - Connection from ('192.168.1.200', 32904)
+2024-12-29 01:44:24,968 - users - ERROR - Error checking note permissions: 'bool' object has no attribute 'get'
+2024-12-29 01:47:39,758 - db_manager - INFO - MongoDB connection closed
+2024-12-29 01:47:42,833 - db_manager - INFO - Successfully connected to MongoDB
+2024-12-29 01:47:42,834 - __main__ - INFO - Server listening on 0.0.0.0:5000
+2024-12-29 01:47:58,777 - __main__ - INFO - Connection from ('192.168.1.200', 50388)
+2024-12-29 01:47:58,780 - db_manager - INFO - Inserted document in users with ID: 6770aa4e71050f8b4c1d887a
+2024-12-29 01:47:58,780 - users - INFO - User created with ID: 6770aa4e71050f8b4c1d887a
+2024-12-29 01:48:14,083 - __main__ - INFO - Connection from ('192.168.1.200', 52718)
+2024-12-29 01:48:14,089 - notes - ERROR - Error retrieving note: Note not found
+2024-12-29 01:48:14,093 - notes - ERROR - Error retrieving note: Note not found
+2024-12-29 01:50:33,622 - db_manager - INFO - MongoDB connection closed
+2024-12-29 01:50:35,821 - db_manager - INFO - Successfully connected to MongoDB
+2024-12-29 01:50:35,822 - __main__ - INFO - Server listening on 0.0.0.0:5000
+2024-12-29 01:50:48,353 - __main__ - INFO - Connection from ('192.168.1.200', 44532)
+2024-12-29 01:50:48,365 - db_manager - INFO - Inserted document in notes with ID: a4dcb13c-85c4-4a7b-a73a-638be0d4e5de
+2024-12-29 01:50:48,367 - notes - INFO - Note created with ID: a4dcb13c-85c4-4a7b-a73a-638be0d4e5de
+2024-12-29 01:50:58,706 - __main__ - INFO - Connection from ('192.168.1.200', 55204)
+2024-12-29 01:50:58,721 - db_manager - ERROR - Error inserting document in notes: E11000 duplicate key error collection: secure_document_db.notes index: _id_ dup key: { _id: "a4dcb13c-85c4-4a7b-a73a-638be0d4e5de" }, full error: {'index': 0, 'code': 11000, 'errmsg': 'E11000 duplicate key error collection: secure_document_db.notes index: _id_ dup key: { _id: "a4dcb13c-85c4-4a7b-a73a-638be0d4e5de" }', 'keyPattern': {'_id': 1}, 'keyValue': {'_id': 'a4dcb13c-85c4-4a7b-a73a-638be0d4e5de'}}
+2024-12-29 01:50:58,723 - notes - ERROR - Error creating note: E11000 duplicate key error collection: secure_document_db.notes index: _id_ dup key: { _id: "a4dcb13c-85c4-4a7b-a73a-638be0d4e5de" }, full error: {'index': 0, 'code': 11000, 'errmsg': 'E11000 duplicate key error collection: secure_document_db.notes index: _id_ dup key: { _id: "a4dcb13c-85c4-4a7b-a73a-638be0d4e5de" }', 'keyPattern': {'_id': 1}, 'keyValue': {'_id': 'a4dcb13c-85c4-4a7b-a73a-638be0d4e5de'}}
+2024-12-29 01:51:21,688 - __main__ - INFO - Connection from ('192.168.1.200', 43442)
+2024-12-29 01:51:21,698 - db_manager - ERROR - Error inserting document in notes: E11000 duplicate key error collection: secure_document_db.notes index: _id_ dup key: { _id: "a4dcb13c-85c4-4a7b-a73a-638be0d4e5de" }, full error: {'index': 0, 'code': 11000, 'errmsg': 'E11000 duplicate key error collection: secure_document_db.notes index: _id_ dup key: { _id: "a4dcb13c-85c4-4a7b-a73a-638be0d4e5de" }', 'keyPattern': {'_id': 1}, 'keyValue': {'_id': 'a4dcb13c-85c4-4a7b-a73a-638be0d4e5de'}}
+2024-12-29 01:51:21,698 - notes - ERROR - Error creating note: E11000 duplicate key error collection: secure_document_db.notes index: _id_ dup key: { _id: "a4dcb13c-85c4-4a7b-a73a-638be0d4e5de" }, full error: {'index': 0, 'code': 11000, 'errmsg': 'E11000 duplicate key error collection: secure_document_db.notes index: _id_ dup key: { _id: "a4dcb13c-85c4-4a7b-a73a-638be0d4e5de" }', 'keyPattern': {'_id': 1}, 'keyValue': {'_id': 'a4dcb13c-85c4-4a7b-a73a-638be0d4e5de'}}
+2024-12-29 01:51:36,969 - db_manager - INFO - MongoDB connection closed
+2024-12-29 01:51:39,304 - db_manager - INFO - Successfully connected to MongoDB
+2024-12-29 01:51:39,304 - __main__ - INFO - Server listening on 0.0.0.0:5000
+2024-12-29 01:52:06,757 - __main__ - INFO - Connection from ('192.168.1.200', 54236)
+2024-12-29 01:52:06,764 - db_manager - ERROR - Error inserting document in notes: E11000 duplicate key error collection: secure_document_db.notes index: _id_ dup key: { _id: "a4dcb13c-85c4-4a7b-a73a-638be0d4e5de" }, full error: {'index': 0, 'code': 11000, 'errmsg': 'E11000 duplicate key error collection: secure_document_db.notes index: _id_ dup key: { _id: "a4dcb13c-85c4-4a7b-a73a-638be0d4e5de" }', 'keyPattern': {'_id': 1}, 'keyValue': {'_id': 'a4dcb13c-85c4-4a7b-a73a-638be0d4e5de'}}
+2024-12-29 01:52:06,765 - notes - ERROR - Error creating note: E11000 duplicate key error collection: secure_document_db.notes index: _id_ dup key: { _id: "a4dcb13c-85c4-4a7b-a73a-638be0d4e5de" }, full error: {'index': 0, 'code': 11000, 'errmsg': 'E11000 duplicate key error collection: secure_document_db.notes index: _id_ dup key: { _id: "a4dcb13c-85c4-4a7b-a73a-638be0d4e5de" }', 'keyPattern': {'_id': 1}, 'keyValue': {'_id': 'a4dcb13c-85c4-4a7b-a73a-638be0d4e5de'}}
+2024-12-29 01:52:29,166 - __main__ - INFO - Connection from ('192.168.1.200', 33226)
+2024-12-29 01:52:29,171 - db_manager - INFO - Inserted document in notes with ID: e6060307-f3a1-40b9-90a3-55109ec748a0
+2024-12-29 01:52:29,172 - notes - INFO - Note created with ID: e6060307-f3a1-40b9-90a3-55109ec748a0
+2024-12-29 01:53:50,270 - db_manager - INFO - MongoDB connection closed
+2024-12-29 01:53:52,428 - db_manager - INFO - Successfully connected to MongoDB
+2024-12-29 01:53:52,429 - __main__ - INFO - Server listening on 0.0.0.0:5000
+2024-12-29 01:54:23,257 - db_manager - INFO - MongoDB connection closed
+2024-12-29 01:54:25,452 - db_manager - INFO - Successfully connected to MongoDB
+2024-12-29 01:54:25,453 - __main__ - INFO - Server listening on 0.0.0.0:5000
+2024-12-29 01:55:14,705 - __main__ - INFO - Connection from ('192.168.1.200', 54176)
+2024-12-29 01:55:14,719 - db_manager - INFO - Inserted document in notes with ID: e01e1e20-5f7e-4742-b518-0d9403b6649a
+2024-12-29 01:55:14,720 - notes - INFO - Note created with ID: e01e1e20-5f7e-4742-b518-0d9403b6649a
+2024-12-29 01:55:40,254 - db_manager - INFO - MongoDB connection closed
+2024-12-29 01:55:42,479 - db_manager - INFO - Successfully connected to MongoDB
+2024-12-29 01:55:42,480 - __main__ - INFO - Server listening on 0.0.0.0:5000
+2024-12-29 01:55:59,052 - __main__ - INFO - Connection from ('192.168.1.200', 39528)
+2024-12-29 01:55:59,059 - db_manager - INFO - Inserted document in notes with ID: 22bc5180-42a7-440a-b7e8-e5288d3d6b00
+2024-12-29 01:55:59,065 - notes - INFO - Note created with ID: 22bc5180-42a7-440a-b7e8-e5288d3d6b00
+2024-12-29 01:55:59,070 - notes - ERROR - Error retrieving note: string indices must be integers
+2024-12-29 01:57:00,922 - db_manager - INFO - MongoDB connection closed
+2024-12-29 01:57:02,898 - db_manager - INFO - Successfully connected to MongoDB
+2024-12-29 01:57:02,899 - __main__ - INFO - Server listening on 0.0.0.0:5000
+2024-12-29 01:57:50,948 - __main__ - INFO - Connection from ('192.168.1.200', 37294)
+2024-12-29 01:57:50,955 - notes - ERROR - Error retrieving note: string indices must be integers
+2024-12-29 01:58:23,486 - db_manager - INFO - MongoDB connection closed
+2024-12-29 01:58:25,626 - db_manager - INFO - Successfully connected to MongoDB
+2024-12-29 01:58:25,627 - __main__ - INFO - Server listening on 0.0.0.0:5000
+2024-12-29 01:58:33,117 - __main__ - INFO - Connection from ('192.168.1.200', 49690)
+2024-12-29 01:58:33,122 - notes - ERROR - Error retrieving note: string indices must be integers
+2024-12-29 02:01:07,412 - db_manager - INFO - MongoDB connection closed
+2024-12-29 02:01:08,226 - db_manager - INFO - Successfully connected to MongoDB
+2024-12-29 02:01:08,226 - __main__ - INFO - Server listening on 0.0.0.0:5000
+2024-12-29 02:01:08,852 - db_manager - INFO - MongoDB connection closed
+2024-12-29 02:01:10,713 - db_manager - INFO - Successfully connected to MongoDB
+2024-12-29 02:01:10,714 - __main__ - INFO - Server listening on 0.0.0.0:5000
+2024-12-29 02:01:22,523 - __main__ - INFO - Connection from ('192.168.1.200', 34318)
+2024-12-29 02:01:22,536 - users - ERROR - Error checking note permissions: 'int' object has no attribute 'get'
+2024-12-29 02:01:50,422 - db_manager - INFO - MongoDB connection closed
+2024-12-29 02:01:51,473 - db_manager - INFO - Successfully connected to MongoDB
+2024-12-29 02:01:51,474 - __main__ - INFO - Server listening on 0.0.0.0:5000
+2024-12-29 02:01:58,053 - __main__ - INFO - Connection from ('192.168.1.200', 53022)
+2024-12-29 02:01:58,066 - users - ERROR - Error checking note permissions: 'int' object has no attribute 'get'
+2024-12-29 02:02:04,620 - db_manager - INFO - MongoDB connection closed
+2024-12-29 02:02:06,503 - db_manager - INFO - Successfully connected to MongoDB
+2024-12-29 02:02:06,504 - __main__ - INFO - Server listening on 0.0.0.0:5000
+2024-12-29 02:02:20,238 - __main__ - INFO - Connection from ('192.168.1.200', 55610)
+2024-12-29 02:02:52,476 - db_manager - INFO - MongoDB connection closed
+2024-12-29 02:02:54,619 - db_manager - INFO - Successfully connected to MongoDB
+2024-12-29 02:02:54,621 - __main__ - INFO - Server listening on 0.0.0.0:5000
+2024-12-29 02:03:00,420 - __main__ - INFO - Connection from ('192.168.1.200', 37172)
+2024-12-29 02:03:05,468 - db_manager - INFO - MongoDB connection closed
+2024-12-29 02:03:07,856 - db_manager - INFO - Successfully connected to MongoDB
+2024-12-29 02:03:07,857 - __main__ - INFO - Server listening on 0.0.0.0:5000
+2024-12-29 02:03:21,217 - __main__ - INFO - Connection from ('192.168.1.200', 57260)
+2024-12-29 02:03:46,382 - db_manager - INFO - MongoDB connection closed
+2024-12-29 02:03:48,028 - db_manager - INFO - Successfully connected to MongoDB
+2024-12-29 02:03:48,030 - __main__ - INFO - Server listening on 0.0.0.0:5000
+2024-12-29 02:03:52,533 - __main__ - INFO - Connection from ('192.168.1.200', 40562)
+2024-12-29 02:09:47,235 - db_manager - INFO - MongoDB connection closed
+2024-12-29 02:09:49,441 - db_manager - INFO - Successfully connected to MongoDB
+2024-12-29 02:09:49,442 - __main__ - INFO - Server listening on 0.0.0.0:5000
+2024-12-29 02:09:53,288 - db_manager - INFO - MongoDB connection closed
+2024-12-29 02:09:54,513 - db_manager - INFO - Successfully connected to MongoDB
+2024-12-29 02:09:54,514 - __main__ - INFO - Server listening on 0.0.0.0:5000
+2024-12-29 02:09:58,126 - __main__ - INFO - Connection from ('192.168.1.200', 46780)
+2024-12-29 02:10:58,434 - db_manager - INFO - MongoDB connection closed
+2024-12-29 02:11:00,925 - db_manager - INFO - Successfully connected to MongoDB
+2024-12-29 02:11:00,925 - __main__ - INFO - Server listening on 0.0.0.0:5000
+2024-12-29 02:11:04,153 - __main__ - INFO - Connection from ('192.168.1.200', 59884)
+2024-12-29 02:11:04,192 - db_manager - ERROR - Error inserting document in notes: E11000 duplicate key error collection: secure_document_db.notes index: _id_ dup key: { _id: "22bc5180-42a7-440a-b7e8-e5288d3d6b00" }, full error: {'index': 0, 'code': 11000, 'errmsg': 'E11000 duplicate key error collection: secure_document_db.notes index: _id_ dup key: { _id: "22bc5180-42a7-440a-b7e8-e5288d3d6b00" }', 'keyPattern': {'_id': 1}, 'keyValue': {'_id': '22bc5180-42a7-440a-b7e8-e5288d3d6b00'}}
+2024-12-29 02:11:04,193 - notes - ERROR - Error editing note: E11000 duplicate key error collection: secure_document_db.notes index: _id_ dup key: { _id: "22bc5180-42a7-440a-b7e8-e5288d3d6b00" }, full error: {'index': 0, 'code': 11000, 'errmsg': 'E11000 duplicate key error collection: secure_document_db.notes index: _id_ dup key: { _id: "22bc5180-42a7-440a-b7e8-e5288d3d6b00" }', 'keyPattern': {'_id': 1}, 'keyValue': {'_id': '22bc5180-42a7-440a-b7e8-e5288d3d6b00'}}
+2024-12-29 02:12:39,228 - db_manager - INFO - MongoDB connection closed

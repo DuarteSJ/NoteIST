@@ -68,26 +68,34 @@ class NetworkHandler:
             )
 
     def push_changes(
-        self, private_key_path: str, changes: List[Dict[str, Any]]
+        self, private_key_path: str, note_changes: List[Dict[str, Any]], user_changes: List[Dict[str, Any]]
     ) -> Response:
         """Pushes changes to the server."""
-        if not changes:
+        if not note_changes and not user_changes:
             return Response(
                 status="success",
                 message="No changes to push (this wasn't sent by server)",
+                user_results=[],
+                action_results=[],
             )
+        changes = {"note_changes": note_changes, "user_changes": user_changes}
         private_key = self.key_manager.load_private_key(private_key_path)
         signature = self.secure_handler.sign_request(changes, private_key)
 
         payload = self.secure_handler.create_signed_payload(
             RequestType.PUSH.value, self.username, changes, signature
         )
+        print(f"sending payload: {payload}")
         return self._send_request(payload)
 
-    def pull_changes(self, private_key_path: str) -> Response:
+    def pull_changes(self, private_key_path: str, hash_of_hmacs:str) -> Response:
         """Pulls changes from the server."""
         private_key = self.key_manager.load_private_key(private_key_path)
-        data = {"digest_of_hmacs": "TODO"}
+
+        #get notes  
+
+        data = {"digest_of_hmacs":hash_of_hmacs}
+
         signature = self.secure_handler.sign_request(data, private_key)
 
         # TODO: Send the hmac of hashes through this
@@ -97,9 +105,11 @@ class NetworkHandler:
         # for doc in sorted_docs:
         #     hmac_str += doc.get("hmac")
 
+
         # digest_of_hmacs = hashes.Hash(hashes.SHA256())
         # digest_of_hmacs.update(hmac_str.encode("utf-8"))
         # digest_of_hmacs = digest_of_hmacs.finalize().hex()
+
 
         payload = self.secure_handler.create_signed_payload(
             RequestType.PULL.value, self.username, data, signature
@@ -107,7 +117,7 @@ class NetworkHandler:
         return self._send_request(payload)
 
     def register_user(self, public_key: str) -> Response:
-        """Registers a new user with the server."""
+        """Registers a new user with theprivate_key server."""
         payload = self.secure_handler.create_unsigned_payload(
             RequestType.REGISTER.value, self.username, {"public_key": public_key}
         )

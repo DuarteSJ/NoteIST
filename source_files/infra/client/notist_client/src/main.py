@@ -26,9 +26,11 @@ def display_menu() -> str:
     print("3. View Note Content")
     print("4. Edit a Note")
     print("5. Delete a Note")
-    print("6. Push changes to remote server")
-    print("7: Pull changes from remote server")
-    print("8. Exit")
+    print("6. Add contributor to a note")
+    print("7. Remove contributor from a note")
+    print("8. Push changes to remote server")
+    print("9: Pull changes from remote server")
+    print("10. Exit")
     return input("Choose an option: ")
 
 
@@ -60,12 +62,24 @@ def handle_choice(client: NoteISTClient, choice: str) -> None:
         client.delete_note(title)
 
     elif choice == "6":
-        client.push_changes()
+        client.list_notes()
+        title = input("Enter note title: ")
+        contributor = input("Enter contributor username: ")
+        client.add_contributor(title, contributor)
 
     elif choice == "7":
-        client.pull_changes()
+        client.list_notes()
+        title = input("Enter note title: ")
+        contributor = input("Enter contributor username: ")
+        client.remove_contributor(title, contributor) 
 
     elif choice == "8":
+        client.push_changes()
+
+    elif choice == "9":
+        client.pull_changes()
+
+    elif choice == "10":
         exit(0)
 
 

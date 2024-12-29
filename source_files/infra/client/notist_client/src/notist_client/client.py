@@ -7,10 +7,10 @@ from .utils.file import FileHandler
 from .utils.auth import AuthManager
 from .models.actions import ActionType
 from .models.responses import Response
-from .config.paths import get_config_file, get_notes_dir, get_priv_key_file
+from .config.paths import get_config_file, get_notes_dir, get_priv_key_file, get_note_changes_file, get_user_changes_file
 from .crypto.secure import SecureHandler
 from uuid import uuid4
-
+import json
 
 class NoteISTClient:
     """
@@ -31,6 +31,8 @@ class NoteISTClient:
         self.notes_dir = get_notes_dir()
         self.priv_key_path = get_priv_key_file()
         self.config_path = get_config_file()
+        self.note_changes_path= get_note_changes_file()
+        self.user_changes_path= get_user_changes_file()
 
         self.key_manager = None
 
@@ -42,7 +44,6 @@ class NoteISTClient:
         # Instance attributes
         self.username = None
         self.network_handler = None
-        self.changes = []
 
         # Set up the environment
         self._load_or_register_user()
@@ -117,8 +118,8 @@ class NoteISTClient:
 
     def _prompt_user(self, msg) -> bool:
         """Prompt the user."""
-        retry = input(f"Would you like to {msg}, {self.username}? [yes/no]").lower()
-        return retry in ["yes", "y"]
+        res = input(f"Would you like to {msg}, {self.username}? [yes/no]").lower()
+        return res in ["yes", "y"]
 
     def _register_new_user(self) -> None:
         """Handle the registration process for a new user."""
@@ -129,7 +130,7 @@ class NoteISTClient:
             exit(0)
 
         # Remove all previous user data
-        FileHandler.delete_all([self.priv_key_path, self.config_path, self.notes_dir])
+        FileHandler.delete_all([self.priv_key_path, self.config_path, self.notes_dir, self.note_changes_path, self.user_changes_path])
         FileHandler.ensure_directory(self.notes_dir)
 
         while True:
@@ -176,21 +177,6 @@ class NoteISTClient:
                     print("Exiting NoteIST. Goodbye!")
                     exit(0)
 
-    def pull_changes(self) -> None:
-        """Synchronize local state with server."""
-        try:
-            response = self.network_handler.pull_changes(self.priv_key_path)
-            if response.status == "error":
-                raise Exception(f"sync failed - {response.message}")
-
-            # Process and apply server changes locally
-
-            if response.documents:
-                self._apply_server_changes(response.documents)
-            return response  # TODO: this ret is not required, just cause we printing it in main for now
-
-        except Exception as e:
-            raise Exception(e)
 
     def _apply_server_changes(self, changes: List[Dict[str, Any]]) -> None:
         """Apply changes received from server to local state."""
@@ -250,7 +236,9 @@ class NoteISTClient:
             "_id": self._get_next_id(),
             "title": title,
             "content": content,
-            "owner": self.username,
+            "owner": {
+                "username": self.username,
+            },
             "version": 1,
         }
 
@@ -289,33 +277,83 @@ class NoteISTClient:
 
         Args:
             action_type: Type of change made
-            kwargs: Additional arguments like `note` or `note_id`
+            kwargs: Additional arguments like `note`, `note_id`, `user_id`, etc.
         """
-        data_mapping = {
-            ActionType.DELETE_NOTE: {"note_id": kwargs.get("note_id")},
-            ActionType.EDIT_NOTE: {"note": kwargs.get("note")},
-            ActionType.CREATE_NOTE: {"note": kwargs.get("note")},
+        action_mapping = {
+            ActionType.CREATE_NOTE: (self.note_changes_path, {"note": kwargs.get("note")}),
+            ActionType.EDIT_NOTE: (self.note_changes_path, {"note": kwargs.get("note")}),
+            ActionType.DELETE_NOTE: (self.note_changes_path, {"note_id": kwargs.get("note_id")}),
+
+            ActionType.ADD_USER: (self.user_changes_path, {"username": kwargs.get("user_name"), "note_id": kwargs.get("note_id"), "is_editor": kwargs.get("is_editor")}),
+            ActionType.REMOVE_USER: (self.user_changes_path, {"username": kwargs.get("user_name"), "note_id": kwargs.get("note_id")}),
         }
 
-        if action_type not in data_mapping:
+        if action_type not in action_mapping:
             raise ValueError(f"Unsupported action type: {action_type}")
-        self.changes.append(
-            {"type": action_type.value, "data": data_mapping[action_type]}
-        )
+
+        # Get the corresponding file path and data
+        changes_path, data = action_mapping[action_type]
+        change_record = {"type": action_type.value, "data": data}
+
+        # Open the file and append the JSON-encoded string
+        with open(changes_path, "a") as changes_file:
+            json.dump(change_record, changes_file)
+            changes_file.write("\n")  # Write a newline after each record
 
     def push_changes(self) -> Response:
         """Push recorded changes to the server."""
-        # TODO: keep change array in memory for the case were the client crashes/closes wihtout pushing. Maybe store in a file or sm shi. Is this really needed <- Massas
         try:
+            note_changes = FileHandler.get_changes(self.note_changes_path)
+            user_changes = FileHandler.get_changes(self.user_changes_path)
             response = self.network_handler.push_changes(
-                self.priv_key_path, self.changes
+                self.priv_key_path, note_changes, user_changes
             )
             print(f"Server response: {response.status} - {response.message}")
             if response.status == "success":
-                self.changes = []
+                for res in response.action_results:
+                    print(res)
+                for res in response.user_results:
+                    print(res)
+                FileHandler.clean_file(self.user_changes_path)
+                FileHandler.clean_file(self.note_changes_path)
         except Exception as e:
             raise Exception(f"Failed to push changes: {e}")
 
+    def pull_changes(self) -> Response:
+        """Sync with server."""
+
+        try:
+            hash_of_hmacs = self.get_hash_hmac_from_encrypted_notes()
+
+            response = self.network_handler.pull_changes(self.priv_key_path, hash_of_hmacs)
+            print(f"Server response: {response.status} - {response.message}")
+            if response.status == "synced":
+                print("Same Same.")
+            elif response.status == "success" :
+                self._apply_server_changes(response.documents)
+            return response
+        except Exception as e:
+            raise Exception(f"Failed to pull changes: {e}")
+
+    def get_hash_hmac_from_encrypted_notes(self) -> str:
+        """Get the hash of hmac of a specific note with all its versions."""
+        notes=[]
+        note=[]
+
+        for encrypted_title in os.listdir(self.notes_dir):
+            note_dir = os.path.join(self.notes_dir, encrypted_title)
+            for version in os.listdir(note_dir):
+                print(f"version: {version}")
+                if version == "key":
+                    continue
+                note = FileHandler.read_json(os.path.join(note_dir, version))
+                notes.append([note.get("hmac"), note.get("_id")])
+        # sort notes by id
+        sorted_notes = sorted(notes, key=lambda x: x[1])
+        hmac_str = ''.join(note[0] for note in sorted_notes)
+        hash =  SecureHandler.hash_hmacs_str(hmac_str)
+        return  hash
+        
     def get_note_list(self) -> List[tuple]:
         """Get a list of all local notes with their latest versions."""
         notes = []
@@ -454,3 +492,55 @@ class NoteISTClient:
         shutil.rmtree(note_dir)
 
         self._record_change(action_type=ActionType.DELETE_NOTE, note_id=note_id)
+
+    def add_contributor(self, title: str, contributor: str) -> None:
+        is_editor = self._prompt_user(f"give {contributor} editing permissions to this note")
+        encrypted_title = self.key_manager.encrypt_note_title(title)
+        note_id = self.get_note_content(encrypted_title).get("_id")
+        
+        last_version = FileHandler.get_highest_version(os.path.join(self.notes_dir, title))
+        note_path = os.path.join(self.notes_dir, encrypted_title, f"v{last_version}.notist")
+        encrypted_note = FileHandler.read_json(note_path)
+
+        #check if the current client is the editor
+        #check if self.username is in editors
+
+        if self.username not in [editor.get("username") for editor in encrypted_note["editors"]] and is_editor:
+            raise Exception(f"Only editors can add editors")
+
+        editor = {
+            "username": contributor,
+        }
+        
+        viewer = {
+            "username": contributor,
+        }
+
+        if is_editor:
+            encrypted_note["editors"].append(editor)
+        
+        encrypted_note["viewers"].append(viewer)
+        
+
+        FileHandler.write_json(note_path, encrypted_note)
+
+        self._record_change(
+            action_type=ActionType.ADD_USER,
+            user_name=contributor,
+            note_id=note_id,
+            is_editor=is_editor
+        )
+        
+
+    def remove_contributor(self, title: str, contributor: str) -> None:
+        encrypted_title = self.key_manager.encrypt_note_title(title)
+        # TODO: missing local remove
+        note_id = self.get_note_content(encrypted_title).get("_id")
+        is_editor = ""
+        self._record_change(
+            action_type=ActionType.REMOVE_USER,
+            user_name=contributor,
+            note_id=note_id,
+            is_editor=is_editor
+        )
+        pass

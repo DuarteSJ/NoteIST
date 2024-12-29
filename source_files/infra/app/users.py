@@ -1,8 +1,6 @@
 import logging
-from typing import Optional, Dict, Any, Tuple
-import base64
-from bson.binary import Binary
-from db_manager import DatabaseManager, get_database_manager
+from typing import Dict, Any
+from db_manager import DatabaseManager
 from models import UsersModel
 
 
@@ -35,7 +33,6 @@ class UsersService:
             user_data = {
                 "username": username,
                 "public_key": public_key,
-                "digest_of_hmacs": "",
                 "owned_notes": [],
                 "editor_notes": [],
                 "viewer_notes": [],
@@ -77,55 +74,10 @@ class UsersService:
                 raise ValueError("User not found")
 
             # Exclude sensitive information
-            return {
-                "_id": user["_id"],
-                "username": user["username"],
-                "public_key": user.get("public_key", None),
-                "owned_notes": user.get("owned_notes", []),
-                "editor_notes": user.get("editor_notes", []),
-                "viewer_notes": user.get("viewer_notes", []),
-            }
+            return user
 
         except Exception as e:
             self.logger.error(f"Error retrieving user: {e}")
-            raise
-
-    def delete_user(self, user_id: str, password: str) -> Dict[str, Any]:
-        """
-        Delete a user account after password verification
-
-        Args:
-            user_id (str): ID of the user to delete
-            password (str): User's current password
-
-        Returns:
-            Dict with deletion status
-        """
-        try:
-            # Find user
-            user = self.db_manager.find_document("users", {"_id": user_id})
-
-            if not user:
-                raise ValueError("User not found")
-
-            # Verify password
-            stored_hash = user["password"]
-            salt = user["hash_of_digest"]
-
-            input_hash, _ = self._hash_password(password, salt)
-
-            if input_hash != stored_hash:
-                raise ValueError("Password verification failed")
-
-            # Delete user document
-            self.db_manager.delete_document("users", {"_id": user_id})
-
-            # Log and return success message
-            self.logger.info(f"User with ID {user_id} successfully deleted")
-            return {"status": "success", "message": "User account deleted successfully"}
-
-        except Exception as e:
-            self.logger.error(f"Error deleting user: {e}")
             raise
 
     def check_user_note_permissions(
@@ -165,7 +117,7 @@ class UsersService:
             self.logger.error(f"Error checking note permissions: {e}")
             raise
 
-    def add_viewer_note(self, user_id: int, note_id: int) -> Dict[str, Any]:
+    def add_viewer_note(self, user: Dict[str,any], note_id: int) -> Dict[str, Any]:
         """
         Add a note to the list of notes the user can view
 
@@ -176,25 +128,17 @@ class UsersService:
         Returns:
             Dict[str, Any]: A dictionary containing the updated user document
         """
-        try:
-            # Get user document
-            user = self.db_manager.find_document("users", {"_id": user_id})
+        # Get user document
+        user_id = user.get("_id")
 
-            if not user:
-                raise ValueError("User not found")
+        # Update user document
+        self.db_manager.update_document(
+            "users", {"_id": user_id}, {"$addToSet": {"viewer_notes": note_id}}
+        )
 
-            # Update user document
-            updated_user = self.db_manager.update_document(
-                "users", {"_id": user_id}, {"$addToSet": {"viewer_notes": note_id}}
-            )
 
-            return updated_user
 
-        except Exception as e:
-            self.logger.error(f"Error adding viewer note: {e}")
-            raise
-
-    def remove_viewer_note(self, user_id: int, note_id: int) -> Dict[str, Any]:
+    def remove_viewer_note(self, user: Dict[str,any], note_id: int) -> Dict[str, Any]:
         """
         Remove a note from the list of notes the user can view
 
@@ -205,25 +149,17 @@ class UsersService:
         Returns:
             Dict[str, Any]: A dictionary containing the updated user document
         """
-        try:
-            # Get user document
-            user = self.db_manager.find_document("users", {"_id": user_id})
+        # Get user document
 
-            if not user:
-                raise ValueError("User not found")
+        user_id = user.get("_id")
+        # Update user document
+        self.db_manager.update_document(
+            "users", {"_id": user_id}, {"$pull": {"viewer_notes": note_id}}
+        )
 
-            # Update user document
-            updated_user = self.db_manager.update_document(
-                "users", {"_id": user_id}, {"$pull": {"viewer_notes": note_id}}
-            )
 
-            return updated_user
 
-        except Exception as e:
-            self.logger.error(f"Error removing viewer note: {e}")
-            raise
-
-    def add_editor_note(self, user_id: int, note_id: int) -> Dict[str, Any]:
+    def add_editor_note(self, user: Dict[str,any], note_id: int) -> Dict[str, Any]:
         """
         Add a note to the list of notes the user can edit
 
@@ -234,25 +170,17 @@ class UsersService:
         Returns:
             Dict[str, Any]: A dictionary containing the updated user document
         """
-        try:
-            # Get user document
-            user = self.db_manager.find_document("users", {"_id": user_id})
+        # Get user document
 
-            if not user:
-                raise ValueError("User not found")
+        user_id = user.get("_id")
 
-            # Update user document
-            updated_user = self.db_manager.update_document(
-                "users", {"_id": user_id}, {"$addToSet": {"editor_notes": note_id}}
-            )
+        # Update user document
+        self.db_manager.update_document(
+            "users", {"_id": user_id}, {"$addToSet": {"editor_notes": note_id}}
+        )
+        
 
-            return updated_user
-
-        except Exception as e:
-            self.logger.error(f"Error adding editor note: {e}")
-            raise
-
-    def remove_editor_note(self, user_id: int, note_id: int) -> Dict[str, Any]:
+    def remove_editor_note(self, user: int, note_id: int) -> Dict[str, Any]:
         """
         Remove a note from the list of notes the user can edit
 
@@ -263,23 +191,16 @@ class UsersService:
         Returns:
             Dict[str, Any]: A dictionary containing the updated user document
         """
-        try:
-            # Get user document
-            user = self.db_manager.find_document("users", {"_id": user_id})
+        # Get user document
+        user_id = user.get("_id")
 
-            if not user:
-                raise ValueError("User not found")
+        # Update user document
+        self.db_manager.update_document(
+            "users", {"_id": user_id}, {"$pull": {"editor_notes": note_id}}
+        )
 
-            # Update user document
-            updated_user = self.db_manager.update_document(
-                "users", {"_id": user_id}, {"$pull": {"editor_notes": note_id}}
-            )
 
-            return updated_user
-
-        except Exception as e:
-            self.logger.error(f"Error removing editor note: {e}")
-            raise
+       
 
 
 # Factory function for creating UsersService

@@ -20,7 +20,14 @@ remove user: # TODO: decide if user looses access to previous versions or not
   - owner rencripts note with new key
   - owner shares new key with all remaining editors/viewers
 
-
+{
+    "type": "ADD_COLABORATOR",
+    "data": {
+        "note_id":
+        "editorFlag": True/False,
+        "collaborator_username":
+    }
+}
 
 push:
   actions:[

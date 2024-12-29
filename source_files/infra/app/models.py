@@ -12,8 +12,8 @@ class ActionType(Enum):
     CREATE_NOTE = "create_note"
     EDIT_NOTE = "edit_note"
     DELETE_NOTE = "delete_note"
-    ADD_COLABORATOR = "add_colaborator"
-    REMOVE_COLABORATOR = "remove_colaborator"
+    ADD_COLLABORATOR = "add_collaborator"
+    REMOVE_COLLABORATOR = "remove_collaborator"
 
 
 class RequestType(Enum):
@@ -112,7 +112,6 @@ class ResponseModel(BaseModel):
 class UsersModel(BaseModel):
     username: str = Field(...)
     public_key: bytes = Field(...)
-    digest_of_hmacs: str = Field(...)
     owned_notes: List[int] = Field(...)
     editor_notes: List[int] = Field(...)
     viewer_notes: List[int] = Field(...)

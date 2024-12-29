@@ -58,17 +58,19 @@ class FileHandler:
         os.makedirs(directory, exist_ok=True)
 
     @staticmethod
-    def delete_all(directories: List[str]) -> None:
-        """Deletes all directories in the list, including non-empty ones."""
-        for directory in directories:
-            if os.path.exists(directory):
-                try:
-                    shutil.rmtree(
-                        directory
-                    )  # Recursively deletes the directory and its contents
-                    print(f"Successfully deleted: {directory}")
-                except Exception as e:
-                    print(f"Error deleting {directory}: {e}")
+    def delete_all(paths: List[str]) -> None:
+        """Deletes all files and directories in the list."""
+        for path in paths:
+            try:
+                shutil.rmtree(path)  # Try removing it as a directory
+            except NotADirectoryError:
+                os.remove(path)  # Fallback to removing it as a file
+            except FileNotFoundError:
+                print(f"Path does not exist: {path}")
+            except Exception as e:
+                print(f"Error deleting {path}: {e}")
+            else:
+                print(f"Successfully deleted: {path}")
 
     @staticmethod
     def clean_note_directory(directory: str) -> None:
@@ -188,3 +190,26 @@ class FileHandler:
             return highest_version
         else:
             raise Exception("No notes found in the directory.")
+
+    def clean_file(file: str) -> None:
+        """
+        Cleans the file by removing its contents.
+
+        Args:
+            file (str): The file to clean.
+        """
+        try:
+            open(file, "w").close()
+        except Exception as e:
+            raise Exception(f"Failed to clean file: {e}")
+
+    def get_changes(changes_file: str) -> List[dict]:
+        """Get the changes from the changes file."""
+        try:
+            with open(changes_file, "r") as file:
+                return [json.loads(line) for line in file if line.strip()]
+        except FileNotFoundError:
+            return []  # No file means no changes
+        except Exception as e:
+            raise Exception(f"Failed to read changes file: {e}")
+

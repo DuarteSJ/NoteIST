@@ -85,7 +85,7 @@ class Server:
             local_hmac = req.data.get("digest_of_hmacs")
 
             documents = self.notes_service.get_user_notes(user.get("_id"))
-            sorted_docs = sorted(documents, key=lambda x: (x["_id"], x["owner"]["_id"]))
+            sorted_docs = sorted(documents, key=lambda x: x["_id"])
             hmac_str = ""
             for doc in sorted_docs:
                 hmac_str += doc.get("hmac")
@@ -94,19 +94,20 @@ class Server:
             digest_of_hmacs.update(hmac_str.encode("utf-8"))
             digest_of_hmacs = digest_of_hmacs.finalize().hex()
 
+            print(f"Server: {digest_of_hmacs}")
+            print(f"Client: {local_hmac}")
+
             if digest_of_hmacs == local_hmac:
                 return {
-                    "status": "success",
+                    "status": "synced",
                     "message": "All files are up to date. Sync successful",
                 }
 
-            note_id = self.notes_service.get_next_note_id(user.get("_id"))
 
             return {
                 "status": "success",
                 "message": "Documents retrieved successfully",
                 "documents": documents,
-                "curr_note_id": note_id,
             }
 
         except ValidationError as ve:
@@ -133,12 +134,14 @@ class Server:
             # Prepare to collect results of actions
             action_results = []
 
+            note_changes = req.data.get("note_changes")
+            user_changes = req.data.get("user_changes")
+
+
             # Process each action
-            for action in req.data:
+            for action in note_changes:
                 print(action)
-                if "type" not in action:
-                    continue
-                handler_method = self._get_action_handler(action.get("type"))
+                handler_method = self._get_action_handler(action.get("type", ""))
                 if handler_method:
                     try:
                         result = handler_method(action, user)
@@ -166,18 +169,49 @@ class Server:
                         }
                     )
 
+            user_results = []
+
+            for collab in user_changes:
+                handler_method = self._get_action_handler(collab.get("type", ""))
+                if handler_method:
+                    try:
+                        result = handler_method(collab, user)
+                        user_results.append(
+                            {
+                                "collab": collab.get("type"),
+                                "status": "success",
+                                "result": result,
+                            }
+                        )
+                    except Exception as collab_error:
+                        user_results.append(
+                            {
+                                "collab": collab.get("type"),
+                                "status": "error",
+                                "message": str(collab_error),
+                            }
+                        )
+                else:
+                    user_results.append(
+                        {
+                            "collab": collab.get("type"),
+                            "status": "error",
+                            "message": f'No handler found for action: {collab.get("type")}',
+                        }
+                    )
+
             # Construct response
             return {
                 "status": "success",
-                "message": "Actions processed successfully",
+                "message": "Actions processed",
                 "action_results": action_results,
+                "user_results": user_results,
             }
 
         except ValidationError as ve:
             self.logger.error(f"Validation Error: {ve}")
             return {"status": "error", "message": str(ve)}
         except Exception as e:
-            print("aaaaa")
             self.logger.error(f"Error processing request: {e}")
             return {"status": "error", "message": str(e)}
 
@@ -192,8 +226,8 @@ class Server:
             ActionType.CREATE_NOTE.value: self._handle_create_note,
             ActionType.EDIT_NOTE.value: self._handle_edit_note,
             ActionType.DELETE_NOTE.value: self._handle_delete_note,
-            ActionType.ADD_COLABORATOR.value: self._handle_add_colaborator,
-            ActionType.REMOVE_COLABORATOR.value: self._handle_remove_colaborator,
+            ActionType.ADD_COLLABORATOR.value: self._handle_add_collaborator,
+            ActionType.REMOVE_COLLABORATOR.value: self._handle_remove_collaborator,
         }
 
         return action_handlers.get(action)
@@ -212,7 +246,7 @@ class Server:
         note = data.get("note")
         if not note:
             raise ValueError("Missing note data")
-
+        
         note_id = note.get("_id")
         note_hmac = note.get("hmac")
         note_iv = note.get("iv")
@@ -242,8 +276,7 @@ class Server:
             owner=user,
         )
         note_id = note.get("_id")
-
-        return {"status": "success", "message": "Note created", "note_id": note_id}
+        return {"status": "success", "message": f"Note {note_id} created", }
 
     def _handle_edit_note(
         self, action: Dict[str, Any], user: Dict[str, Any]
@@ -262,20 +295,26 @@ class Server:
         # se a versão for a mesma, chama o create_note
 
         sent_note = action.get("data", {}).get("note")
+
         if not sent_note:
             raise ValueError("Missing note data")
 
-        owner = sent_note.get("owner")
-        server_note = self.notes_service.get_note(sent_note.get("_id"), owner)
+        owner = self.user_service.get_user(sent_note.get("owner").get("username"))
+        owner_id = owner.get("_id")
+
+        server_note = self.notes_service.get_note(sent_note.get("_id"), owner_id)
+        if not server_note:
+            raise ValueError("Note not found")
+
 
         perms = self.user_service.check_user_note_permissions(
             user.get("_id"), server_note
         )
+
         if not perms.get("is_editor"):
             raise ValueError("User does not have permission to edit this note")
 
         note_id = sent_note.get("_id")
-        owner_id = sent_note.get("owner").get("_id")
         note_hmac = sent_note.get("hmac")
         note_iv = sent_note.get("iv")
         note_title = sent_note.get("title")
@@ -293,7 +332,7 @@ class Server:
         ):
             raise ValueError("Missing required note fields")
 
-        note = self.notes_service.edit_note(
+        self.notes_service.edit_note(
             title=note_title,
             content=note_note,
             id=note_id,
@@ -301,11 +340,10 @@ class Server:
             hmac=note_hmac,
             owner=owner,
             editor=user,
-            note=note,
             version=note_version,
         )
 
-        return ResponseModel(status="success", message="Note edited")
+        return {"status": "success", "message": f"Note {note_id} edited"}
 
     def _handle_delete_note(
         self, action: Dict[str, Any], user: Dict[str, Any]
@@ -342,9 +380,9 @@ class Server:
         for viewer_id in server_note.get("viewers", []):
             self.user_service.remove_viewer_note(viewer_id, note_id)
 
-        return ResponseModel(status="success", message="Note deleted")
+        return {"status":"success", "message": f"Note {note_id} deleted"}
 
-    def _handle_add_colaborator(
+    def _handle_add_collaborator(
         self, action: Dict[str, Any], user: Dict[str, Any]
     ) -> Dict[str, Any]:
         """
@@ -355,22 +393,21 @@ class Server:
             "data": {
                 "note_id":
                 "editorFlag": True/False,
-                "colaborator_name":
+                "collaborator_username":
             }
         }
 
         """
-        action_owner_id = user.get("_id")
         note_id = action.get("data", {}).get("note_id")
-        colaborator_name = action.get("data", {}).get("colaborator_name")
+        collaborator_username = action.get("data", {}).get("collaborator_username")
         editorFlag = action.get("data", {}).get("editorFlag")
 
-        if not note_id or not colaborator_name or editorFlag is None:
+        if not note_id or not collaborator_username or editorFlag is None:
             raise ValueError("Missing required note fields")
 
-        colaborator = self.user_service.get_user(colaborator_name)
-        if not colaborator:
-            raise ValueError(f"User {colaborator_name} not found")
+        collaborator = self.user_service.get_user(collaborator_username)
+        if not collaborator:
+            raise ValueError(f"User {collaborator_username} not found")
 
         note = self.notes_service.get_note(note_id, user)
         if not note:
@@ -378,43 +415,41 @@ class Server:
 
         if editorFlag:
             self.notes_service.add_editor_to_note(
-                note_id, user.get("_id"), colaborator.get("_id")
+                note, user.get("_id"), collaborator.get("_id")
             )
-            self.user_service.add_editor_note(colaborator.get("_id"), note_id)
+            self.user_service.add_editor_note(collaborator, note_id)
 
         self.notes_service.add_viewer_to_note(
-            note_id, user.get("_id"), colaborator.get("_id")
+            note, user.get("_id"), collaborator.get("_id")
         )
-        self.user_service.add_viewer_note(colaborator.get("_id"), note_id)
+        self.user_service.add_viewer_note(collaborator.get("_id"), note_id)
 
-        return ResponseModel(status="success", message="Colaborator added")
+        return {"status": "success", "message": f"Collaborator {collaborator_username} added"}
 
-    def _handle_remove_colaborator(
+    def _handle_remove_collaborator(
         self, action: Dict[str, Any], user: Dict[str, Any]
     ) -> Dict[str, Any]:
         """
         Handle removing colaborators from a note.
         colaborators can be viewers or editors. (decided in the action data)
         {
-            "type": "REMOVE_COLABORATOR",
+            "type": "REMOVE_COLLABORATOR",
             "data": {
                 "note_id":
-                "editorFlag": True/False,
-                "colaborator_name":
+                "collaborator_username":
             }
         }
         """
-        action_owner_id = user.get("_id")
         note_id = action.get("data", {}).get("note_id")
-        colaborator_name = action.get("data", {}).get("colaborator_name")
+        collaborator_username = action.get("data", {}).get("collaborator_username")
         editorFlag = action.get("data", {}).get("editorFlag")
 
-        if not note_id or not colaborator_name or editorFlag is None:
+        if not note_id or not collaborator_username:
             raise ValueError("Missing required note fields")
 
-        colaborator = self.user_service.get_user(colaborator_name)
-        if not colaborator:
-            raise ValueError(f"User {colaborator_name} not found")
+        collaborator = self.user_service.get_user(collaborator_username)
+        if not collaborator:
+            raise ValueError(f"User {collaborator_username} not found")
 
         note = self.notes_service.get_note(note_id, user)
         if not note:
@@ -422,16 +457,16 @@ class Server:
 
         if editorFlag:
             self.notes_service.remove_editor_from_note(
-                note_id, user.get("_id"), colaborator.get("_id")
+                note, user.get("_id"), collaborator.get("_id")
             )
-            self.user_service.remove_editor_note(colaborator.get("_id"), note_id)
+            self.user_service.remove_editor_note(collaborator.get("_id"), note_id)
 
         self.notes_service.remove_viewer_from_note(
-            note_id, user.get("_id"), colaborator.get("_id")
+            note, user.get("_id"), collaborator.get("_id")
         )
-        self.user_service.remove_viewer_note(colaborator.get("_id"), note_id)
+        self.user_service.remove_viewer_note(collaborator.get("_id"), note_id)
 
-        return ResponseModel(status="success", message="Colaborator removed")
+        return {"status": "success", "message": f"Collaborator {collaborator_username} removed"}
 
     def handle_request(self, request: BaseRequestModel) -> ResponseModel:
         """

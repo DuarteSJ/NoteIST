@@ -114,3 +114,10 @@ class SecureHandler:
         unpadded_data = unpadder.update(decrypted_data) + unpadder.finalize()
 
         return unpadded_data.decode("utf-8")
+
+    def hash_hmacs_str (hmac_str: str) -> str:
+        """Hashes a string using HMAC-SHA256."""
+        digest_of_hmacs = hashes.Hash(hashes.SHA256(), backend=default_backend())
+        digest_of_hmacs.update(hmac_str.encode("utf-8"))
+        digest_of_hmacs = digest_of_hmacs.finalize().hex()
+        return digest_of_hmacs
