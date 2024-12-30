@@ -202,3 +202,440 @@
 2024-12-30 18:00:03,644 - db_manager - INFO - Updated document in users
 2024-12-30 18:00:03,645 - db_manager - INFO - Updated document in notes
 2024-12-30 18:00:03,646 - db_manager - INFO - Updated document in users
+2024-12-30 19:31:46,920 - db_manager - INFO - Successfully connected to MongoDB
+2024-12-30 19:31:46,921 - __main__ - INFO - Server listening on 0.0.0.0:5000
+2024-12-30 19:32:47,013 - __main__ - INFO - Connection from ('192.168.1.200', 54586)
+2024-12-30 19:32:47,024 - db_manager - INFO - Inserted document in users with ID: 6772f55ff9f965b34a61f641
+2024-12-30 19:32:47,024 - users - INFO - User created with ID: 6772f55ff9f965b34a61f641
+2024-12-30 19:38:04,441 - __main__ - INFO - Connection from ('192.168.1.200', 41718)
+2024-12-30 19:38:04,457 - db_manager - INFO - Inserted document in notes with ID: 6772f69cf9f965b34a61f642
+2024-12-30 19:38:04,462 - db_manager - INFO - Updated document in users
+2024-12-30 19:38:04,463 - notes - INFO - Note created with ID: 6772f69cf9f965b34a61f642
+2024-12-30 19:38:04,467 - db_manager - INFO - Inserted document in notes with ID: 6772f69cf9f965b34a61f643
+2024-12-30 19:38:04,468 - db_manager - INFO - Updated document in users
+2024-12-30 19:38:04,468 - notes - INFO - Note created with ID: 6772f69cf9f965b34a61f643
+2024-12-30 19:38:04,469 - db_manager - INFO - Inserted document in notes with ID: 6772f69cf9f965b34a61f644
+2024-12-30 19:38:04,470 - db_manager - INFO - Updated document in users
+2024-12-30 19:38:04,470 - notes - INFO - Note created with ID: 6772f69cf9f965b34a61f644
+2024-12-30 19:38:04,472 - db_manager - INFO - Inserted document in notes with ID: 6772f69cf9f965b34a61f645
+2024-12-30 19:38:04,472 - db_manager - INFO - Updated document in users
+2024-12-30 19:38:04,472 - notes - INFO - Note created with ID: 6772f69cf9f965b34a61f645
+2024-12-30 19:38:04,475 - db_manager - INFO - Deleted 1 documents from notes
+2024-12-30 19:38:04,478 - db_manager - INFO - Updated document in users
+2024-12-30 19:38:04,484 - db_manager - INFO - Deleted 1 documents from notes
+2024-12-30 19:38:04,485 - db_manager - INFO - Updated document in users
+2024-12-30 19:38:04,490 - db_manager - INFO - Inserted document in notes with ID: 6772f69cf9f965b34a61f646
+2024-12-30 19:38:04,490 - notes - INFO - Note edited with ID: 6772f69cf9f965b34a61f646, new version: 2
+2024-12-30 19:38:04,497 - db_manager - INFO - Inserted document in notes with ID: 6772f69cf9f965b34a61f647
+2024-12-30 19:38:04,497 - notes - INFO - Note edited with ID: 6772f69cf9f965b34a61f647, new version: 2
+2024-12-30 19:39:46,101 - __main__ - INFO - Connection from ('192.168.1.200', 34710)
+2024-12-30 19:39:57,062 - __main__ - INFO - Connection from ('192.168.1.200', 39324)
+2024-12-30 19:39:57,071 - users - ERROR - Error retrieving user: User not found
+2024-12-30 19:42:41,758 - __main__ - INFO - Connection from ('192.168.1.200', 47622)
+2024-12-30 19:42:41,761 - db_manager - INFO - Inserted document in users with ID: 6772f7b1f9f965b34a61f648
+2024-12-30 19:42:41,761 - users - INFO - User created with ID: 6772f7b1f9f965b34a61f648
+2024-12-30 19:43:05,513 - __main__ - INFO - Connection from ('192.168.1.200', 38424)
+2024-12-30 19:43:05,518 - db_manager - INFO - Inserted document in notes with ID: 6772f7c9f9f965b34a61f649
+2024-12-30 19:43:05,520 - db_manager - INFO - Updated document in users
+2024-12-30 19:43:05,520 - notes - INFO - Note created with ID: 6772f7c9f9f965b34a61f649
+2024-12-30 19:43:05,526 - db_manager - INFO - Inserted document in notes with ID: 6772f7c9f9f965b34a61f64a
+2024-12-30 19:43:05,531 - db_manager - INFO - Updated document in users
+2024-12-30 19:43:05,533 - notes - INFO - Note created with ID: 6772f7c9f9f965b34a61f64a
+2024-12-30 19:43:13,243 - __main__ - INFO - Connection from ('192.168.1.200', 60804)
+2024-12-30 19:43:13,252 - db_manager - INFO - Updated document in notes
+2024-12-30 19:43:13,253 - db_manager - INFO - Updated document in users
+2024-12-30 19:43:13,255 - db_manager - INFO - Updated document in notes
+2024-12-30 19:43:13,257 - db_manager - INFO - Updated document in users
+2024-12-30 19:44:33,548 - db_manager - INFO - MongoDB connection closed
+2024-12-30 19:44:37,057 - db_manager - INFO - Successfully connected to MongoDB
+2024-12-30 19:44:37,058 - __main__ - INFO - Server listening on 0.0.0.0:5000
+2024-12-30 19:45:12,933 - __main__ - INFO - Connection from ('192.168.1.200', 35960)
+2024-12-30 19:45:12,935 - db_manager - INFO - Inserted document in users with ID: 6772f84884895e5d0dea68ca
+2024-12-30 19:45:12,935 - users - INFO - User created with ID: 6772f84884895e5d0dea68ca
+2024-12-30 19:45:22,896 - __main__ - INFO - Connection from ('192.168.1.200', 41906)
+2024-12-30 19:45:22,900 - db_manager - INFO - Inserted document in users with ID: 6772f85284895e5d0dea68cb
+2024-12-30 19:45:22,900 - users - INFO - User created with ID: 6772f85284895e5d0dea68cb
+2024-12-30 19:45:44,981 - __main__ - INFO - Connection from ('192.168.1.200', 60928)
+2024-12-30 19:45:44,987 - db_manager - INFO - Inserted document in notes with ID: 6772f86884895e5d0dea68cc
+2024-12-30 19:45:44,988 - db_manager - INFO - Updated document in users
+2024-12-30 19:45:44,988 - notes - INFO - Note created with ID: 6772f86884895e5d0dea68cc
+2024-12-30 19:45:44,996 - db_manager - INFO - Updated document in notes
+2024-12-30 19:45:44,997 - db_manager - INFO - Updated document in users
+2024-12-30 19:45:44,999 - db_manager - INFO - Updated document in notes
+2024-12-30 19:45:45,000 - db_manager - INFO - Updated document in users
+2024-12-30 19:47:07,167 - db_manager - INFO - MongoDB connection closed
+2024-12-30 19:47:09,308 - db_manager - INFO - Successfully connected to MongoDB
+2024-12-30 19:47:09,312 - __main__ - INFO - Server listening on 0.0.0.0:5000
+2024-12-30 19:48:03,020 - __main__ - INFO - Connection from ('192.168.1.200', 33008)
+2024-12-30 19:48:03,031 - db_manager - INFO - Updated document in notes
+2024-12-30 19:48:03,031 - db_manager - INFO - Updated document in users
+2024-12-30 19:48:03,032 - db_manager - INFO - Updated document in notes
+2024-12-30 19:48:03,033 - db_manager - INFO - Updated document in users
+2024-12-30 19:48:50,446 - __main__ - INFO - Connection from ('192.168.1.200', 59222)
+2024-12-30 19:48:50,450 - db_manager - INFO - Inserted document in notes with ID: 6772f9228e8acdda67bdb0e1
+2024-12-30 19:48:50,454 - db_manager - INFO - Updated document in users
+2024-12-30 19:48:50,454 - notes - INFO - Note created with ID: 6772f9228e8acdda67bdb0e1
+2024-12-30 19:48:50,464 - db_manager - INFO - Updated document in notes
+2024-12-30 19:48:50,465 - db_manager - INFO - Updated document in users
+2024-12-30 19:48:50,465 - db_manager - INFO - Updated document in notes
+2024-12-30 19:48:50,466 - db_manager - INFO - Updated document in users
+2024-12-30 19:54:11,652 - __main__ - INFO - Connection from ('192.168.1.200', 54828)
+2024-12-30 19:54:11,662 - db_manager - INFO - Inserted document in notes with ID: 6772fa638e8acdda67bdb0e2
+2024-12-30 19:54:11,664 - db_manager - INFO - Updated document in users
+2024-12-30 19:54:11,664 - notes - INFO - Note created with ID: 6772fa638e8acdda67bdb0e2
+2024-12-30 19:54:11,665 - db_manager - INFO - Inserted document in notes with ID: 6772fa638e8acdda67bdb0e3
+2024-12-30 19:54:11,666 - db_manager - INFO - Updated document in users
+2024-12-30 19:54:11,666 - notes - INFO - Note created with ID: 6772fa638e8acdda67bdb0e3
+2024-12-30 19:54:11,668 - db_manager - INFO - Updated document in notes
+2024-12-30 19:54:11,669 - db_manager - INFO - Updated document in users
+2024-12-30 19:54:11,670 - db_manager - INFO - Updated document in notes
+2024-12-30 19:54:11,673 - db_manager - INFO - Updated document in users
+2024-12-30 19:55:18,034 - __main__ - INFO - Connection from ('192.168.1.200', 35792)
+2024-12-30 19:55:18,045 - db_manager - INFO - Inserted document in notes with ID: 6772faa68e8acdda67bdb0e4
+2024-12-30 19:55:18,050 - db_manager - INFO - Updated document in users
+2024-12-30 19:55:18,051 - notes - INFO - Note created with ID: 6772faa68e8acdda67bdb0e4
+2024-12-30 19:55:18,056 - db_manager - INFO - Updated document in notes
+2024-12-30 19:55:18,059 - db_manager - INFO - Updated document in users
+2024-12-30 19:55:18,061 - db_manager - INFO - Updated document in notes
+2024-12-30 19:55:18,063 - db_manager - INFO - Updated document in users
+2024-12-30 19:56:53,853 - __main__ - INFO - Connection from ('192.168.1.200', 52112)
+2024-12-30 19:56:53,867 - db_manager - INFO - Inserted document in notes with ID: 6772fb058e8acdda67bdb0e5
+2024-12-30 19:56:53,868 - db_manager - INFO - Updated document in users
+2024-12-30 19:56:53,868 - notes - INFO - Note created with ID: 6772fb058e8acdda67bdb0e5
+2024-12-30 20:02:39,123 - __main__ - INFO - Connection from ('192.168.1.200', 46288)
+2024-12-30 20:02:39,140 - db_manager - INFO - Inserted document in notes with ID: 6772fc5f8e8acdda67bdb0e6
+2024-12-30 20:02:39,143 - db_manager - INFO - Updated document in users
+2024-12-30 20:02:39,144 - notes - INFO - Note created with ID: 6772fc5f8e8acdda67bdb0e6
+2024-12-30 20:02:39,146 - db_manager - INFO - Inserted document in notes with ID: 6772fc5f8e8acdda67bdb0e7
+2024-12-30 20:02:39,147 - db_manager - INFO - Updated document in users
+2024-12-30 20:02:39,147 - notes - INFO - Note created with ID: 6772fc5f8e8acdda67bdb0e7
+2024-12-30 20:02:39,149 - db_manager - INFO - Inserted document in notes with ID: 6772fc5f8e8acdda67bdb0e8
+2024-12-30 20:02:39,149 - db_manager - INFO - Updated document in users
+2024-12-30 20:02:39,149 - notes - INFO - Note created with ID: 6772fc5f8e8acdda67bdb0e8
+2024-12-30 20:02:39,150 - db_manager - INFO - Inserted document in notes with ID: 6772fc5f8e8acdda67bdb0e9
+2024-12-30 20:02:39,151 - db_manager - INFO - Updated document in users
+2024-12-30 20:02:39,151 - notes - INFO - Note created with ID: 6772fc5f8e8acdda67bdb0e9
+2024-12-30 20:02:39,152 - db_manager - INFO - Inserted document in notes with ID: 6772fc5f8e8acdda67bdb0ea
+2024-12-30 20:02:39,153 - db_manager - INFO - Updated document in users
+2024-12-30 20:02:39,153 - notes - INFO - Note created with ID: 6772fc5f8e8acdda67bdb0ea
+2024-12-30 20:02:39,154 - db_manager - INFO - Inserted document in notes with ID: 6772fc5f8e8acdda67bdb0eb
+2024-12-30 20:02:39,155 - db_manager - INFO - Updated document in users
+2024-12-30 20:02:39,155 - notes - INFO - Note created with ID: 6772fc5f8e8acdda67bdb0eb
+2024-12-30 20:02:39,160 - db_manager - INFO - Inserted document in notes with ID: 6772fc5f8e8acdda67bdb0ec
+2024-12-30 20:02:39,162 - db_manager - INFO - Updated document in users
+2024-12-30 20:02:39,163 - notes - INFO - Note created with ID: 6772fc5f8e8acdda67bdb0ec
+2024-12-30 20:02:39,166 - db_manager - INFO - Inserted document in notes with ID: 6772fc5f8e8acdda67bdb0ed
+2024-12-30 20:02:39,168 - db_manager - INFO - Updated document in users
+2024-12-30 20:02:39,168 - notes - INFO - Note created with ID: 6772fc5f8e8acdda67bdb0ed
+2024-12-30 20:02:39,169 - db_manager - INFO - Inserted document in notes with ID: 6772fc5f8e8acdda67bdb0ee
+2024-12-30 20:02:39,170 - db_manager - INFO - Updated document in users
+2024-12-30 20:02:39,170 - notes - INFO - Note created with ID: 6772fc5f8e8acdda67bdb0ee
+2024-12-30 20:02:39,171 - db_manager - INFO - Inserted document in notes with ID: 6772fc5f8e8acdda67bdb0ef
+2024-12-30 20:02:39,172 - db_manager - INFO - Updated document in users
+2024-12-30 20:02:39,172 - notes - INFO - Note created with ID: 6772fc5f8e8acdda67bdb0ef
+2024-12-30 20:02:39,174 - db_manager - INFO - Inserted document in notes with ID: 6772fc5f8e8acdda67bdb0f0
+2024-12-30 20:02:39,175 - db_manager - INFO - Updated document in users
+2024-12-30 20:02:39,175 - notes - INFO - Note created with ID: 6772fc5f8e8acdda67bdb0f0
+2024-12-30 20:02:39,176 - db_manager - INFO - Inserted document in notes with ID: 6772fc5f8e8acdda67bdb0f1
+2024-12-30 20:02:39,177 - db_manager - INFO - Updated document in users
+2024-12-30 20:02:39,177 - notes - INFO - Note created with ID: 6772fc5f8e8acdda67bdb0f1
+2024-12-30 20:02:39,178 - db_manager - INFO - Inserted document in notes with ID: 6772fc5f8e8acdda67bdb0f2
+2024-12-30 20:02:39,179 - db_manager - INFO - Updated document in users
+2024-12-30 20:02:39,179 - notes - INFO - Note created with ID: 6772fc5f8e8acdda67bdb0f2
+2024-12-30 20:02:39,181 - db_manager - INFO - Inserted document in notes with ID: 6772fc5f8e8acdda67bdb0f3
+2024-12-30 20:02:39,181 - db_manager - INFO - Updated document in users
+2024-12-30 20:02:39,181 - notes - INFO - Note created with ID: 6772fc5f8e8acdda67bdb0f3
+2024-12-30 20:02:39,182 - db_manager - INFO - Inserted document in notes with ID: 6772fc5f8e8acdda67bdb0f4
+2024-12-30 20:02:39,183 - db_manager - INFO - Updated document in users
+2024-12-30 20:02:39,183 - notes - INFO - Note created with ID: 6772fc5f8e8acdda67bdb0f4
+2024-12-30 20:02:39,184 - db_manager - INFO - Inserted document in notes with ID: 6772fc5f8e8acdda67bdb0f5
+2024-12-30 20:02:39,185 - db_manager - INFO - Updated document in users
+2024-12-30 20:02:39,185 - notes - INFO - Note created with ID: 6772fc5f8e8acdda67bdb0f5
+2024-12-30 20:02:39,186 - db_manager - INFO - Inserted document in notes with ID: 6772fc5f8e8acdda67bdb0f6
+2024-12-30 20:02:39,187 - db_manager - INFO - Updated document in users
+2024-12-30 20:02:39,187 - notes - INFO - Note created with ID: 6772fc5f8e8acdda67bdb0f6
+2024-12-30 20:02:39,188 - db_manager - INFO - Inserted document in notes with ID: 6772fc5f8e8acdda67bdb0f7
+2024-12-30 20:02:39,188 - db_manager - INFO - Updated document in users
+2024-12-30 20:02:39,189 - notes - INFO - Note created with ID: 6772fc5f8e8acdda67bdb0f7
+2024-12-30 20:02:39,191 - db_manager - INFO - Inserted document in notes with ID: 6772fc5f8e8acdda67bdb0f8
+2024-12-30 20:02:39,192 - db_manager - INFO - Updated document in users
+2024-12-30 20:02:39,192 - notes - INFO - Note created with ID: 6772fc5f8e8acdda67bdb0f8
+2024-12-30 20:02:39,193 - db_manager - INFO - Inserted document in notes with ID: 6772fc5f8e8acdda67bdb0f9
+2024-12-30 20:02:39,194 - db_manager - INFO - Updated document in users
+2024-12-30 20:02:39,194 - notes - INFO - Note created with ID: 6772fc5f8e8acdda67bdb0f9
+2024-12-30 20:02:39,196 - db_manager - INFO - Inserted document in notes with ID: 6772fc5f8e8acdda67bdb0fa
+2024-12-30 20:02:39,196 - db_manager - INFO - Updated document in users
+2024-12-30 20:02:39,196 - notes - INFO - Note created with ID: 6772fc5f8e8acdda67bdb0fa
+2024-12-30 20:02:39,197 - db_manager - INFO - Inserted document in notes with ID: 6772fc5f8e8acdda67bdb0fb
+2024-12-30 20:02:39,198 - db_manager - INFO - Updated document in users
+2024-12-30 20:02:39,198 - notes - INFO - Note created with ID: 6772fc5f8e8acdda67bdb0fb
+2024-12-30 20:02:39,199 - db_manager - INFO - Inserted document in notes with ID: 6772fc5f8e8acdda67bdb0fc
+2024-12-30 20:02:39,200 - db_manager - INFO - Updated document in users
+2024-12-30 20:02:39,200 - notes - INFO - Note created with ID: 6772fc5f8e8acdda67bdb0fc
+2024-12-30 20:02:39,201 - db_manager - INFO - Inserted document in notes with ID: 6772fc5f8e8acdda67bdb0fd
+2024-12-30 20:02:39,202 - db_manager - INFO - Updated document in users
+2024-12-30 20:02:39,202 - notes - INFO - Note created with ID: 6772fc5f8e8acdda67bdb0fd
+2024-12-30 20:02:39,203 - db_manager - INFO - Inserted document in notes with ID: 6772fc5f8e8acdda67bdb0fe
+2024-12-30 20:02:39,204 - db_manager - INFO - Updated document in users
+2024-12-30 20:02:39,204 - notes - INFO - Note created with ID: 6772fc5f8e8acdda67bdb0fe
+2024-12-30 20:02:39,206 - db_manager - INFO - Inserted document in notes with ID: 6772fc5f8e8acdda67bdb0ff
+2024-12-30 20:02:39,206 - db_manager - INFO - Updated document in users
+2024-12-30 20:02:39,207 - notes - INFO - Note created with ID: 6772fc5f8e8acdda67bdb0ff
+2024-12-30 20:02:39,208 - db_manager - INFO - Inserted document in notes with ID: 6772fc5f8e8acdda67bdb100
+2024-12-30 20:02:39,208 - db_manager - INFO - Updated document in users
+2024-12-30 20:02:39,209 - notes - INFO - Note created with ID: 6772fc5f8e8acdda67bdb100
+2024-12-30 20:02:39,210 - db_manager - INFO - Inserted document in notes with ID: 6772fc5f8e8acdda67bdb101
+2024-12-30 20:02:39,210 - db_manager - INFO - Updated document in users
+2024-12-30 20:02:39,210 - notes - INFO - Note created with ID: 6772fc5f8e8acdda67bdb101
+2024-12-30 20:02:39,212 - db_manager - INFO - Inserted document in notes with ID: 6772fc5f8e8acdda67bdb102
+2024-12-30 20:02:39,213 - db_manager - INFO - Updated document in users
+2024-12-30 20:02:39,213 - notes - INFO - Note created with ID: 6772fc5f8e8acdda67bdb102
+2024-12-30 20:02:39,214 - db_manager - INFO - Inserted document in notes with ID: 6772fc5f8e8acdda67bdb103
+2024-12-30 20:02:39,215 - db_manager - INFO - Updated document in users
+2024-12-30 20:02:39,215 - notes - INFO - Note created with ID: 6772fc5f8e8acdda67bdb103
+2024-12-30 20:02:39,216 - db_manager - INFO - Inserted document in notes with ID: 6772fc5f8e8acdda67bdb104
+2024-12-30 20:02:39,217 - db_manager - INFO - Updated document in users
+2024-12-30 20:02:39,217 - notes - INFO - Note created with ID: 6772fc5f8e8acdda67bdb104
+2024-12-30 20:02:39,218 - db_manager - INFO - Inserted document in notes with ID: 6772fc5f8e8acdda67bdb105
+2024-12-30 20:02:39,218 - db_manager - INFO - Updated document in users
+2024-12-30 20:02:39,218 - notes - INFO - Note created with ID: 6772fc5f8e8acdda67bdb105
+2024-12-30 20:02:39,219 - db_manager - INFO - Inserted document in notes with ID: 6772fc5f8e8acdda67bdb106
+2024-12-30 20:02:39,220 - db_manager - INFO - Updated document in users
+2024-12-30 20:02:39,220 - notes - INFO - Note created with ID: 6772fc5f8e8acdda67bdb106
+2024-12-30 20:02:39,221 - db_manager - INFO - Inserted document in notes with ID: 6772fc5f8e8acdda67bdb107
+2024-12-30 20:02:39,222 - db_manager - INFO - Updated document in users
+2024-12-30 20:02:39,222 - notes - INFO - Note created with ID: 6772fc5f8e8acdda67bdb107
+2024-12-30 20:02:39,224 - db_manager - INFO - Inserted document in notes with ID: 6772fc5f8e8acdda67bdb108
+2024-12-30 20:02:39,225 - db_manager - INFO - Updated document in users
+2024-12-30 20:02:39,225 - notes - INFO - Note created with ID: 6772fc5f8e8acdda67bdb108
+2024-12-30 20:02:39,227 - db_manager - INFO - Inserted document in notes with ID: 6772fc5f8e8acdda67bdb109
+2024-12-30 20:02:39,227 - db_manager - INFO - Updated document in users
+2024-12-30 20:02:39,227 - notes - INFO - Note created with ID: 6772fc5f8e8acdda67bdb109
+2024-12-30 20:02:39,229 - db_manager - INFO - Inserted document in notes with ID: 6772fc5f8e8acdda67bdb10a
+2024-12-30 20:02:39,229 - db_manager - INFO - Updated document in users
+2024-12-30 20:02:39,229 - notes - INFO - Note created with ID: 6772fc5f8e8acdda67bdb10a
+2024-12-30 20:02:39,231 - db_manager - INFO - Inserted document in notes with ID: 6772fc5f8e8acdda67bdb10b
+2024-12-30 20:02:39,231 - db_manager - INFO - Updated document in users
+2024-12-30 20:02:39,231 - notes - INFO - Note created with ID: 6772fc5f8e8acdda67bdb10b
+2024-12-30 20:02:39,232 - db_manager - INFO - Inserted document in notes with ID: 6772fc5f8e8acdda67bdb10c
+2024-12-30 20:02:39,233 - db_manager - INFO - Updated document in users
+2024-12-30 20:02:39,233 - notes - INFO - Note created with ID: 6772fc5f8e8acdda67bdb10c
+2024-12-30 20:02:39,234 - db_manager - INFO - Inserted document in notes with ID: 6772fc5f8e8acdda67bdb10d
+2024-12-30 20:02:39,235 - db_manager - INFO - Updated document in users
+2024-12-30 20:02:39,235 - notes - INFO - Note created with ID: 6772fc5f8e8acdda67bdb10d
+2024-12-30 20:02:39,236 - db_manager - INFO - Inserted document in notes with ID: 6772fc5f8e8acdda67bdb10e
+2024-12-30 20:02:39,237 - db_manager - INFO - Updated document in users
+2024-12-30 20:02:39,237 - notes - INFO - Note created with ID: 6772fc5f8e8acdda67bdb10e
+2024-12-30 20:02:39,238 - db_manager - INFO - Inserted document in notes with ID: 6772fc5f8e8acdda67bdb10f
+2024-12-30 20:02:39,239 - db_manager - INFO - Updated document in users
+2024-12-30 20:02:39,239 - notes - INFO - Note created with ID: 6772fc5f8e8acdda67bdb10f
+2024-12-30 20:02:39,240 - db_manager - INFO - Inserted document in notes with ID: 6772fc5f8e8acdda67bdb110
+2024-12-30 20:02:39,241 - db_manager - INFO - Updated document in users
+2024-12-30 20:02:39,241 - notes - INFO - Note created with ID: 6772fc5f8e8acdda67bdb110
+2024-12-30 20:02:39,242 - db_manager - INFO - Inserted document in notes with ID: 6772fc5f8e8acdda67bdb111
+2024-12-30 20:02:39,243 - db_manager - INFO - Updated document in users
+2024-12-30 20:02:39,243 - notes - INFO - Note created with ID: 6772fc5f8e8acdda67bdb111
+2024-12-30 20:02:39,244 - db_manager - INFO - Inserted document in notes with ID: 6772fc5f8e8acdda67bdb112
+2024-12-30 20:02:39,245 - db_manager - INFO - Updated document in users
+2024-12-30 20:02:39,245 - notes - INFO - Note created with ID: 6772fc5f8e8acdda67bdb112
+2024-12-30 20:02:39,246 - db_manager - INFO - Inserted document in notes with ID: 6772fc5f8e8acdda67bdb113
+2024-12-30 20:02:39,247 - db_manager - INFO - Updated document in users
+2024-12-30 20:02:39,247 - notes - INFO - Note created with ID: 6772fc5f8e8acdda67bdb113
+2024-12-30 20:02:39,248 - db_manager - INFO - Inserted document in notes with ID: 6772fc5f8e8acdda67bdb114
+2024-12-30 20:02:39,248 - db_manager - INFO - Updated document in users
+2024-12-30 20:02:39,249 - notes - INFO - Note created with ID: 6772fc5f8e8acdda67bdb114
+2024-12-30 20:02:39,249 - db_manager - INFO - Inserted document in notes with ID: 6772fc5f8e8acdda67bdb115
+2024-12-30 20:02:39,250 - db_manager - INFO - Updated document in users
+2024-12-30 20:02:39,250 - notes - INFO - Note created with ID: 6772fc5f8e8acdda67bdb115
+2024-12-30 20:02:39,251 - db_manager - INFO - Inserted document in notes with ID: 6772fc5f8e8acdda67bdb116
+2024-12-30 20:02:39,252 - db_manager - INFO - Updated document in users
+2024-12-30 20:02:39,252 - notes - INFO - Note created with ID: 6772fc5f8e8acdda67bdb116
+2024-12-30 20:02:39,253 - db_manager - INFO - Inserted document in notes with ID: 6772fc5f8e8acdda67bdb117
+2024-12-30 20:02:39,254 - db_manager - INFO - Updated document in users
+2024-12-30 20:02:39,254 - notes - INFO - Note created with ID: 6772fc5f8e8acdda67bdb117
+2024-12-30 20:02:39,255 - db_manager - INFO - Inserted document in notes with ID: 6772fc5f8e8acdda67bdb118
+2024-12-30 20:02:39,256 - db_manager - INFO - Updated document in users
+2024-12-30 20:02:39,256 - notes - INFO - Note created with ID: 6772fc5f8e8acdda67bdb118
+2024-12-30 20:02:39,263 - db_manager - INFO - Inserted document in notes with ID: 6772fc5f8e8acdda67bdb119
+2024-12-30 20:02:39,266 - db_manager - INFO - Updated document in users
+2024-12-30 20:02:39,270 - notes - INFO - Note created with ID: 6772fc5f8e8acdda67bdb119
+2024-12-30 20:02:39,277 - db_manager - INFO - Inserted document in notes with ID: 6772fc5f8e8acdda67bdb11a
+2024-12-30 20:02:39,279 - db_manager - INFO - Updated document in users
+2024-12-30 20:02:39,281 - notes - INFO - Note created with ID: 6772fc5f8e8acdda67bdb11a
+2024-12-30 20:02:39,289 - db_manager - INFO - Inserted document in notes with ID: 6772fc5f8e8acdda67bdb11b
+2024-12-30 20:02:39,296 - db_manager - INFO - Updated document in users
+2024-12-30 20:02:39,297 - notes - INFO - Note created with ID: 6772fc5f8e8acdda67bdb11b
+2024-12-30 20:02:39,299 - db_manager - INFO - Inserted document in notes with ID: 6772fc5f8e8acdda67bdb11c
+2024-12-30 20:02:39,300 - db_manager - INFO - Updated document in users
+2024-12-30 20:02:39,300 - notes - INFO - Note created with ID: 6772fc5f8e8acdda67bdb11c
+2024-12-30 20:02:39,303 - db_manager - INFO - Inserted document in notes with ID: 6772fc5f8e8acdda67bdb11d
+2024-12-30 20:02:39,305 - db_manager - INFO - Updated document in users
+2024-12-30 20:02:39,306 - notes - INFO - Note created with ID: 6772fc5f8e8acdda67bdb11d
+2024-12-30 20:02:39,309 - db_manager - INFO - Inserted document in notes with ID: 6772fc5f8e8acdda67bdb11e
+2024-12-30 20:02:39,311 - db_manager - INFO - Updated document in users
+2024-12-30 20:02:39,312 - notes - INFO - Note created with ID: 6772fc5f8e8acdda67bdb11e
+2024-12-30 20:02:39,313 - db_manager - INFO - Inserted document in notes with ID: 6772fc5f8e8acdda67bdb11f
+2024-12-30 20:02:39,314 - db_manager - INFO - Updated document in users
+2024-12-30 20:02:39,314 - notes - INFO - Note created with ID: 6772fc5f8e8acdda67bdb11f
+2024-12-30 20:02:39,315 - db_manager - INFO - Inserted document in notes with ID: 6772fc5f8e8acdda67bdb120
+2024-12-30 20:02:39,316 - db_manager - INFO - Updated document in users
+2024-12-30 20:02:39,316 - notes - INFO - Note created with ID: 6772fc5f8e8acdda67bdb120
+2024-12-30 20:02:39,317 - db_manager - INFO - Inserted document in notes with ID: 6772fc5f8e8acdda67bdb121
+2024-12-30 20:02:39,318 - db_manager - INFO - Updated document in users
+2024-12-30 20:02:39,318 - notes - INFO - Note created with ID: 6772fc5f8e8acdda67bdb121
+2024-12-30 20:02:39,319 - db_manager - INFO - Inserted document in notes with ID: 6772fc5f8e8acdda67bdb122
+2024-12-30 20:02:39,320 - db_manager - INFO - Updated document in users
+2024-12-30 20:02:39,320 - notes - INFO - Note created with ID: 6772fc5f8e8acdda67bdb122
+2024-12-30 20:02:39,321 - db_manager - INFO - Inserted document in notes with ID: 6772fc5f8e8acdda67bdb123
+2024-12-30 20:02:39,322 - db_manager - INFO - Updated document in users
+2024-12-30 20:02:39,322 - notes - INFO - Note created with ID: 6772fc5f8e8acdda67bdb123
+2024-12-30 20:02:39,324 - db_manager - INFO - Inserted document in notes with ID: 6772fc5f8e8acdda67bdb124
+2024-12-30 20:02:39,325 - db_manager - INFO - Updated document in users
+2024-12-30 20:02:39,325 - notes - INFO - Note created with ID: 6772fc5f8e8acdda67bdb124
+2024-12-30 20:02:39,327 - db_manager - INFO - Inserted document in notes with ID: 6772fc5f8e8acdda67bdb125
+2024-12-30 20:02:39,328 - db_manager - INFO - Updated document in users
+2024-12-30 20:02:39,328 - notes - INFO - Note created with ID: 6772fc5f8e8acdda67bdb125
+2024-12-30 20:02:39,329 - db_manager - INFO - Inserted document in notes with ID: 6772fc5f8e8acdda67bdb126
+2024-12-30 20:02:39,330 - db_manager - INFO - Updated document in users
+2024-12-30 20:02:39,330 - notes - INFO - Note created with ID: 6772fc5f8e8acdda67bdb126
+2024-12-30 20:02:39,331 - db_manager - INFO - Inserted document in notes with ID: 6772fc5f8e8acdda67bdb127
+2024-12-30 20:02:39,331 - db_manager - INFO - Updated document in users
+2024-12-30 20:02:39,332 - notes - INFO - Note created with ID: 6772fc5f8e8acdda67bdb127
+2024-12-30 20:02:39,333 - db_manager - INFO - Inserted document in notes with ID: 6772fc5f8e8acdda67bdb128
+2024-12-30 20:02:39,333 - db_manager - INFO - Updated document in users
+2024-12-30 20:02:39,334 - notes - INFO - Note created with ID: 6772fc5f8e8acdda67bdb128
+2024-12-30 20:02:39,335 - db_manager - INFO - Inserted document in notes with ID: 6772fc5f8e8acdda67bdb129
+2024-12-30 20:02:39,336 - db_manager - INFO - Updated document in users
+2024-12-30 20:02:39,336 - notes - INFO - Note created with ID: 6772fc5f8e8acdda67bdb129
+2024-12-30 20:02:39,338 - db_manager - INFO - Inserted document in notes with ID: 6772fc5f8e8acdda67bdb12a
+2024-12-30 20:02:39,339 - db_manager - INFO - Updated document in users
+2024-12-30 20:02:39,339 - notes - INFO - Note created with ID: 6772fc5f8e8acdda67bdb12a
+2024-12-30 20:02:39,340 - db_manager - INFO - Inserted document in notes with ID: 6772fc5f8e8acdda67bdb12b
+2024-12-30 20:02:39,341 - db_manager - INFO - Updated document in users
+2024-12-30 20:02:39,341 - notes - INFO - Note created with ID: 6772fc5f8e8acdda67bdb12b
+2024-12-30 20:02:39,342 - db_manager - INFO - Inserted document in notes with ID: 6772fc5f8e8acdda67bdb12c
+2024-12-30 20:02:39,342 - db_manager - INFO - Updated document in users
+2024-12-30 20:02:39,343 - notes - INFO - Note created with ID: 6772fc5f8e8acdda67bdb12c
+2024-12-30 20:02:39,343 - db_manager - INFO - Inserted document in notes with ID: 6772fc5f8e8acdda67bdb12d
+2024-12-30 20:02:39,344 - db_manager - INFO - Updated document in users
+2024-12-30 20:02:39,344 - notes - INFO - Note created with ID: 6772fc5f8e8acdda67bdb12d
+2024-12-30 20:02:39,345 - db_manager - INFO - Inserted document in notes with ID: 6772fc5f8e8acdda67bdb12e
+2024-12-30 20:02:39,346 - db_manager - INFO - Updated document in users
+2024-12-30 20:02:39,346 - notes - INFO - Note created with ID: 6772fc5f8e8acdda67bdb12e
+2024-12-30 20:02:39,347 - db_manager - INFO - Inserted document in notes with ID: 6772fc5f8e8acdda67bdb12f
+2024-12-30 20:02:39,348 - db_manager - INFO - Updated document in users
+2024-12-30 20:02:39,348 - notes - INFO - Note created with ID: 6772fc5f8e8acdda67bdb12f
+2024-12-30 20:02:39,349 - db_manager - INFO - Inserted document in notes with ID: 6772fc5f8e8acdda67bdb130
+2024-12-30 20:02:39,350 - db_manager - INFO - Updated document in users
+2024-12-30 20:02:39,350 - notes - INFO - Note created with ID: 6772fc5f8e8acdda67bdb130
+2024-12-30 20:02:39,351 - db_manager - INFO - Inserted document in notes with ID: 6772fc5f8e8acdda67bdb131
+2024-12-30 20:02:39,352 - db_manager - INFO - Updated document in users
+2024-12-30 20:02:39,352 - notes - INFO - Note created with ID: 6772fc5f8e8acdda67bdb131
+2024-12-30 20:02:39,355 - db_manager - INFO - Updated document in notes
+2024-12-30 20:02:39,357 - db_manager - INFO - Updated document in users
+2024-12-30 20:02:39,358 - db_manager - INFO - Updated document in notes
+2024-12-30 20:02:39,358 - db_manager - INFO - Updated document in users
+2024-12-30 20:03:31,032 - db_manager - INFO - MongoDB connection closed
+2024-12-30 20:03:33,030 - db_manager - INFO - Successfully connected to MongoDB
+2024-12-30 20:03:33,031 - __main__ - INFO - Server listening on 0.0.0.0:5000
+2024-12-30 20:05:20,282 - __main__ - INFO - Connection from ('192.168.1.200', 40626)
+2024-12-30 20:05:20,376 - db_manager - INFO - Updated document in notes
+2024-12-30 20:05:20,379 - db_manager - INFO - Updated document in users
+2024-12-30 20:05:20,381 - db_manager - INFO - Updated document in notes
+2024-12-30 20:05:20,383 - db_manager - INFO - Updated document in users
+2024-12-30 20:07:17,967 - db_manager - INFO - MongoDB connection closed
+2024-12-30 20:07:20,685 - db_manager - INFO - Successfully connected to MongoDB
+2024-12-30 20:07:20,685 - __main__ - INFO - Server listening on 0.0.0.0:5000
+2024-12-30 20:08:32,510 - __main__ - INFO - Connection from ('192.168.1.200', 38388)
+2024-12-30 20:08:32,586 - db_manager - INFO - Inserted document in notes with ID: 6772fdc0a0428e346f05dbcc
+2024-12-30 20:08:32,587 - db_manager - INFO - Updated document in users
+2024-12-30 20:08:32,587 - notes - INFO - Note created with ID: 6772fdc0a0428e346f05dbcc
+2024-12-30 20:08:32,593 - db_manager - INFO - Updated document in notes
+2024-12-30 20:08:32,594 - db_manager - INFO - Updated document in users
+2024-12-30 20:08:32,594 - db_manager - INFO - Updated document in notes
+2024-12-30 20:08:32,595 - db_manager - INFO - Updated document in users
+2024-12-30 20:10:49,864 - __main__ - INFO - Connection from ('192.168.1.200', 60046)
+2024-12-30 20:10:49,968 - db_manager - INFO - Updated document in notes
+2024-12-30 20:10:49,969 - db_manager - INFO - Updated document in users
+2024-12-30 20:10:49,970 - db_manager - INFO - Updated document in notes
+2024-12-30 20:10:49,970 - db_manager - INFO - Updated document in users
+2024-12-30 20:13:06,001 - __main__ - INFO - Connection from ('192.168.1.200', 40344)
+2024-12-30 20:13:06,086 - db_manager - INFO - Updated document in notes
+2024-12-30 20:13:06,086 - db_manager - INFO - Updated document in users
+2024-12-30 20:13:06,087 - db_manager - INFO - Updated document in notes
+2024-12-30 20:13:06,087 - db_manager - INFO - Updated document in users
+2024-12-30 20:19:04,224 - db_manager - INFO - MongoDB connection closed
+2024-12-30 20:19:06,436 - db_manager - INFO - Successfully connected to MongoDB
+2024-12-30 20:19:06,437 - __main__ - INFO - Server listening on 0.0.0.0:5000
+2024-12-30 20:19:15,818 - __main__ - INFO - Connection from ('192.168.1.200', 48246)
+2024-12-30 20:19:15,837 - db_manager - INFO - Updated document in notes
+2024-12-30 20:19:15,839 - db_manager - INFO - Updated document in users
+2024-12-30 20:19:15,845 - db_manager - INFO - Updated document in notes
+2024-12-30 20:19:15,847 - db_manager - INFO - Updated document in users
+2024-12-30 20:19:15,848 - __main__ - ERROR - Server error: Object of type bytes is not JSON serializable
+2024-12-30 20:19:30,490 - db_manager - INFO - MongoDB connection closed
+2024-12-30 20:19:33,047 - db_manager - INFO - Successfully connected to MongoDB
+2024-12-30 20:19:33,048 - __main__ - INFO - Server listening on 0.0.0.0:5000
+2024-12-30 20:19:50,163 - __main__ - INFO - Connection from ('192.168.1.200', 56428)
+2024-12-30 20:19:50,187 - db_manager - INFO - Updated document in notes
+2024-12-30 20:19:50,188 - db_manager - INFO - Updated document in users
+2024-12-30 20:19:50,189 - db_manager - INFO - Updated document in notes
+2024-12-30 20:19:50,194 - db_manager - INFO - Updated document in users
+2024-12-30 20:19:50,248 - __main__ - INFO - Connection from ('192.168.1.200', 56432)
+2024-12-30 20:19:50,249 - __main__ - ERROR - Server error: Unsupported request type: push_final
+2024-12-30 20:20:59,158 - db_manager - INFO - MongoDB connection closed
+2024-12-30 20:21:01,804 - db_manager - INFO - Successfully connected to MongoDB
+2024-12-30 20:21:01,805 - __main__ - INFO - Server listening on 0.0.0.0:5000
+2024-12-30 20:21:34,064 - __main__ - INFO - Connection from ('192.168.1.200', 39184)
+2024-12-30 20:21:34,094 - db_manager - INFO - Updated document in notes
+2024-12-30 20:21:34,096 - db_manager - INFO - Updated document in users
+2024-12-30 20:21:34,098 - db_manager - INFO - Updated document in notes
+2024-12-30 20:21:34,100 - db_manager - INFO - Updated document in users
+2024-12-30 20:21:34,156 - __main__ - INFO - Connection from ('192.168.1.200', 39192)
+2024-12-30 20:21:34,159 - __main__ - ERROR - Error processing request: 'list' object has no attribute 'get'
+2024-12-30 20:25:59,085 - db_manager - INFO - MongoDB connection closed
+2024-12-30 20:26:04,434 - db_manager - INFO - Successfully connected to MongoDB
+2024-12-30 20:26:04,435 - __main__ - INFO - Server listening on 0.0.0.0:5000
+2024-12-30 20:26:15,520 - __main__ - INFO - Connection from ('192.168.1.200', 59392)
+2024-12-30 20:26:15,534 - db_manager - INFO - Updated document in notes
+2024-12-30 20:26:15,535 - db_manager - INFO - Updated document in users
+2024-12-30 20:26:15,536 - db_manager - INFO - Updated document in notes
+2024-12-30 20:26:15,537 - db_manager - INFO - Updated document in users
+2024-12-30 20:26:15,537 - __main__ - ERROR - Server error: Object of type bytes is not JSON serializable
+2024-12-30 20:27:13,416 - db_manager - INFO - MongoDB connection closed
+2024-12-30 20:27:15,233 - db_manager - INFO - Successfully connected to MongoDB
+2024-12-30 20:27:15,234 - __main__ - INFO - Server listening on 0.0.0.0:5000
+2024-12-30 20:33:09,265 - __main__ - INFO - Connection from ('192.168.1.200', 50030)
+2024-12-30 20:33:09,274 - db_manager - INFO - Updated document in notes
+2024-12-30 20:33:09,276 - db_manager - INFO - Updated document in users
+2024-12-30 20:33:09,280 - db_manager - INFO - Updated document in notes
+2024-12-30 20:33:09,284 - db_manager - INFO - Updated document in users
+2024-12-30 20:33:09,285 - __main__ - ERROR - Server error: Object of type bytes is not JSON serializable
+2024-12-30 20:33:53,956 - db_manager - INFO - MongoDB connection closed
+2024-12-30 20:33:56,220 - db_manager - INFO - Successfully connected to MongoDB
+2024-12-30 20:33:56,221 - __main__ - INFO - Server listening on 0.0.0.0:5000
+2024-12-30 20:34:38,354 - __main__ - INFO - Connection from ('192.168.1.200', 45056)
+2024-12-30 20:34:38,367 - db_manager - INFO - Updated document in notes
+2024-12-30 20:34:38,368 - db_manager - INFO - Updated document in users
+2024-12-30 20:34:38,368 - db_manager - INFO - Updated document in notes
+2024-12-30 20:34:38,369 - db_manager - INFO - Updated document in users
+2024-12-30 20:38:05,795 - __main__ - INFO - Connection from ('192.168.1.200', 40134)
+2024-12-30 20:38:05,806 - db_manager - INFO - Updated document in notes
+2024-12-30 20:38:05,808 - db_manager - INFO - Updated document in users
+2024-12-30 20:38:05,810 - db_manager - INFO - Updated document in notes
+2024-12-30 20:38:05,811 - db_manager - INFO - Updated document in users
+2024-12-30 20:42:21,721 - __main__ - INFO - Connection from ('192.168.1.200', 39736)
+2024-12-30 20:42:21,738 - db_manager - INFO - Updated document in notes
+2024-12-30 20:42:21,738 - db_manager - INFO - Updated document in users
+2024-12-30 20:42:21,739 - db_manager - INFO - Updated document in notes
+2024-12-30 20:42:21,740 - db_manager - INFO - Updated document in users
+2024-12-30 20:44:13,987 - __main__ - INFO - Connection from ('192.168.1.200', 56612)
+2024-12-30 20:44:14,006 - db_manager - INFO - Updated document in notes
+2024-12-30 20:44:14,008 - db_manager - INFO - Updated document in users
+2024-12-30 20:44:14,009 - db_manager - INFO - Updated document in notes
+2024-12-30 20:44:14,011 - db_manager - INFO - Updated document in users
+2024-12-30 20:44:37,505 - __main__ - INFO - Connection from ('192.168.1.200', 47622)
+2024-12-30 20:44:37,522 - db_manager - INFO - Updated document in notes
+2024-12-30 20:44:37,523 - db_manager - INFO - Updated document in users
+2024-12-30 20:44:37,525 - db_manager - INFO - Updated document in notes
+2024-12-30 20:44:37,527 - db_manager - INFO - Updated document in users

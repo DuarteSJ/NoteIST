@@ -344,53 +344,30 @@ class NoteISTClient:
             response = self.network_handler.push_changes(
                 self.priv_key_path, note_changes, user_changes
             )
-            print(f"Server response: {response.status} - {response.message}")
-            if response.status == "success":
-                for res in response.action_results:
-                    print(res)
-                for res in response.user_results:
-                    print(res)
+            if response.status != "success":
+                return
+            for res in response.action_results:
+                print(res)
+            for res in response.user_results:
+                print(res)
 
-
-                if response.public_key_dict:
-                    #there will be the need for a final push to give the server the key encrypted
-                    #with the public key of the added users
-                    # {
-                    #       "note_id": [
-                    #           {
-                    #               user_id: user_id,
-                    #               public_key: public key,
-                    #           },
-                    #           {   
-                    #               user_id: user_id,
-                    #               public_key: public key,
-                    #           },
-                    #           ...
-                    #       ],
-                    #       "note_id2": [
-                    #           {
-                    #               user_id: user_id,
-                    #               public_key: public key,
-                    #           },
-                    #           {
-                    #               user_id: user_id,
-                    #               public_key: public key,
-                    #           },
-                    #           ...
-                    #       ],
-                    #      ...
-                    # }
-                    
-                    
-                    newly_encrypted_note_keys = self.encrypt_key_with_users_public_keys(response.public_key_dict)
-            
-                    response = self.network_handler.final_push(                            
-                    
-
-                FileHandler.clean_file(self.user_changes_path)
-                FileHandler.clean_file(self.note_changes_path)
+            FileHandler.clean_file(self.note_changes_path)
         except Exception as e:
             raise Exception(f"Failed to push changes: {e}")
+
+        try:
+            print(response.public_keys_dict)
+            if response.public_keys_dict == {}:
+                return
+            newly_encrypted_note_keys = self.encrypt_key_with_users_public_keys(response.public_keys_dict)
+    
+            print (f"\nnewly_encrypted_note_keys: {newly_encrypted_note_keys}\n")
+            response = self.network_handler.final_push(self.priv_key_path, {"note_keys_dict": newly_encrypted_note_keys})
+                
+            print(f"Server response: {response}")
+            FileHandler.clean_file(self.user_changes_path)
+        except Exception as e:
+            raise Exception(f"Failed final step of push changes: {e}")
 
 
 
@@ -430,6 +407,7 @@ class NoteISTClient:
         hash = SecureHandler.hash_hmacs_str(hmac_str)
         return hash
 
+
     def get_note_list(self) -> List[tuple]:
         """Get a list of all local notes with their latest versions."""
         notes = []
@@ -438,7 +416,10 @@ class NoteISTClient:
 
         for note_dir in os.listdir(self.notes_dir):
             note_path = os.path.join(self.notes_dir, note_dir)
-            last_version = FileHandler.get_highest_version(note_path)
+            try:
+                last_version = FileHandler.get_highest_version(note_path)
+            except Exception:
+                continue
             note_path = os.path.join(note_path, f"v{last_version}.notist")
             key_path = os.path.join(self.notes_dir, note_dir, "key")
             note = FileHandler.read_encrypted_note(
@@ -726,19 +707,22 @@ class NoteISTClient:
             note_dir = os.path.join(self.notes_dir, note_id)
             #decrypt the key with master key
             key_path = os.path.join(note_dir, "key")
-            encrypted_note_key= FileHandler.read_key(key_path)
-            note_key = self.key_manager.decrypt_key_with_master_key(encrypted_note_key)
+            note_key = self.key_manager.load_note_key(key_path)
             all_encrypted_keys_for_note= []
 
             #encrypt the key with the public key of each user
             for user in public_key_dict[note_id]:
                 user_id = user["user_id"]
-                public_key = user["public_key"].decode("utf-8") #public key is in bytes
+                print("1")
+                public_key = self.key_manager.load_public_key_from_json_serializable(user["public_key"])
+                print("2")
                 encrypted_note_key = self.key_manager.encrypt_key_with_public_key(note_key, public_key)
+                print("3")
+                import base64
                 new_encrypted_note_key ={
                     "user_id":user_id,
-                    "key" : encrypted_note_key,
-                    } 
+                    "key" :  base64.b64decode(encrypted_note_key).decode("utf-8"),
+                    }
                 all_encrypted_keys_for_note.append(new_encrypted_note_key)
             client_response[note_id] = all_encrypted_keys_for_note
         return client_response

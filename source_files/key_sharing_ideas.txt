@@ -49,3 +49,32 @@ pushResponse:
     else:
       public key of all remaining users
   ]
+
+
+                #there will be the need for a final push to give the server the key encrypted
+                #with the public key of the added users
+                # {
+                #       "note_id": [
+                #           {
+                #               user_id: user_id,
+                #               public_key: public key,
+                #           },
+                #           {   
+                #               user_id: user_id,
+                #               public_key: public key,
+                #           },
+                #           ...
+                #       ],
+                #       "note_id2": [
+                #           {
+                #               user_id: user_id,
+                #               public_key: public key,
+                #           },
+                #           {
+                #               user_id: user_id,
+                #               public_key: public key,
+                #           },
+                #           ...
+                #       ],
+                #      ...
+                # }

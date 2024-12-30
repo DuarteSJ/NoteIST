@@ -122,6 +122,8 @@ class Server:
         
     def handle_push_final_request(self, req: PushRequest) -> Dict[str,any]:
         try:
+
+            print(f"Received push final request: {req}")
             # Verify signature first
             if not self.verify_signature(req):
                 return {"status": "error", "message": "Signature verification failed"}
@@ -231,6 +233,14 @@ class Server:
                     )
 
             # Construct response
+            print( {
+                "status": "success",
+                "message": "Actions processed",
+                "action_results": action_results,
+                "user_results": user_results,
+                "public_keys_dict": public_keys_dict,
+            })
+            
             return {
                 "status": "success",
                 "message": "Actions processed",

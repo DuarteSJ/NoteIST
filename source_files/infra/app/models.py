@@ -95,6 +95,7 @@ class RequestFactory:
             RequestType.REGISTER.value: RegisterRequest,
             RequestType.PUSH.value: PushRequest,
             RequestType.PULL.value: PullRequest,
+            RequestType.PUSH_FINAL.value: PushFinalRequest
         }
 
         request_class = request_map.get(request_type)
@@ -121,6 +122,7 @@ class UsersModel(BaseModel):
     owned_notes: List[int] = Field(...)
     editor_notes: List[int] = Field(...)
     viewer_notes: List[int] = Field(...)
+    keys: Dict[str, bytes] = Field(...)
 
 
 class NotesModel(BaseModel):

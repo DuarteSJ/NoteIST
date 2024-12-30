@@ -170,6 +170,12 @@ class KeyManager:
         return base64.b64encode(public_key_bytes).decode("utf-8")
 
     @staticmethod
+    def load_public_key_from_json_serializable(public_key: str) -> rsa.RSAPublicKey:
+        """Loads an RSA public key from a JSON-serializable format."""
+        public_key_bytes = base64.b64decode(public_key)
+        return serialization.load_der_public_key(public_key_bytes, backend=default_backend())
+
+    @staticmethod
     def generate_symmetric_key() -> bytes:
         """Generates a new random 256-bit symmetric encryption key."""
         return os.urandom(32)
@@ -215,6 +221,7 @@ class KeyManager:
             bytes: 32-byte derived key
         """
         salt = b"password"  # In production, this should be unique per user
+        # TODO: fix this shi
         kdf = PBKDF2HMAC(
             algorithm=crypto_hashes.SHA256(),
             length=32,
@@ -224,8 +231,9 @@ class KeyManager:
         )
         return kdf.derive(password.encode("utf-8"))
 
-    def encrypt_key_with_public_key(self, key: bytes, public_key: bytes) -> bytes:
+    def encrypt_key_with_public_key(self, key: bytes, public_key: rsa.RSAPublicKey) -> bytes:
         """Encrypts a key using an RSA public key."""
+        
         return public_key.encrypt(
             key,
             padding.OAEP(

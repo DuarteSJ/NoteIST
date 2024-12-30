@@ -21,7 +21,7 @@ class SecureDocumentHandler:
         try:
             with open(file_path, "w") as file:
                 json.dump(data, file, indent=indent)
-            print(f"JSON data successfully written to {file_path}")
+            #print(f"JSON data successfully written to {file_path}")
         except Exception as e:
             print(f"Error writing JSON to file: {e}")
 
