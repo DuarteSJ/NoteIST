@@ -509,7 +509,8 @@ class NoteISTClient:
         note = self.select_note()
 
         new_title = input("\nEnter new title: ")
-        new_content = input("Enter new content: ")
+        # new_content = input("Enter new content: ") # nao apaguem da jeito para correr teste automatico
+        new_content = self.edit_note_with_editor(note.get("note"))
 
         # Create new version
         note["title"] = new_title
@@ -630,3 +631,23 @@ class NoteISTClient:
             note_id=note.get("id"),
             is_editor=is_editor,
         )
+
+    def edit_note_with_editor(self, old_content):
+        import subprocess
+        import tempfile
+
+        with tempfile.NamedTemporaryFile(
+            delete=False, mode="w+", suffix=".txt"
+        ) as temp_file:
+            temp_file_name = temp_file.name
+            temp_file.write(old_content)
+            temp_file.flush()
+            subprocess.call(
+                [os.getenv("EDITOR", "nano"), temp_file_name]
+            )  # Use user's default editor
+
+        with open(temp_file_name, "r") as temp_file:
+            new_content = temp_file.read()
+
+        os.unlink(temp_file_name)  # Clean up the temporary file
+        return new_content.strip()
