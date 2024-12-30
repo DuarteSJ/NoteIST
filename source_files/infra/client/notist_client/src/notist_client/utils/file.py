@@ -49,7 +49,7 @@ class FileHandler:
             with open(filepath, "r") as f:
                 return json.load(f)
         except Exception as e:
-            raise Exception (f"Failed to read JSON file: {e}")
+            raise Exception(f"Failed to read JSON file: {e}")
 
     @staticmethod
     def ensure_directory(directory: str) -> None:
@@ -72,15 +72,18 @@ class FileHandler:
                 print(f"Successfully deleted: {path}")
 
     @staticmethod
-    def clean_note_directory(directory: str) -> None:
+    def clean_notes_directory(directory: str) -> None:
         # clean note files
         for sub_dir in os.listdir(directory):
             sub_dir_path = os.path.join(directory, sub_dir)
-            if os.path.isdir(sub_dir_path):
-                for file in os.listdir(sub_dir_path):
-                    file_path = os.path.join(sub_dir_path, file)
-                    if file != "key":
-                        os.remove(file_path)
+            FileHandler.clean_note_directory(sub_dir_path)
+
+    @staticmethod
+    def clean_note_directory(directory: str) -> None:
+        # clean note files
+        for file in os.listdir(directory):
+            if file.endswith(".notist"):
+                os.remove(os.path.join(directory, file))
 
     @classmethod
     def write_encrypted_note(
@@ -203,7 +206,6 @@ class FileHandler:
         except Exception as e:
             raise Exception(f"Failed to clean file: {e}")
 
-
     def save_change(filepath: str, data: Dict[str, Any]) -> None:
         """Appends a dictionary to a JSON file as part of a valid JSON array."""
         try:
@@ -212,7 +214,9 @@ class FileHandler:
                     try:
                         existing_data = json.load(f)
                         if not isinstance(existing_data, list):
-                            raise ValueError(f"The existing file ({filepath}) does not contain a JSON array.")
+                            raise ValueError(
+                                f"The existing file ({filepath}) does not contain a JSON array."
+                            )
                     except json.JSONDecodeError:
                         existing_data = []
             else:
@@ -243,3 +247,22 @@ class FileHandler:
             raise Exception(f"Invalid JSON file: {e}")
         except Exception as e:
             raise Exception(f"Failed to read changes: {e}")
+
+    def remove_empty_note_folders(directory: str) -> None:
+        """
+        Removes empty (only contain the key file) note folders from the given directory.
+
+        Args:
+            directory (str): The directory to search for empty folders.
+        """
+
+        try:
+            for folder in os.listdir(directory):
+                folder_path = os.path.join(directory, folder)
+                print(os.listdir(folder_path))
+                if len(os.listdir(folder_path)) == 1 and "key" in os.listdir(
+                    folder_path
+                ):
+                    shutil.rmtree(folder_path)
+        except Exception as e:
+            raise Exception(f"Failed to remove empty note folders: {e}")

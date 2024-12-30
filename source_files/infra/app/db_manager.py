@@ -169,7 +169,7 @@ class DatabaseManager:
             documents = list(cursor)
 
             return documents
-        
+
         except Exception as e:
             self.logger.error(f"Error finding documents in {collection_name}: {e}")
             raise

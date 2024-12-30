@@ -9,5 +9,6 @@ class Response(BaseModel):
     message: str
     action_results: Optional[List[Dict[str, Any]]] = None
     user_results: Optional[List[Dict[str, Any]]] = None
+    public_key_dict: Optional[Dict[str, Any]] = None
     documents: Optional[List[Dict[str, Any]]] = None
     document: Optional[Dict[str, Any]] = None

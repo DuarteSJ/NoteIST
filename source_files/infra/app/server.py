@@ -137,6 +137,7 @@ class Server:
             note_changes = req.data.get("note_changes")
             user_changes = req.data.get("user_changes")
 
+            public_keys_dict = {}
 
             # Process each action
             for action in note_changes:
@@ -175,7 +176,7 @@ class Server:
                 handler_method = self._get_action_handler(collab.get("type", ""))
                 if handler_method:
                     try:
-                        result = handler_method(collab, user)
+                        result = handler_method(collab, user, public_keys_dict)
                         user_results.append(
                             {
                                 "collab": collab.get("type"),
@@ -206,6 +207,7 @@ class Server:
                 "message": "Actions processed",
                 "action_results": action_results,
                 "user_results": user_results,
+                "public_keys_dict": public_keys_dict,
             }
 
         except ValidationError as ve:
@@ -233,7 +235,7 @@ class Server:
         return action_handlers.get(action)
 
     def _handle_create_note(
-        self, action: Dict[str, Any], user: Dict[str, Any]
+        self, action: Dict[str, Any], user: Dict[str, Any], public_keys_dict=None
     ) -> Dict[str, Any]:
         """
         Handle creating a new note for the user.
@@ -275,10 +277,13 @@ class Server:
         )
 
         note_id = note.get("id")
-        return {"status": "success", "message": f"Note {note_id} created", }
+        return {
+            "status": "success",
+            "message": f"Note {note_id} created",
+        }
 
     def _handle_edit_note(
-        self, action: Dict[str, Any], user: Dict[str, Any]
+        self, action: Dict[str, Any], user: Dict[str, Any], public_keys_dict=None
     ) -> Dict[str, Any]:
         """
         Handle editing an existing note.
@@ -344,7 +349,7 @@ class Server:
         return {"status": "success", "message": f"Note {note_id} edited"}
 
     def _handle_delete_note(
-        self, action: Dict[str, Any], user: Dict[str, Any]
+        self, action: Dict[str, Any], user: Dict[str, Any], public_keys_dict=None
     ) -> Dict[str, Any]:
         """
         Handle deleting a note.
@@ -376,10 +381,10 @@ class Server:
         for viewer_id in server_note.get("viewers", []):
             self.user_service.remove_viewer_note(viewer_id, note_id)
 
-        return {"status":"success", "message": f"Note {note_id} deleted"}
+        return {"status": "success", "message": f"Note {note_id} deleted"}
 
     def _handle_add_collaborator(
-        self, action: Dict[str, Any], user: Dict[str, Any]
+        self, action: Dict[str, Any], user: Dict[str, Any], public_keys_dict=None
     ) -> Dict[str, Any]:
         """
         Handle adding colaborators to a note.
@@ -394,26 +399,24 @@ class Server:
         }
 
         """
-        #self.logger.info(f"Adding collaborator {user.get("username")} to note {action.get('data', {}).get('note_id')}")
+        # self.logger.info(f"Adding collaborator {user.get("username")} to note {action.get('data', {}).get('note_id')}")
         note_id = action.get("data", {}).get("note_id")
         collaborator_username = action.get("data", {}).get("collaborator_username")
         editorFlag = action.get("data", {}).get("is_editor")
 
         if not note_id or not collaborator_username or editorFlag is None:
             raise ValueError("Missing required note fields")
-        
 
         collaborator = self.user_service.get_user(collaborator_username)
         if not collaborator:
             raise ValueError(f"User {collaborator_username} not found")
-        
+
         if collaborator.get("id") == user.get("id"):
             raise ValueError("User cannot add themselves as a collaborator")
 
         note = self.notes_service.get_note(note_id, user.get("id"))
         if not note:
             raise ValueError(f"Note with id {note_id} not found")
-        
 
         if editorFlag:
             self.notes_service.add_editor_to_note(
@@ -426,10 +429,18 @@ class Server:
         )
         self.user_service.add_viewer_note(collaborator, note_id)
 
-        return {"status": "success", "message": f"Collaborator {collaborator_username} added to note {note_id}"}
+        if not public_keys_dict[note_id]:
+            public_keys_dict[note_id] = []
+
+        public_keys_dict[note_id].append(collaborator.get("public_key"))
+
+        return {
+            "status": "success",
+            "message": f"Collaborator {collaborator_username} added to note {note_id}",
+        }
 
     def _handle_remove_collaborator(
-        self, action: Dict[str, Any], user: Dict[str, Any]
+        self, action: Dict[str, Any], user: Dict[str, Any], public_keys_dict=None
     ) -> Dict[str, Any]:
         """
         Handle removing colaborators from a note.
@@ -453,7 +464,7 @@ class Server:
         collaborator = self.user_service.get_user(collaborator_username)
         if not collaborator:
             raise ValueError(f"User {collaborator_username} not found")
-        
+
         if collaborator.get("id") == user.get("id"):
             raise ValueError("User cannot add themselves as a collaborator")
 
@@ -472,7 +483,10 @@ class Server:
         )
         self.user_service.remove_viewer_note(collaborator, note_id)
 
-        return {"status": "success", "message": f"Collaborator {collaborator_username} removed from note {note_id}"}
+        return {
+            "status": "success",
+            "message": f"Collaborator {collaborator_username} removed from note {note_id}",
+        }
 
     def handle_request(self, request: BaseRequestModel) -> ResponseModel:
         """
@@ -540,8 +554,9 @@ class Server:
             logging.error(f"Signature verification failed: {e}")
             return False
 
-    def _serialize_document(self,doc):
+    def _serialize_document(self, doc):
         from datetime import datetime
+
         for key, value in doc.items():
             if isinstance(value, datetime):
                 doc[key] = value.isoformat()  # Convert datetime to ISO 8601 string

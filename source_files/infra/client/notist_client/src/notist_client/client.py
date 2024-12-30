@@ -1,5 +1,4 @@
 import os
-import shutil
 from typing import Optional, List, Dict, Any
 from .crypto.keys import KeyManager
 from .network.handler import NetworkHandler
@@ -7,9 +6,16 @@ from .utils.file import FileHandler
 from .utils.auth import AuthManager
 from .models.actions import ActionType
 from .models.responses import Response
-from .config.paths import get_config_file, get_notes_dir, get_priv_key_file, get_note_changes_file, get_user_changes_file
+from .config.paths import (
+    get_config_file,
+    get_notes_dir,
+    get_priv_key_file,
+    get_note_changes_file,
+    get_user_changes_file,
+)
 from .crypto.secure import SecureHandler
 from uuid import uuid4
+
 
 class NoteISTClient:
     """
@@ -30,8 +36,8 @@ class NoteISTClient:
         self.notes_dir = get_notes_dir()
         self.priv_key_path = get_priv_key_file()
         self.config_path = get_config_file()
-        self.note_changes_path= get_note_changes_file()
-        self.user_changes_path= get_user_changes_file()
+        self.note_changes_path = get_note_changes_file()
+        self.user_changes_path = get_user_changes_file()
 
         self.key_manager = None
 
@@ -129,7 +135,15 @@ class NoteISTClient:
             exit(0)
 
         # Remove all previous user data
-        FileHandler.delete_all([self.priv_key_path, self.config_path, self.notes_dir, self.note_changes_path, self.user_changes_path])
+        FileHandler.delete_all(
+            [
+                self.priv_key_path,
+                self.config_path,
+                self.notes_dir,
+                self.note_changes_path,
+                self.user_changes_path,
+            ]
+        )
         FileHandler.ensure_directory(self.notes_dir)
 
         while True:
@@ -176,44 +190,31 @@ class NoteISTClient:
                     print("Exiting NoteIST. Goodbye!")
                     exit(0)
 
-
     def _apply_server_changes(self, changes: List[Dict[str, Any]]) -> None:
         """Apply changes received from server to local state."""
 
         FileHandler.clean_note_directory(self.notes_dir)
 
-        current_folder = None
+        current_id = None
 
         for note in changes:
-            title = note.get("title")
-            
-            title = FileHandler.read_encrypted_note(
-                filePath=temp_file,
-                keyFile=None, 
-                key_manager=self.key_manager,
-                )["title"]          
-
-            if not title:
+            id = note.get("id")
+            if not id:
                 print("Wrongly formatted document, skipping")
                 continue
 
-            # Create new folder name when owner_id or _id changes
-
-            folder_name = self.key_manager.encrypt_note_title(title)
-
             # If we're processing a new group, create a new folder
-            if folder_name != current_folder:
-                current_folder = folder_name
-                folder_path = os.path.join(self.notes_dir, folder_name)
+            if id != current_id:
+                current_id = id
+                folder_path = os.path.join(self.notes_dir, id)
                 FileHandler.ensure_directory(folder_path)
 
             FileHandler.write_json(
                 os.path.join(folder_path, f"v{note.get('version')}.notist"),
                 note,
             )
-            
-        # TODO: adicionar as chaves que vieram do server para a pasta correta (adicionou owner)
 
+        # TODO: adicionar as chaves que vieram do server para a pasta correta (adicionou owner)
 
     def create_note(self, title: str, content: str) -> None:
         """
@@ -240,7 +241,7 @@ class NoteISTClient:
         note = {
             "id": id,
             "title": title,
-            "content": content,
+            "note": content,
             "owner": {
                 "username": self.username,
             },
@@ -272,11 +273,11 @@ class NoteISTClient:
             key_manager=self.key_manager,
             id=note["id"],
             title=note["title"],
-            content=note["content"],
+            content=note["note"],
             owner=note["owner"],
             version=note["version"],
-            editor=note["editors"],
-            viewer=note["viewers"]
+            editors=note["editors"],
+            viewers=note["viewers"],
         )
 
     def _record_change(self, action_type: ActionType, **kwargs: Any) -> None:
@@ -288,12 +289,34 @@ class NoteISTClient:
             kwargs: Additional arguments like `note`, `note_id`, `user_id`, etc.
         """
         action_mapping = {
-            ActionType.CREATE_NOTE: (self.note_changes_path, {"note": kwargs.get("note")}),
-            ActionType.EDIT_NOTE: (self.note_changes_path, {"note": kwargs.get("note")}),
-            ActionType.DELETE_NOTE: (self.note_changes_path, {"note_id": kwargs.get("note_id")}),
-
-            ActionType.ADD_USER: (self.user_changes_path, {"collaborator_username": kwargs.get("collaborator_username"), "note_id": kwargs.get("note_id"), "is_editor": kwargs.get("is_editor")}),
-            ActionType.REMOVE_USER: (self.user_changes_path, {"collaborator_username": kwargs.get("collaborator_username"), "note_id": kwargs.get("note_id"), "is_editor": kwargs.get("is_editor")}),
+            ActionType.CREATE_NOTE: (
+                self.note_changes_path,
+                {"note": kwargs.get("note")},
+            ),
+            ActionType.EDIT_NOTE: (
+                self.note_changes_path,
+                {"note": kwargs.get("note")},
+            ),
+            ActionType.DELETE_NOTE: (
+                self.note_changes_path,
+                {"note_id": kwargs.get("note_id")},
+            ),
+            ActionType.ADD_USER: (
+                self.user_changes_path,
+                {
+                    "collaborator_username": kwargs.get("collaborator_username"),
+                    "note_id": kwargs.get("note_id"),
+                    "is_editor": kwargs.get("is_editor"),
+                },
+            ),
+            ActionType.REMOVE_USER: (
+                self.user_changes_path,
+                {
+                    "collaborator_username": kwargs.get("collaborator_username"),
+                    "note_id": kwargs.get("note_id"),
+                    "is_editor": kwargs.get("is_editor"),
+                },
+            ),
         }
 
         if action_type not in action_mapping:
@@ -331,18 +354,21 @@ class NoteISTClient:
         try:
             hash_of_hmacs = self.get_hash_hmac_from_encrypted_notes()
 
-            response = self.network_handler.pull_changes(self.priv_key_path, hash_of_hmacs)
+            response = self.network_handler.pull_changes(
+                self.priv_key_path, hash_of_hmacs
+            )
             print(f"Server response: {response.status} - {response.message}")
-            if response.status == "success" :
+            if response.status == "success":
                 self._apply_server_changes(response.documents)
-            print(response.message)
+                FileHandler.clean_file(self.user_changes_path)
+                FileHandler.clean_file(self.note_changes_path)
         except Exception as e:
             raise Exception(f"Failed to pull changes: {e}")
 
     def get_hash_hmac_from_encrypted_notes(self) -> str:
         """Get the hash of hmac of a specific note with all its versions."""
-        hmacs=[]
-        note=[]
+        hmacs = []
+        note = []
 
         for encrypted_title in os.listdir(self.notes_dir):
             note_dir = os.path.join(self.notes_dir, encrypted_title)
@@ -354,8 +380,8 @@ class NoteISTClient:
                 hmacs.append(note.get("hmac"))
         # sort notes by id
         sorted_notes = sorted(hmacs)
-        hmac_str = ''.join(sorted_notes)
-        hash =  SecureHandler.hash_hmacs_str(hmac_str)
+        hmac_str = "".join(sorted_notes)
+        hash = SecureHandler.hash_hmacs_str(hmac_str)
         return hash
 
     def get_note_list(self) -> List[tuple]:
@@ -366,10 +392,8 @@ class NoteISTClient:
 
         for note_dir in os.listdir(self.notes_dir):
             note_path = os.path.join(self.notes_dir, note_dir)
-            last_version = FileHandler.get_highest_version(
-                note_path
-            )
-            note_path= os.path.join(note_path, f"v{last_version}.notist")
+            last_version = FileHandler.get_highest_version(note_path)
+            note_path = os.path.join(note_path, f"v{last_version}.notist")
             key_path = os.path.join(self.notes_dir, note_dir, "key")
             note = FileHandler.read_encrypted_note(
                 filePath=note_path,
@@ -388,23 +412,23 @@ class NoteISTClient:
             return
 
         print("Available notes:")
-        for note in notes:
-            print(f"{note.get('title')} (v{note.get('version')})")
+        for i, note in enumerate(notes):
+            print(f"{i+1}: {note.get('title')} (v{note.get('version')})")
 
     def select_note(self) -> Dict[str, Any]:
         """List all notes with their latest versions. And prompt the user to select one."""
         notes = self.get_note_list()
-        
+
         self.list_notes(notes)
 
-        choice = input("Select a note by number: ")
-        try:
-            choice = int(choice)
-            note = notes[choice - 1]
-            return note
-        except (ValueError, IndexError):
-            print("Invalid choice. Please try again.")
-            return self.select_note()
+        while True:
+            try:
+                choice = input("Select a note by number: ")
+                note = notes[int(choice) - 1]
+                return note
+            except (ValueError, IndexError):
+                print("Invalid choice. Please try again.")
+                continue
 
     def view_note(self) -> None:
         """
@@ -415,21 +439,22 @@ class NoteISTClient:
             version: Optional specific version to retrieve (latest if not specified)
         """
         note = self.select_note()
-        
+
         while True:
             try:
-                version = int(input("Select note version (empty for latest): "))
-                if version.strip() != "":
-                    note =  FileHandler.read_encrypted_note(
-                        filePath=os.join(self.notes_dir, note["id"], f"v{version}.notist"),
-                        keyFile=os.join(self.notes_dir, note["id"], "key"),
+                version = input("Select note version (empty for latest): ").strip()
+                if version != "" and int(version) != note.get("version"):
+                    note = FileHandler.read_encrypted_note(
+                        filePath=os.path.join(
+                            self.notes_dir, note["id"], f"v{version}.notist"
+                        ),
+                        keyFile=os.path.join(self.notes_dir, note["id"], "key"),
                         key_manager=self.key_manager,
                     )
                 break
-            except ValueError:
-                print("Invalid version number. Please try again.")
-        print(f"\nTitle: {note.get('title')}\nContent: {note.get('content')}\n")
-        
+            except Exception as e:
+                print(f"Invalid version number. Please try again.: {e}")
+        print(f"\nTitle: {note.get('title')}\nContent: {note.get('note')}\n")
 
     def get_note_content(
         self, encrypted_title: str, version: Optional[int] = None
@@ -482,18 +507,18 @@ class NoteISTClient:
             new_content: The new content for the note
         """
         note = self.select_note()
-        
+
         new_title = input("\nEnter new title: ")
         new_content = input("Enter new content: ")
 
         # Create new version
         note["title"] = new_title
-        note["content"] = new_content
+        note["note"] = new_content
         note["version"] += 1
 
         # Get note directory
         note_dir = os.path.join(self.notes_dir, note["id"])
-        
+
         # Store note and record change
         self._store_note(note, note_dir)
         self._record_change(
@@ -515,7 +540,7 @@ class NoteISTClient:
         note_dir = os.path.join(self.notes_dir, note_id)
 
         # Delete note directory
-        shutil.rmtree(note_dir)
+        FileHandler.clean_note_directory(note_dir)
 
         self._record_change(action_type=ActionType.DELETE_NOTE, note_id=note_id)
 
@@ -525,38 +550,41 @@ class NoteISTClient:
         if contributor.strip() == "" or not contributor:
             raise ValueError("Contributor cannot be empty.")
 
-        is_editor = self._prompt_user(f"give {contributor} editing permissions to this note")
+        is_editor = self._prompt_user(
+            f"give {contributor} editing permissions to this note"
+        )
 
         if self.username != note["owner"]["username"]:
             raise Exception(f"Only the owner can add contributors to the note")
 
-        #TODO: should we do this locally? no need to, just send to the server and he will retrieve it well. <- Massas
+        # TODO: should we do this locally? no need to, just send to the server and he will retrieve it well. <- Massas
         if is_editor:
             note["editors"].append({"username": contributor})
-        
-        note["viewers"].append({"username": contributor}) # editors are also viewers
-        
-        note_path = os.path.join(self.notes_dir, note["id"], f"v{note['version']}.notist")
+
+        note["viewers"].append({"username": contributor})  # editors are also viewers
+
+        note_path = os.path.join(
+            self.notes_dir, note["id"], f"v{note['version']}.notist"
+        )
         FileHandler.write_encrypted_note(
             filePath=note_path,
             keyFile=os.path.join(self.notes_dir, note["id"], "key"),
             key_manager=self.key_manager,
             id=note["id"],
             title=note["title"],
-            content=note["content"],
+            content=note["note"],
             owner=note["owner"],
             version=note["version"],
-            editor=note["editors"],
-            viewer=note["viewers"]
+            editors=note["editors"],
+            viewers=note["viewers"],
         )
 
         self._record_change(
             action_type=ActionType.ADD_USER,
             collaborator_username=contributor,
             note_id=note.get("id"),
-            is_editor=is_editor
+            is_editor=is_editor,
         )
-
 
     def remove_contributor(self) -> None:
         note = self.select_note()
@@ -571,32 +599,34 @@ class NoteISTClient:
         # mas se alguem mudar localmente pode estar um gajo nos editors
         # que nao esta nos viewers por isso fiz assim, mas n sei vejam o que acham
         is_editor = None
-        if any(editor.get("username") == contributor for editor in note["editors"]):
-            is_editor = True
-            note["editors"].remove({"username": contributor})
         if any(viewer.get("username") == contributor for viewer in note["viewers"]):
             is_editor = False
             note["viewers"].remove({"username": contributor})
+        if any(editor.get("username") == contributor for editor in note["editors"]):
+            is_editor = True
+            note["editors"].remove({"username": contributor})
         if is_editor is None:
             raise Exception(f"{contributor} is not a contributor to the note")
 
-        note_path = os.path.join(self.notes_dir, note.get("id"), f"v{note.get("version")}.notist")
+        note_path = os.path.join(
+            self.notes_dir, note.get("id"), f'v{note.get("version")}.notist'
+        )
         FileHandler.write_encrypted_note(
             filePath=note_path,
             keyFile=os.path.join(self.notes_dir, note.get("id"), "key"),
             key_manager=self.key_manager,
             id=note.get("id"),
             title=note.get("title"),
-            content=note.get("content"),
+            content=note.get("note"),
             owner=note.get("owner"),
             version=note.get("version"),
-            editor=note.get("editors"),
-            viewer=note.get("viewers"),
-            )
+            editors=note.get("editors"),
+            viewers=note.get("viewers"),
+        )
 
         self._record_change(
             action_type=ActionType.REMOVE_USER,
             collaborator_username=contributor,
             note_id=note.get("id"),
-            is_editor=is_editor
+            is_editor=is_editor,
         )

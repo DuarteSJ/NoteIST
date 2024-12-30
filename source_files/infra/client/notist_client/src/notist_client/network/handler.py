@@ -68,7 +68,10 @@ class NetworkHandler:
             )
 
     def push_changes(
-        self, private_key_path: str, note_changes: List[Dict[str, Any]], user_changes: List[Dict[str, Any]]
+        self,
+        private_key_path: str,
+        note_changes: List[Dict[str, Any]],
+        user_changes: List[Dict[str, Any]],
     ) -> Response:
         """Pushes changes to the server."""
         if not note_changes and not user_changes:
@@ -88,13 +91,13 @@ class NetworkHandler:
         print(f"sending payload: {payload}")
         return self._send_request(payload)
 
-    def pull_changes(self, private_key_path: str, hash_of_hmacs:str) -> Response:
+    def pull_changes(self, private_key_path: str, hash_of_hmacs: str) -> Response:
         """Pulls changes from the server."""
         private_key = self.key_manager.load_private_key(private_key_path)
 
-        #get notes  
+        # get notes
 
-        data = {"digest_of_hmacs":hash_of_hmacs}
+        data = {"digest_of_hmacs": hash_of_hmacs}
 
         signature = self.secure_handler.sign_request(data, private_key)
 

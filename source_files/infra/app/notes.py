@@ -5,6 +5,7 @@ import datetime
 from db_manager import DatabaseManager
 from pymongo.errors import DuplicateKeyError
 
+
 class NotesService:
     """
     Handles business logic for note-specific operations
@@ -54,7 +55,6 @@ class NotesService:
             # Insert note
             note_id = self.db_manager.insert_document("notes", note_data)
 
-
             # Update user's owned notes
             self.db_manager.update_document(
                 "users", {"id": owner_id}, {"$push": {"owned_notes": note_id}}
@@ -87,7 +87,6 @@ class NotesService:
                 last_server_version = existing_note.get("version")
 
                 if not existing_note:
-                    # TODO: what to do?
                     raise ValueError("Note no longer exists")
 
                 if last_server_version < version:
@@ -147,7 +146,6 @@ class NotesService:
             Dict containing the latest version of the note, or None if not found
         """
         try:
-
 
             # Find the latest version of the note
             result = self.db_manager.find_document(
@@ -223,7 +221,7 @@ class NotesService:
         try:
             # Find notes where user is owner, editor, or viewer
             notes = self.db_manager.find_documents(
-            "notes",
+                "notes",
                 {
                     "$or": [
                         {"owner.id": user_id},
@@ -261,7 +259,9 @@ class NotesService:
 
         # Check if the user is already a viewer
         if user_id in note.get("viewers", []):
-            raise ValueError(f"User {user_id} is already a viewer for the note {note_id}")
+            raise ValueError(
+                f"User {user_id} is already a viewer for the note {note_id}"
+            )
 
         # Add user as a viewer
         self.db_manager.update_document(
@@ -298,11 +298,8 @@ class NotesService:
             "notes", {"id": note_id}, {"$pull": {"viewers": user_id}}
         )
 
-
-        
-
     def add_editor_to_note(
-        self, note: Dict[str, Any] , owner_id: int, user_id: int
+        self, note: Dict[str, Any], owner_id: int, user_id: int
     ) -> Dict[str, Any]:
         """
         Add an editor to a note
@@ -329,8 +326,6 @@ class NotesService:
         self.db_manager.update_document(
             "notes", {"id": note_id}, {"$push": {"editors": user_id}}
         )
-
-
 
     def remove_editor_from_note(
         self, note: Dict[str, Any], owner_id: int, user_id: int

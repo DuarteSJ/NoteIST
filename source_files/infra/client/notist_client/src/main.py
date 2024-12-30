@@ -57,7 +57,7 @@ def handle_choice(client: NoteISTClient, choice: str) -> None:
         client.add_contributor()
 
     elif choice == "7":
-        client.remove_contributor() 
+        client.remove_contributor()
 
     elif choice == "8":
         client.push_changes()

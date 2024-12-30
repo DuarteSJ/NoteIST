@@ -4,6 +4,7 @@ from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.backends import default_backend
 import json
 
+
 class SecureHandler:
     """Handles secure operations like signing and verifying data."""
 
@@ -47,7 +48,7 @@ class SecureHandler:
         except Exception as e:
             raise Exception(f"Error creating signed payload: {e}")
 
-    def hash_hmacs_str (hmac_str: str) -> str:
+    def hash_hmacs_str(hmac_str: str) -> str:
         """Hashes a string using HMAC-SHA256."""
         digest_of_hmacs = hashes.Hash(hashes.SHA256(), backend=default_backend())
         digest_of_hmacs.update(hmac_str.encode("utf-8"))

@@ -30,6 +30,7 @@ class UsersService:
                 raise ValueError("Username already exists")
 
             from uuid import uuid4
+
             # Prepare user data
             user_data = {
                 "id": str(uuid4()),
@@ -97,8 +98,6 @@ class UsersService:
         """
         try:
 
-
-
             # Check if user is the owner
             is_owner = note.get("owner", {}).get("id") == user_id
 
@@ -122,7 +121,7 @@ class UsersService:
             self.logger.error(f"Error checking note permissions: {e}")
             raise
 
-    def add_viewer_note(self, user: Dict[str,any], note_id: int) -> Dict[str, Any]:
+    def add_viewer_note(self, user: Dict[str, any], note_id: int) -> Dict[str, Any]:
         """
         Add a note to the list of notes the user can view
 
@@ -144,9 +143,7 @@ class UsersService:
             "users", {"id": user_id}, {"$addToSet": {"viewer_notes": note_id}}
         )
 
-
-
-    def remove_viewer_note(self, user: Dict[str,any], note_id: int) -> Dict[str, Any]:
+    def remove_viewer_note(self, user: Dict[str, any], note_id: int) -> Dict[str, Any]:
         """
         Remove a note from the list of notes the user can view
 
@@ -162,16 +159,16 @@ class UsersService:
         user_id = user.get("id")
 
         if note_id not in user.get("viewer_notes"):
-            raise ValueError(f"Note {note_id} does not exist in viewer ({user_id}) notes")
+            raise ValueError(
+                f"Note {note_id} does not exist in viewer ({user_id}) notes"
+            )
 
         # Update user document
         self.db_manager.update_document(
             "users", {"id": user_id}, {"$pull": {"viewer_notes": note_id}}
         )
 
-
-
-    def add_editor_note(self, user: Dict[str,any], note_id: int) -> Dict[str, Any]:
+    def add_editor_note(self, user: Dict[str, any], note_id: int) -> Dict[str, Any]:
         """
         Add a note to the list of notes the user can edit
 
@@ -193,7 +190,6 @@ class UsersService:
         self.db_manager.update_document(
             "users", {"id": user_id}, {"$addToSet": {"editor_notes": note_id}}
         )
-        
 
     def remove_editor_note(self, user: Dict[str, any], note_id: int) -> Dict[str, Any]:
         """
@@ -210,15 +206,14 @@ class UsersService:
         user_id = user.get("id")
 
         if note_id not in user.get("editor_notes"):
-            raise ValueError(f"Note {note_id} does not exist in editor ({user_id}) notes")
+            raise ValueError(
+                f"Note {note_id} does not exist in editor ({user_id}) notes"
+            )
 
         # Update user document
         self.db_manager.update_document(
             "users", {"id": user_id}, {"$pull": {"editor_notes": note_id}}
         )
-
-
-       
 
 
 # Factory function for creating UsersService

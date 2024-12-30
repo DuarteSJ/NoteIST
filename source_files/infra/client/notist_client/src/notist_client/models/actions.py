@@ -7,7 +7,7 @@ class ActionType(Enum):
     CREATE_NOTE = "create_note"
     EDIT_NOTE = "edit_note"
     DELETE_NOTE = "delete_note"
-    ADD_USER= "add_collaborator"
+    ADD_USER = "add_collaborator"
     REMOVE_USER = "remove_collaborator"
 
 
