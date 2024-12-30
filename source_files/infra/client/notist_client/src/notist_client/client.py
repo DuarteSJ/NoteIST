@@ -190,7 +190,7 @@ class NoteISTClient:
                     print("Exiting NoteIST. Goodbye!")
                     exit(0)
 
-    def _apply_server_changes(self, changes: List[Dict[str, Any]]) -> None:
+    def _apply_server_changes(self, changes: List[Dict[str, Any]], new_keys: Dict[str, str]) -> None:
         """Apply changes received from server to local state."""
 
         FileHandler.clean_note_directory(self.notes_dir)
@@ -215,6 +215,12 @@ class NoteISTClient:
             )
 
         # TODO: adicionar as chaves que vieram do server para a pasta correta (adicionou owner)
+        for note_id, encrypted_key in new_keys.items():
+            # to
+            key = self.key_manager.decrypt_key_with_private_key(encrypted_key, self.priv_key_path)
+            self.key_manager.store_note_key(key, os.path.join(self.notes_dir, note_id, "key"))
+
+
 
     def create_note(self, title: str, content: str) -> None:
         """
@@ -329,6 +335,7 @@ class NoteISTClient:
         # Open the file and append the JSON-encoded string
         FileHandler.save_change(changes_path, change_record)
 
+
     def push_changes(self) -> Response:
         """Push recorded changes to the server."""
         try:
@@ -343,10 +350,49 @@ class NoteISTClient:
                     print(res)
                 for res in response.user_results:
                     print(res)
+
+
+                if response.public_key_dict:
+                    #there will be the need for a final push to give the server the key encrypted
+                    #with the public key of the added users
+                    # {
+                    #       "note_id": [
+                    #           {
+                    #               user_id: user_id,
+                    #               public_key: public key,
+                    #           },
+                    #           {   
+                    #               user_id: user_id,
+                    #               public_key: public key,
+                    #           },
+                    #           ...
+                    #       ],
+                    #       "note_id2": [
+                    #           {
+                    #               user_id: user_id,
+                    #               public_key: public key,
+                    #           },
+                    #           {
+                    #               user_id: user_id,
+                    #               public_key: public key,
+                    #           },
+                    #           ...
+                    #       ],
+                    #      ...
+                    # }
+                    
+                    
+                    newly_encrypted_note_keys = self.encrypt_key_with_users_public_keys(response.public_key_dict)
+            
+                    response = self.network_handler.final_push(                            
+                    
+
                 FileHandler.clean_file(self.user_changes_path)
                 FileHandler.clean_file(self.note_changes_path)
         except Exception as e:
             raise Exception(f"Failed to push changes: {e}")
+
+
 
     def pull_changes(self) -> Response:
         """Sync with server."""
@@ -359,7 +405,7 @@ class NoteISTClient:
             )
             print(f"Server response: {response.status} - {response.message}")
             if response.status == "success":
-                self._apply_server_changes(response.documents)
+                self._apply_server_changes(response.documents, response.keys)
                 FileHandler.clean_file(self.user_changes_path)
                 FileHandler.clean_file(self.note_changes_path)
         except Exception as e:
@@ -558,7 +604,11 @@ class NoteISTClient:
         if self.username != note["owner"]["username"]:
             raise Exception(f"Only the owner can add contributors to the note")
 
-        # TODO: should we do this locally? no need to, just send to the server and he will retrieve it well. <- Massas
+        if any(editor.get("username") == contributor for editor in note["editors"]):
+            raise Exception(f"{contributor} is already an editor of the note")
+        elif any(viewer.get("username") == contributor for viewer in note["viewers"]):
+            raise Exception(f"{contributor} is already a viewer of the note")
+
         if is_editor:
             note["editors"].append({"username": contributor})
 
@@ -651,3 +701,44 @@ class NoteISTClient:
 
         os.unlink(temp_file_name)  # Clean up the temporary file
         return new_content.strip()
+
+    def encrypt_key_with_users_public_keys(self, public_key_dict: Dict[str,List[Dict[str,str]]]) -> Dict[str,List[Dict[str,str]]]:
+        """
+        encrypt the key of each note with the public key of each user 
+
+        Receives:
+             {
+                "note_id": [ {user_id: user_id, key: public_key}, {user_id: user_id2, key: public_key} ],
+            }
+
+        Args:
+            public_key_dict: dictionary with the public key of each user
+        
+        Returns:
+            {
+                "note_id": [ {user_id: user_id, key: encrypted_key}, {user_id: user_id2, key: encrypted_key2} ],
+            }
+
+        """
+        client_response = {}
+
+        for note_id in public_key_dict:
+            note_dir = os.path.join(self.notes_dir, note_id)
+            #decrypt the key with master key
+            key_path = os.path.join(note_dir, "key")
+            encrypted_note_key= FileHandler.read_key(key_path)
+            note_key = self.key_manager.decrypt_key_with_master_key(encrypted_note_key)
+            all_encrypted_keys_for_note= []
+
+            #encrypt the key with the public key of each user
+            for user in public_key_dict[note_id]:
+                user_id = user["user_id"]
+                public_key = user["public_key"].decode("utf-8") #public key is in bytes
+                encrypted_note_key = self.key_manager.encrypt_key_with_public_key(note_key, public_key)
+                new_encrypted_note_key ={
+                    "user_id":user_id,
+                    "key" : encrypted_note_key,
+                    } 
+                all_encrypted_keys_for_note.append(new_encrypted_note_key)
+            client_response[note_id] = all_encrypted_keys_for_note
+        return client_response

@@ -6,6 +6,7 @@ import os
 from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
 from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
 from cryptography.hazmat.primitives import hashes as crypto_hashes
+from cryptography.hazmat.primitives.asymmetric import padding
 
 
 class KeyManager:
@@ -189,6 +190,19 @@ class KeyManager:
 
         except Exception as e:
             raise Exception(f"Failed to load or decrypt the note key: {e}")
+        
+    def store_note_key(cls, note_key: bytes, note_key_path: str):
+        """Encrypts and stores the note's secret key in an encrypted format."""
+        try:
+
+            encrypted_note_key = cls.encrypt_key_with_master_key(note_key)
+
+            with open(note_key_path, "wb") as key_file:
+                key_file.write(encrypted_note_key)
+        
+        except Exception as e:
+            raise Exception(f"Failed to store the note key: {e}")
+
 
     def derive_master_key(self, password: str) -> bytes:
         """
@@ -209,3 +223,29 @@ class KeyManager:
             backend=default_backend(),
         )
         return kdf.derive(password.encode("utf-8"))
+
+    def encrypt_key_with_public_key(self, key: bytes, public_key: bytes) -> bytes:
+        """Encrypts a key using an RSA public key."""
+        return public_key.encrypt(
+            key,
+            padding.OAEP(
+                mgf=padding.MGF1(algorithm=crypto_hashes.SHA256()),
+                algorithm=crypto_hashes.SHA256(),
+                label=None,
+            ),
+        )
+    
+    def decrypt_key_with_private_key(self, encrypted_key: bytes, private_key_path: str) -> bytes:
+        """Decrypts a key using an RSA private key."""
+        private_key = self.load_private_key(private_key_path)
+
+        return private_key.decrypt(
+            encrypted_key,
+            padding.OAEP(
+                mgf=padding.MGF1(algorithm=crypto_hashes.SHA256()),
+                algorithm=crypto_hashes.SHA256(),
+                label=None,
+            ),
+        )
+    
+    

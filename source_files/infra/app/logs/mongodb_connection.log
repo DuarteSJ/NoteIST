@@ -153,3 +153,52 @@
 2024-12-30 02:43:06,347 - db_manager - INFO - Updated document in notes
 2024-12-30 02:43:06,347 - db_manager - INFO - Updated document in users
 2024-12-30 02:43:06,347 - __main__ - ERROR - Server error: Object of type bytes is not JSON serializable
+2024-12-30 17:45:07,580 - db_manager - INFO - Successfully connected to MongoDB
+2024-12-30 17:45:07,582 - __main__ - INFO - Server listening on 0.0.0.0:5000
+2024-12-30 17:45:11,665 - __main__ - INFO - Connection from ('192.168.1.200', 57108)
+2024-12-30 17:45:11,670 - db_manager - INFO - Inserted document in users with ID: 6772dc27062698d3d187843d
+2024-12-30 17:45:11,670 - users - INFO - User created with ID: 6772dc27062698d3d187843d
+2024-12-30 17:46:09,201 - __main__ - INFO - Connection from ('192.168.1.200', 41750)
+2024-12-30 17:46:09,207 - db_manager - INFO - Inserted document in notes with ID: 6772dc61062698d3d187843e
+2024-12-30 17:46:09,208 - db_manager - INFO - Updated document in users
+2024-12-30 17:46:09,208 - notes - INFO - Note created with ID: 6772dc61062698d3d187843e
+2024-12-30 17:46:09,215 - db_manager - INFO - Updated document in notes
+2024-12-30 17:46:09,218 - db_manager - INFO - Updated document in users
+2024-12-30 17:46:09,220 - db_manager - INFO - Updated document in notes
+2024-12-30 17:46:09,221 - db_manager - INFO - Updated document in users
+2024-12-30 17:49:40,479 - __main__ - INFO - Connection from ('192.168.1.200', 38040)
+2024-12-30 17:49:40,485 - db_manager - INFO - Updated document in notes
+2024-12-30 17:49:40,486 - db_manager - INFO - Updated document in users
+2024-12-30 17:49:40,488 - db_manager - INFO - Updated document in notes
+2024-12-30 17:49:40,489 - db_manager - INFO - Updated document in users
+2024-12-30 17:49:44,051 - db_manager - INFO - MongoDB connection closed
+2024-12-30 17:49:47,037 - db_manager - INFO - Successfully connected to MongoDB
+2024-12-30 17:49:47,039 - __main__ - INFO - Server listening on 0.0.0.0:5000
+2024-12-30 17:50:04,611 - __main__ - INFO - Connection from ('192.168.1.200', 48574)
+2024-12-30 17:50:04,616 - db_manager - INFO - Inserted document in notes with ID: 6772dd4c8f01f3a8812cb42a
+2024-12-30 17:50:04,619 - db_manager - INFO - Updated document in users
+2024-12-30 17:50:04,619 - notes - INFO - Note created with ID: 6772dd4c8f01f3a8812cb42a
+2024-12-30 17:50:04,625 - db_manager - INFO - Updated document in notes
+2024-12-30 17:50:04,626 - db_manager - INFO - Updated document in users
+2024-12-30 17:50:04,628 - db_manager - INFO - Updated document in notes
+2024-12-30 17:50:04,629 - db_manager - INFO - Updated document in users
+2024-12-30 17:53:09,153 - db_manager - INFO - MongoDB connection closed
+2024-12-30 17:53:10,924 - db_manager - INFO - Successfully connected to MongoDB
+2024-12-30 17:53:10,926 - __main__ - INFO - Server listening on 0.0.0.0:5000
+2024-12-30 17:56:59,473 - __main__ - INFO - Connection from ('192.168.1.200', 47660)
+2024-12-30 17:56:59,480 - db_manager - INFO - Updated document in notes
+2024-12-30 17:56:59,481 - db_manager - INFO - Updated document in users
+2024-12-30 17:56:59,483 - db_manager - INFO - Updated document in notes
+2024-12-30 17:56:59,485 - db_manager - INFO - Updated document in users
+2024-12-30 17:56:59,485 - __main__ - ERROR - Server error: Object of type bytes is not JSON serializable
+2024-12-30 17:58:24,227 - db_manager - INFO - MongoDB connection closed
+2024-12-30 17:58:25,507 - db_manager - INFO - Successfully connected to MongoDB
+2024-12-30 17:58:25,509 - __main__ - INFO - Server listening on 0.0.0.0:5000
+2024-12-30 18:00:03,631 - __main__ - INFO - Connection from ('192.168.1.200', 41594)
+2024-12-30 18:00:03,637 - db_manager - INFO - Inserted document in notes with ID: 6772dfa3cbf3e6b2fed08aba
+2024-12-30 18:00:03,639 - db_manager - INFO - Updated document in users
+2024-12-30 18:00:03,639 - notes - INFO - Note created with ID: 6772dfa3cbf3e6b2fed08aba
+2024-12-30 18:00:03,643 - db_manager - INFO - Updated document in notes
+2024-12-30 18:00:03,644 - db_manager - INFO - Updated document in users
+2024-12-30 18:00:03,645 - db_manager - INFO - Updated document in notes
+2024-12-30 18:00:03,646 - db_manager - INFO - Updated document in users

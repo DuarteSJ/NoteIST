@@ -90,6 +90,17 @@ class NetworkHandler:
         )
         print(f"sending payload: {payload}")
         return self._send_request(payload)
+    
+    def final_push(self, private_key_path: str,data: Dict[str, Any]) -> Response:
+        """Pushes changes to the server."""
+        private_key = self.key_manager.load_private_key(private_key_path)
+        signature = self.secure_handler.sign_request(data, private_key)
+
+        payload = self.secure_handler.create_signed_payload(
+            RequestType.FINAL_PUSH.value, self.username, data, signature
+        )
+        print(f"sending payload: {payload}")
+        return self._send_request(payload)
 
     def pull_changes(self, private_key_path: str, hash_of_hmacs: str) -> Response:
         """Pulls changes from the server."""

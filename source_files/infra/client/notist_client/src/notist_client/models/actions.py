@@ -16,4 +16,5 @@ class RequestType(Enum):
 
     REGISTER = "register"
     PUSH = "push"
+    FINAL_PUSH ="push_final"
     PULL = "pull"

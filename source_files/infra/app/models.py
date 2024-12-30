@@ -20,6 +20,7 @@ class RequestType(Enum):
 
     REGISTER = "register"
     PUSH = "push"
+    PUSH_FINAL = "push_final"
     PULL = "pull"
 
 
@@ -59,6 +60,10 @@ class PushRequest(SignedRequestModel):
     """
 
     type: RequestType = RequestType.PUSH
+
+class PushFinalRequest(SignedRequestModel):
+
+    type: RequestType = RequestType.PUSH_FINAL
 
 
 class PullRequest(SignedRequestModel):
@@ -106,6 +111,7 @@ class ResponseModel(BaseModel):
     documents: Optional[List[Dict[str, Any]]] = None
     document: Optional[Dict[str, Any]] = None
     curr_noteid: Optional[int] = None
+    keys: Optional[List[Dict[str, Any]]] = None
 
 
 class UsersModel(BaseModel):

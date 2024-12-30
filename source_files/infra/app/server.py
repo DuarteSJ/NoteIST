@@ -101,15 +101,43 @@ class Server:
             if digest_of_hmacs == local_hmac:
                 return {
                     "status": "synced",
-                    "message": "All files are up to date. Sync successful",
+                    "message": "All files are already up to date. Sync successful",
                 }
+            
+            keys = user.get("keys")
 
             return {
                 "status": "success",
                 "message": "Documents retrieved successfully",
                 "documents": documents,
+                "keys": keys,
             }
 
+        except ValidationError as ve:
+            self.logger.error(f"Validation Error: {ve}")
+            return {"status": "error", "message": str(ve)}
+        except Exception as e:
+            self.logger.error(f"Error processing request: {e}")
+            return {"status": "error", "message": str(e)}
+        
+    def handle_push_final_request(self, req: PushRequest) -> Dict[str,any]:
+        try:
+            # Verify signature first
+            if not self.verify_signature(req):
+                return {"status": "error", "message": "Signature verification failed"}
+            
+            # user was found for signature verification
+            self.user_service.get_user(req.username)
+
+            note_keys_dict = req.data.get("note_keys_dict")
+            
+            for note_id, keys in note_keys_dict.items():
+                user_id = keys.get("user_id")
+                user_key = keys.get("key")
+                self.user_service.update_user_keys(user_id,note_id,user_key)
+
+            return {"status": "success", "message": "Keys updated successfully"}
+        
         except ValidationError as ve:
             self.logger.error(f"Validation Error: {ve}")
             return {"status": "error", "message": str(ve)}
@@ -173,6 +201,7 @@ class Server:
             user_results = []
 
             for collab in user_changes:
+                print(collab)
                 handler_method = self._get_action_handler(collab.get("type", ""))
                 if handler_method:
                     try:
@@ -235,7 +264,7 @@ class Server:
         return action_handlers.get(action)
 
     def _handle_create_note(
-        self, action: Dict[str, Any], user: Dict[str, Any], public_keys_dict=None
+        self, action: Dict[str, Any], user: Dict[str, Any],
     ) -> Dict[str, Any]:
         """
         Handle creating a new note for the user.
@@ -283,7 +312,7 @@ class Server:
         }
 
     def _handle_edit_note(
-        self, action: Dict[str, Any], user: Dict[str, Any], public_keys_dict=None
+        self, action: Dict[str, Any], user: Dict[str, Any]
     ) -> Dict[str, Any]:
         """
         Handle editing an existing note.
@@ -349,7 +378,7 @@ class Server:
         return {"status": "success", "message": f"Note {note_id} edited"}
 
     def _handle_delete_note(
-        self, action: Dict[str, Any], user: Dict[str, Any], public_keys_dict=None
+        self, action: Dict[str, Any], user: Dict[str, Any]
     ) -> Dict[str, Any]:
         """
         Handle deleting a note.
@@ -429,10 +458,10 @@ class Server:
         )
         self.user_service.add_viewer_note(collaborator, note_id)
 
-        if not public_keys_dict[note_id]:
+        if note_id not in public_keys_dict:
             public_keys_dict[note_id] = []
 
-        public_keys_dict[note_id].append(collaborator.get("public_key"))
+        public_keys_dict[note_id].append({"user_id": collaborator.get("id"), "public_key": collaborator.get("public_key").decode("utf-8")})
 
         return {
             "status": "success",
@@ -483,6 +512,11 @@ class Server:
         )
         self.user_service.remove_viewer_note(collaborator, note_id)
 
+        if note_id not in public_keys_dict:
+            public_keys_dict[note_id] = []
+
+        public_keys_dict[note_id].append(collaborator.get("public_key").decode("utf-8"))
+
         return {
             "status": "success",
             "message": f"Collaborator {collaborator_username} removed from note {note_id}",
@@ -501,6 +535,9 @@ class Server:
 
             elif request.type == RequestType.PUSH:
                 return self.handle_push_request(req=request)
+            
+            elif request.type == RequestType.PUSH_FINAL:
+                return self.handle_push_final_request(req=request)
 
             else:
                 return {"status": "error", "message": "Unsupported request type"}

@@ -39,6 +39,7 @@ class UsersService:
                 "owned_notes": [],
                 "editor_notes": [],
                 "viewer_notes": [],
+                "keys": {},
             }
 
             # Validate using Pydantic model
@@ -55,6 +56,26 @@ class UsersService:
 
         except Exception as e:
             self.logger.error(f"Error creating user: {e}")
+            raise
+
+    def update_user_keys(self, user_id: str, note_id: str, key: str):
+        """
+        Update the keys for a user by adding a note_id and key to their keys dictionary.
+
+        Args:
+            user_id (str): The ID of the user
+            note_id (str): The note ID to be added as a key
+            key (str): The key to be added as the value
+        """
+        try:
+            # Use $set with a dynamic field for the note_id key
+            self.db_manager.update_document(
+                "users",
+                {"id": user_id},
+                {"$set": {f"keys.{note_id}": key}}  # Dynamic key update
+            )
+        except Exception as e:
+            self.logger.error(f"Error updating user keys: {e}")
             raise
 
     def get_user(self, identifier: str, by_username: bool = True) -> Dict[str, Any]:
