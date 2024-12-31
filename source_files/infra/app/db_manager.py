@@ -208,6 +208,42 @@ class DatabaseManager:
             self.logger.error(f"Error updating document in {collection_name}: {e}")
             raise
 
+    def update_documents(
+        self,
+        collection_name: str,
+        query: Dict[str, Any],
+        update: Dict[str, Any],
+        upsert: bool = False,
+    ) -> Dict[str, Any]:
+        """
+        Update multiple documents in the specified collection
+
+        Args:
+            collection_name (str): Name of the collection
+            query (dict): Query to find the documents
+            update (dict): Update operations
+            upsert (bool): Insert document if no match is found
+
+        Returns:
+            dict: Summary of the update operation
+        """
+        try:
+            collection = self.db[collection_name]
+            result = collection.update_many(query, update, upsert=upsert)
+
+            if result.matched_count > 0:
+                self.logger.info(f"Updated {result.modified_count} documents in {collection_name}")
+                return {
+                    "matched_count": result.matched_count,
+                    "modified_count": result.modified_count,
+                    "upserted_id": result.upserted_id,
+                }
+
+            return {"matched_count": 0, "modified_count": 0, "upserted_id": None}
+        except Exception as e:
+            self.logger.error(f"Error updating documents in {collection_name}: {e}")
+            raise
+
     def delete_documents(self, collection_name: str, query: Dict[str, Any]) -> int:
         """
         Delete document(s) matching the query

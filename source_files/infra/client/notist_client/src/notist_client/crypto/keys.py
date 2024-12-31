@@ -144,7 +144,6 @@ class KeyManager:
             private_key = serialization.load_pem_private_key(
                 private_key_pem, password=None, backend=default_backend()
             )
-            print(f"private key: {private_key}")
             return private_key
 
         except Exception as e:

@@ -88,7 +88,6 @@ class NetworkHandler:
         payload = self.secure_handler.create_signed_payload(
             RequestType.PUSH.value, self.username, changes, signature
         )
-        print(f"sending payload: {payload}")
         return self._send_request(payload)
     
     def final_push(self, private_key_path: str,data: Dict[str, Any]) -> Response:
@@ -99,7 +98,6 @@ class NetworkHandler:
         payload = self.secure_handler.create_signed_payload(
             RequestType.FINAL_PUSH.value, self.username, data, signature
         )
-        print(f"\n\nsending payload in final push: {payload}")
         return self._send_request(payload)
 
     def pull_changes(self, private_key_path: str, hash_of_hmacs: str) -> Response:

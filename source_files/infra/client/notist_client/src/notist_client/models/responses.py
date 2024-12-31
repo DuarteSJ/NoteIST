@@ -12,3 +12,4 @@ class Response(BaseModel):
     public_keys_dict: Optional[Dict[str, Any]] = None
     documents: Optional[List[Dict[str, Any]]] = None
     document: Optional[Dict[str, Any]] = None
+    keys: Optional[Dict[str, Any]] = None

@@ -160,7 +160,7 @@ class UsersService:
             raise ValueError("Note already exists in viewer notes")
 
         # Update user document
-        self.db_manager.update_document(
+        self.db_manager.update_documents(
             "users", {"id": user_id}, {"$addToSet": {"viewer_notes": note_id}}
         )
 
@@ -185,7 +185,7 @@ class UsersService:
             )
 
         # Update user document
-        self.db_manager.update_document(
+        self.db_manager.update_documents(
             "users", {"id": user_id}, {"$pull": {"viewer_notes": note_id}}
         )
 
@@ -208,7 +208,7 @@ class UsersService:
             raise ValueError("Note already exists in editor notes")
 
         # Update user document
-        self.db_manager.update_document(
+        self.db_manager.update_documents(
             "users", {"id": user_id}, {"$addToSet": {"editor_notes": note_id}}
         )
 
@@ -232,7 +232,7 @@ class UsersService:
             )
 
         # Update user document
-        self.db_manager.update_document(
+        self.db_manager.update_documents(
             "users", {"id": user_id}, {"$pull": {"editor_notes": note_id}}
         )
 

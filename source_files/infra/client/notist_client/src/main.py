@@ -37,9 +37,7 @@ def display_menu() -> str:
 def handle_choice(client: NoteISTClient, choice: str) -> None:
     """Handle the user's menu choice."""
     if choice == "1":
-        title = input("Enter note title: ")
-        content = input("Enter note content: ")
-        client.create_note(title, content)
+        client.create_note()
 
     elif choice == "2":
         client.list_notes()
@@ -66,7 +64,7 @@ def handle_choice(client: NoteISTClient, choice: str) -> None:
         client.pull_changes()
 
     elif choice == "10":
-        exit(0)
+        client.exit()
 
 
 if __name__ == "__main__":

@@ -123,7 +123,6 @@ class Server:
     def handle_push_final_request(self, req: PushRequest) -> Dict[str,any]:
         try:
 
-            print(f"Received push final request: {req}")
             # Verify signature first
             if not self.verify_signature(req):
                 return {"status": "error", "message": "Signature verification failed"}
@@ -133,10 +132,11 @@ class Server:
 
             note_keys_dict = req.data.get("note_keys_dict")
             
-            for note_id, keys in note_keys_dict.items():
-                user_id = keys.get("user_id")
-                user_key = keys.get("key")
-                self.user_service.update_user_keys(user_id,note_id,user_key)
+            for note_id, user_list in note_keys_dict.items():
+                for user in user_list:
+                    user_id = user.get("user_id")
+                    user_key = user.get("key")
+                    self.user_service.update_user_keys(user_id,note_id,user_key)
 
             return {"status": "success", "message": "Keys updated successfully"}
         
@@ -171,7 +171,6 @@ class Server:
 
             # Process each action
             for action in note_changes:
-                print(action)
                 handler_method = self._get_action_handler(action.get("type", ""))
                 if handler_method:
                     try:
@@ -203,7 +202,6 @@ class Server:
             user_results = []
 
             for collab in user_changes:
-                print(collab)
                 handler_method = self._get_action_handler(collab.get("type", ""))
                 if handler_method:
                     try:
@@ -231,15 +229,6 @@ class Server:
                             "message": f'No handler found for action: {collab.get("type")}',
                         }
                     )
-
-            # Construct response
-            print( {
-                "status": "success",
-                "message": "Actions processed",
-                "action_results": action_results,
-                "user_results": user_results,
-                "public_keys_dict": public_keys_dict,
-            })
             
             return {
                 "status": "success",
@@ -453,25 +442,26 @@ class Server:
         if collaborator.get("id") == user.get("id"):
             raise ValueError("User cannot add themselves as a collaborator")
 
-        note = self.notes_service.get_note(note_id, user.get("id"))
-        if not note:
+        all_notes = self.notes_service.get_all_versions_of_note(note_id, user.get("id"))
+        if not all_notes:
             raise ValueError(f"Note with id {note_id} not found")
 
-        if editorFlag:
-            self.notes_service.add_editor_to_note(
-                note, user.get("id"), collaborator.get("id")
-            )
-            self.user_service.add_editor_note(collaborator, note_id)
+        for note in all_notes:
+            if editorFlag:
+                self.notes_service.add_editor_to_note(
+                    note, user.get("id"), collaborator
+                )
+                self.user_service.add_editor_note(collaborator, note_id)
 
-        self.notes_service.add_viewer_to_note(
-            note, user.get("id"), collaborator.get("id")
-        )
-        self.user_service.add_viewer_note(collaborator, note_id)
+            self.notes_service.add_viewer_to_note(
+                note, user.get("id"), collaborator
+            )
+            self.user_service.add_viewer_note(collaborator, note_id)
 
         if note_id not in public_keys_dict:
             public_keys_dict[note_id] = []
 
-        public_keys_dict[note_id].append({"user_id": collaborator.get("id"), "public_key": collaborator.get("public_key").decode("utf-8")})
+        public_keys_dict[note_id].append({"user_id": collaborator.get("id"), "key": collaborator.get("public_key").decode("utf-8")})
 
         return {
             "status": "success",
@@ -507,25 +497,26 @@ class Server:
         if collaborator.get("id") == user.get("id"):
             raise ValueError("User cannot add themselves as a collaborator")
 
-        note = self.notes_service.get_note(note_id, user.get("id"))
-        if not note:
+        all_notes = self.notes_service.get_all_versions_of_note(note_id, user.get("id"))
+        if not all_notes:
             raise ValueError(f"Note with id {note_id} not found")
 
-        if editorFlag:
-            self.notes_service.remove_editor_from_note(
+        for note in all_notes:
+            if editorFlag:
+                self.notes_service.remove_editor_from_note(
+                    note, user.get("id"), collaborator.get("id")
+                )
+                self.user_service.remove_editor_note(collaborator, note_id)
+
+            self.notes_service.remove_viewer_from_note(
                 note, user.get("id"), collaborator.get("id")
             )
-            self.user_service.remove_editor_note(collaborator, note_id)
-
-        self.notes_service.remove_viewer_from_note(
-            note, user.get("id"), collaborator.get("id")
-        )
-        self.user_service.remove_viewer_note(collaborator, note_id)
+            self.user_service.remove_viewer_note(collaborator, note_id)
 
         if note_id not in public_keys_dict:
             public_keys_dict[note_id] = []
 
-        public_keys_dict[note_id].append(collaborator.get("public_key").decode("utf-8"))
+        public_keys_dict[note_id].append({"user_id": collaborator.get("id") , "key": collaborator.get("public_key").decode("utf-8")})
 
         return {
             "status": "success",

@@ -1,5 +1,5 @@
 import os
-from typing import Optional, List, Dict, Any
+from typing import Optional, List, Dict, Any, Tuple
 from .crypto.keys import KeyManager
 from .network.handler import NetworkHandler
 from .utils.file import FileHandler
@@ -15,6 +15,8 @@ from .config.paths import (
 )
 from .crypto.secure import SecureHandler
 from uuid import uuid4
+import base64
+
 
 
 class NoteISTClient:
@@ -81,8 +83,7 @@ class NoteISTClient:
                 break
             except ValueError:
                 if not self._prompt_user("retry"):
-                    print("Exiting NoteIST. Goodbye!")
-                    exit(0)
+                    self.exit(force=True)
             except Exception:
                 self._register_new_user()
                 break
@@ -123,16 +124,15 @@ class NoteISTClient:
 
     def _prompt_user(self, msg) -> bool:
         """Prompt the user."""
-        res = input(f"Would you like to {msg}, {self.username}? [yes/no]").lower()
-        return res in ["yes", "y"]
+        res = input(f"Would you like to {msg}, {self.username if self.username else ''}? [yes/no]").lower()
+        return res in ["yes", "y", "ye", "aight", "sure", "ok", "okay", "yup", "yep", "yeah", "yessir"]
 
     def _register_new_user(self) -> None:
         """Handle the registration process for a new user."""
         print("No user found. Proceeding with registration.")
         print("ATTENTION- This will overwrite any existing user data.")
         if not self._prompt_user("continue"):
-            print("Exiting NoteIST. Goodbye!")
-            exit(0)
+            self.exit(force=True)
 
         # Remove all previous user data
         FileHandler.delete_all(
@@ -187,8 +187,7 @@ class NoteISTClient:
             except Exception as e:
                 print(f"Registration error: {e}")
                 if not self._prompt_user("try again"):
-                    print("Exiting NoteIST. Goodbye!")
-                    exit(0)
+                    self.exit(force=True)
 
     def _apply_server_changes(self, changes: List[Dict[str, Any]], new_keys: Dict[str, str]) -> None:
         """Apply changes received from server to local state."""
@@ -214,15 +213,18 @@ class NoteISTClient:
                 note,
             )
 
-        # TODO: adicionar as chaves que vieram do server para a pasta correta (adicionou owner)
         for note_id, encrypted_key in new_keys.items():
-            # to
+
+            folder_path = os.path.join(self.notes_dir, note_id)
+            FileHandler.ensure_directory(folder_path)
+            
+            encrypted_key=base64.b64decode(encrypted_key.encode("utf-8"))
             key = self.key_manager.decrypt_key_with_private_key(encrypted_key, self.priv_key_path)
             self.key_manager.store_note_key(key, os.path.join(self.notes_dir, note_id, "key"))
 
 
 
-    def create_note(self, title: str, content: str) -> None:
+    def create_note(self) -> None:
         """
         Create a new note with the given title and content.
 
@@ -230,6 +232,10 @@ class NoteISTClient:
             title: The title of the note
             content: The content of the note
         """
+        
+        title = input("Enter note title: ")
+        content = input("Enter note content: ")
+
         if not title.strip():
             raise ValueError("Title cannot be empty.")
 
@@ -535,6 +541,9 @@ class NoteISTClient:
         """
         note = self.select_note()
 
+        if self.username != note["owner"]["username"] and not any( editor.get("username") == self.username for editor in note["editors"]):
+            raise Exception(f"You do not have permission to edit this note")
+
         new_title = input("\nEnter new title: ")
         # new_content = input("Enter new content: ") # nao apaguem da jeito para correr teste automatico
         new_content = self.edit_note_with_editor(note.get("note"))
@@ -618,27 +627,49 @@ class NoteISTClient:
             is_editor=is_editor,
         )
 
+    def _select_contributor(self, note: Dict[str, Any]) -> Tuple[Dict[str, Any], str]:
+        print("Contributors:")
+
+        contributors = []
+        
+        # List viewers who are not editors
+        editors_usernames = {editor.get("username") for editor in note["editors"]}
+        print("Viewers:")
+        for i, viewer in enumerate(note["viewers"], start=1):
+            if viewer.get("username") not in editors_usernames:
+                print(f"  {i}. {viewer.get('username')}")
+                contributors.append((viewer, "viewer"))
+
+        # List editors
+        print("\nEditors:")
+        for i, editor in enumerate(note["editors"], start=len(contributors) + 1):
+            print(f"  {i}. {editor.get('username')}")
+            contributors.append((editor, "editor"))
+
+        try:
+            choice = int(input("Enter the number of the contributor to remove: "))
+        except ValueError:
+            raise ValueError("Invalid input. Please enter a number.")
+
+        if choice < 1 or choice > len(contributors):
+            raise ValueError("Invalid choice. Number out of range.")
+
+        return contributors[choice - 1]
+
     def remove_contributor(self) -> None:
         note = self.select_note()
-        contributor = input("Enter the username of the contributor: ")
-        if contributor.strip() == "" or not contributor:
-            raise ValueError("Contributor cannot be empty.")
 
         if self.username != note["owner"]["username"]:
             raise Exception(f"Only the owner can remove contributors from the note")
 
-        # TODO: podiamos so meter o if is editor dentro do if is viewer,
-        # mas se alguem mudar localmente pode estar um gajo nos editors
-        # que nao esta nos viewers por isso fiz assim, mas n sei vejam o que acham
-        is_editor = None
-        if any(viewer.get("username") == contributor for viewer in note["viewers"]):
+        contributor, role = self._select_contributor(note)
+
+        if role == "viewer":
+            note["viewers"].remove(contributor)
             is_editor = False
-            note["viewers"].remove({"username": contributor})
-        if any(editor.get("username") == contributor for editor in note["editors"]):
+        elif role == "editor":
+            note["editors"].remove(contributor)
             is_editor = True
-            note["editors"].remove({"username": contributor})
-        if is_editor is None:
-            raise Exception(f"{contributor} is not a contributor to the note")
 
         note_path = os.path.join(
             self.notes_dir, note.get("id"), f'v{note.get("version")}.notist'
@@ -664,16 +695,16 @@ class NoteISTClient:
         )
 
     def edit_note_with_editor(self, old_content):
-        import subprocess
-        import tempfile
+        from subprocess import call
+        from tempfile import NamedTemporaryFile
 
-        with tempfile.NamedTemporaryFile(
+        with NamedTemporaryFile(
             delete=False, mode="w+", suffix=".txt"
         ) as temp_file:
             temp_file_name = temp_file.name
             temp_file.write(old_content)
             temp_file.flush()
-            subprocess.call(
+            call(
                 [os.getenv("EDITOR", "nano"), temp_file_name]
             )  # Use user's default editor
 
@@ -703,6 +734,7 @@ class NoteISTClient:
         """
         client_response = {}
 
+        print(f"public_key_dict: {public_key_dict}")
         for note_id in public_key_dict:
             note_dir = os.path.join(self.notes_dir, note_id)
             #decrypt the key with master key
@@ -713,16 +745,20 @@ class NoteISTClient:
             #encrypt the key with the public key of each user
             for user in public_key_dict[note_id]:
                 user_id = user["user_id"]
-                print("1")
-                public_key = self.key_manager.load_public_key_from_json_serializable(user["public_key"])
-                print("2")
+                public_key = self.key_manager.load_public_key_from_json_serializable(user["key"])
                 encrypted_note_key = self.key_manager.encrypt_key_with_public_key(note_key, public_key)
-                print("3")
-                import base64
                 new_encrypted_note_key ={
                     "user_id":user_id,
-                    "key" :  base64.b64decode(encrypted_note_key).decode("utf-8"),
+                    "key" :  base64.b64encode(encrypted_note_key).decode("utf-8"),
                     }
                 all_encrypted_keys_for_note.append(new_encrypted_note_key)
             client_response[note_id] = all_encrypted_keys_for_note
         return client_response
+
+    def exit(self, force: bool = False) -> None:
+        """Exit the application."""
+        if not force:
+            if not self._prompt_user("exit"):
+                return
+        print("Exiting NoteIST. Goodbye!")
+        exit(0)
