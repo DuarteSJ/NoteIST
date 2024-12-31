@@ -377,14 +377,12 @@ class NoteISTClient:
             raise Exception(f"Failed to push changes: {e}")
 
         try:
-            print(response.public_keys_dict)
             if response.public_keys_dict == {}:
                 return
             newly_encrypted_note_keys = self.encrypt_key_with_users_public_keys(
                 response.public_keys_dict
             )
 
-            print(f"\nnewly_encrypted_note_keys: {newly_encrypted_note_keys}\n")
             response = self.network_handler.final_push(
                 self.priv_key_path, {"note_keys_dict": newly_encrypted_note_keys}
             )
@@ -671,6 +669,8 @@ class NoteISTClient:
 
         if choice < 1 or choice > len(contributors):
             raise ValueError("Invalid choice. Number out of range.")
+        
+        print(f"chosen contributor: {contributors[choice - 1]}")
 
         return contributors[choice - 1]
 
@@ -686,6 +686,7 @@ class NoteISTClient:
             note["viewers"].remove(contributor)
             is_editor = False
         elif role == "editor":
+            note["viewers"].remove(contributor)
             note["editors"].remove(contributor)
             is_editor = True
 
@@ -707,7 +708,7 @@ class NoteISTClient:
 
         self._record_change(
             action_type=ActionType.REMOVE_USER,
-            collaborator_username=contributor,
+            collaborator_username=contributor.get("username"),
             note_id=note.get("id"),
             is_editor=is_editor,
         )

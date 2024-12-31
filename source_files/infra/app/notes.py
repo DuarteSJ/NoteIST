@@ -53,15 +53,15 @@ class NotesService:
             }
 
             # Insert note
-            note_id = self.db_manager.insert_document("notes", note_data)
+            self.db_manager.insert_document("notes", note_data)
 
             # Update user's owned notes
             self.db_manager.update_document(
-                "users", {"id": owner_id}, {"$push": {"owned_notes": note_id}}
+                "users", {"id": owner_id}, {"$push": {"owned_notes": id}}
             )
             # Log and return
-            self.logger.info(f"Note created with ID: {note_id}")
-            return {**note_data, "id": note_id}
+            self.logger.info(f"Note created with ID: {id}")
+            return {**note_data, "id": id}
 
         except Exception as e:
             self.logger.error(f"Error creating note: {e}")
@@ -155,8 +155,6 @@ class NotesService:
             if not result:
                 return False
 
-            print("result: ", result)
-
             if isinstance(result, dict):
                 return result
 
@@ -187,8 +185,6 @@ class NotesService:
 
             if not result:
                 return False
-
-            print("result: ", result)
 
             if isinstance(result, dict):
                 return result
@@ -401,7 +397,7 @@ class NotesService:
 
         # Check if the user is an editor
         editor_exists = any(
-            ed["user_id"] == editor_id for ed in note.get("editors", [])
+            ed["id"] == editor_id for ed in note.get("editors", [])
         )
         if not editor_exists:
             raise ValueError("User is not an editor")
@@ -411,9 +407,10 @@ class NotesService:
             "notes",
             {"id": note_id},
             {
-                "$pull": {"editors": {"user_id": editor_id}}
+                "$pull": {"editors": {"id": editor_id}}
             },  # Remove dictionary matching user_id
         )
+
 
 
 def get_notes_service(db_manager):

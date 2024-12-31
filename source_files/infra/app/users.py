@@ -236,6 +236,33 @@ class UsersService:
             "users", {"id": user_id}, {"$pull": {"editor_notes": note_id}}
         )
 
+    def remove_keys_from_user(self, user_id: str, note_id: str):
+        """
+        Remove a note from the list of notes the user can edit
+
+        Args:
+            user_id (str): ID of the user
+            note_id (str): ID of the note
+        """
+        try:
+
+            user = self.get_user(user_id, by_username=False)
+            print("note_id:", note_id)
+            print("User before:", user.get("keys"))
+            # Update user document
+            self.db_manager.update_document(
+                "users", 
+                {"id": user_id}, 
+                {"$unset": {f"keys.{note_id}": ""}}
+            )
+
+            user_after = self.get_user(user_id, by_username=False)
+            print("User after:", user_after.get("keys"))
+
+        except Exception as e:
+            self.logger.error(f"Error removing keys from user: {e}")
+            raise
+
 
 # Factory function for creating UsersService
 def get_users_service(db_manager):

@@ -406,10 +406,13 @@ class Server:
         if not perms.get("is_owner"):
             raise ValueError("User does not have permission to delete this note")
         self.notes_service.delete_note(note_id, owner.get("id"))
-        for editor_id in server_note.get("editors", []):
-            self.user_service.remove_editor_note(editor_id, note_id)
-        for viewer_id in server_note.get("viewers", []):
-            self.user_service.remove_viewer_note(viewer_id, note_id)
+        for editor in server_note.get("editors", []):
+            editor = self.user_service.get_user(editor.get("username"))
+            self.user_service.remove_editor_note(editor, note_id)
+        for viewer in server_note.get("viewers", []):
+            viewer = self.user_service.get_user(viewer.get("username"))
+            self.user_service.remove_viewer_note(viewer, note_id)
+
 
         return {"status": "success", "message": f"Note {note_id} deleted"}
 
@@ -490,10 +493,11 @@ class Server:
         # self.logger.info(f"Removing collaborator {user.get("username")} to note {action.get('data', {}).get('note_id')}")
         note_id = action.get("data", {}).get("note_id")
         collaborator_username = action.get("data", {}).get("collaborator_username")
-        editorFlag = action.get("data", {}).get("editorFlag")
+        editorFlag = action.get("data", {}).get("is_editor")
 
         if not note_id or not collaborator_username:
             raise ValueError("Missing required note fields")
+        
 
         collaborator = self.user_service.get_user(collaborator_username)
         if not collaborator:
@@ -501,12 +505,14 @@ class Server:
 
         if collaborator.get("id") == user.get("id"):
             raise ValueError("User cannot add themselves as a collaborator")
+        
 
-        all_notes = self.notes_service.get_all_versions_of_note(note_id, user.get("id"))
-        if not all_notes:
+        all_versions = self.notes_service.get_all_versions_of_note(note_id, user.get("id"))
+        if not all_versions:
             raise ValueError(f"Note with id {note_id} not found")
+        
 
-        for note in all_notes:
+        for note in all_versions:
             if editorFlag:
                 self.notes_service.remove_editor_from_note(
                     note, user.get("id"), collaborator.get("id")
@@ -517,6 +523,8 @@ class Server:
                 note, user.get("id"), collaborator.get("id")
             )
             self.user_service.remove_viewer_note(collaborator, note_id)
+
+        self.user_service.remove_keys_from_user(collaborator.get("id"), note_id)
 
         if note_id not in public_keys_dict:
             public_keys_dict[note_id] = []

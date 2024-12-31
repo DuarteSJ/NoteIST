@@ -5,6 +5,7 @@ from contextlib import contextmanager
 from logging.handlers import TimedRotatingFileHandler
 import ssl
 import os
+from pymongo import ReturnDocument
 
 
 class DatabaseManager:
@@ -196,7 +197,10 @@ class DatabaseManager:
         try:
             collection = self.db[collection_name]
             result = collection.find_one_and_update(
-                query, update, return_document=True, upsert=upsert
+                query, 
+                update,
+                return_document=ReturnDocument.AFTER,  # Instead of True
+                upsert=upsert
             )
 
             if result:
