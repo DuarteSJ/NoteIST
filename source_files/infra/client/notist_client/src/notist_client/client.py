@@ -94,20 +94,20 @@ class NoteISTClient:
             user_info = FileHandler.read_json(self.config_path)
             self.username = user_info.get("username")
             local_password = user_info.get("password")
-            self.salt = bytes.fromhex(user_info.get("salt"))
+            salt = bytes.fromhex(user_info.get("salt"))
 
             if not self.username:
                 raise Exception("Username not found in configuration")
             if not local_password:
                 raise Exception("Password not found in configuration")
-            if not self.salt:
+            if not salt:
                 raise Exception("Salt not found in configuration")
 
             password = input(f"Hi {self.username}, enter your password: ")
 
             AuthManager.verify_password(local_password, password)
 
-            self.key_manager = KeyManager(password, self.salt, self.username)
+            self.key_manager = KeyManager(password, salt, self.username)
 
             self.network_handler = NetworkHandler(
                 self.username, self.host, self.port, self.cert_path, self.key_manager
@@ -158,8 +158,8 @@ class NoteISTClient:
                 passwordHash = AuthManager.hash_password(password)
                 # Generate and store key pair
                 self.username = username
-                self.salt = os.urandom(16)
-                self.key_manager = KeyManager(password, self.salt, self.username)
+                salt = os.urandom(16)
+                self.key_manager = KeyManager(password, salt, self.username)
                 public_key = self.key_manager.generate_key_pair(self.priv_key_path)
                 # Initialize network handler
                 self.network_handler = NetworkHandler(
@@ -177,7 +177,7 @@ class NoteISTClient:
                     {
                         "username": username,
                         "password": passwordHash,
-                        "salt": self.salt.hex(),
+                        "salt": salt.hex(),
                     },
                 )
                 print(f"Welcome to NoteIST, {username}!")
@@ -192,8 +192,13 @@ class NoteISTClient:
         self, changes: List[Dict[str, Any]], new_keys: Dict[str, str]
     ) -> None:
         """Apply changes received from server to local state."""
+        # TODO: the clean notes directory doesnt completely destroy
+        # notes that no longer exist, it leaves the key file for every note
+        # that was deleted. Should delete the entire folder but only for notes
+        # that no longer exist in the server, and not for every note in the dir
+        # Do not remove this TODO! < Duarte >
 
-        FileHandler.clean_note_directory(self.notes_dir)
+        FileHandler.clean_notes_directory(self.notes_dir)
 
         current_id = None
 
@@ -285,13 +290,7 @@ class NoteISTClient:
             filePath=note_path,
             keyFile=key_path,
             key_manager=self.key_manager,
-            id=note["id"],
-            title=note["title"],
-            content=note["note"],
-            owner=note["owner"],
-            version=note["version"],
-            editors=note["editors"],
-            viewers=note["viewers"],
+            note_data=note,
         )
 
     def _record_change(self, action_type: ActionType, **kwargs: Any) -> None:
@@ -354,9 +353,9 @@ class NoteISTClient:
             print(f"Server response: {response.status} - {response.message}")
             if response.status != "success":
                 return
-            for res in response.action_results:
+            for res in response.action_results or []:
                 print(res)
-            for res in response.user_results:
+            for res in response.user_results or []:
                 print(res)
 
             FileHandler.clean_file(self.note_changes_path)
@@ -559,7 +558,7 @@ class NoteISTClient:
         note_dir = os.path.join(self.notes_dir, note["id"])
 
         # Store note and record change
-        self._store_note(note, note_dir)
+        self._store_note(note=note, note_dir=note_dir)
         self._record_change(
             action_type=ActionType.EDIT_NOTE,
             note=FileHandler.read_json(
@@ -606,22 +605,8 @@ class NoteISTClient:
 
         note["viewers"].append({"username": contributor})  # editors are also viewers
 
-        note_path = os.path.join(
-            self.notes_dir, note["id"], f"v{note['version']}.notist"
-        )
-        FileHandler.write_encrypted_note(
-            filePath=note_path,
-            keyFile=os.path.join(self.notes_dir, note["id"], "key"),
-            key_manager=self.key_manager,
-            id=note["id"],
-            title=note["title"],
-            content=note["note"],
-            owner=note["owner"],
-            version=note["version"],
-            editors=note["editors"],
-            viewers=note["viewers"],
-        )
-
+        note_path = os.path.join(self.notes_dir, note["id"])
+        self._store_note(note, note_path)
         self._record_change(
             action_type=ActionType.ADD_USER,
             collaborator_username=contributor,
@@ -674,22 +659,8 @@ class NoteISTClient:
             note["editors"].remove(contributor)
             is_editor = True
 
-        note_path = os.path.join(
-            self.notes_dir, note.get("id"), f'v{note.get("version")}.notist'
-        )
-        FileHandler.write_encrypted_note(
-            filePath=note_path,
-            keyFile=os.path.join(self.notes_dir, note.get("id"), "key"),
-            key_manager=self.key_manager,
-            id=note.get("id"),
-            title=note.get("title"),
-            content=note.get("note"),
-            owner=note.get("owner"),
-            version=note.get("version"),
-            editors=note.get("editors"),
-            viewers=note.get("viewers"),
-        )
-
+        note_path = os.path.join(self.notes_dir, note.get("id"))
+        self._store_note(note, note_path)
         self._record_change(
             action_type=ActionType.REMOVE_USER,
             collaborator_username=contributor.get("username"),

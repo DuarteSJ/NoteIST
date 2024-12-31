@@ -23,7 +23,7 @@ def execute_protect(
     Handles the 'protect' command logic.
     """
     try:
-        handler.protect(input_file, key_file, output_file)
+        handler.protect_file(input_file, key_file, output_file)
         print(f"Document successfully protected. Saved to: {output_file}")
     except Exception as e:
         print(f"Failed to protect document: {e}")
@@ -69,7 +69,7 @@ def execute_unprotect(
     Handles the 'unprotect' command logic.
     """
     try:
-        handler.unprotect(input_file, key_file, output_file)
+        handler.unprotect_to_file(input_file, key_file, output_file)
         print(f"Document successfully decrypted. Saved to: {output_file}")
     except Exception as e:
         print(f"Failed to decrypt document: {e}")

@@ -81,6 +81,7 @@ class NetworkHandler:
                 message="No changes to push (this wasn't sent by server)",
                 user_results=[],
                 action_results=[],
+                public_keys_dict={},
             )
         data = {
             "note_changes": note_changes,

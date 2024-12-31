@@ -105,7 +105,7 @@ class NotesService:
                     "date_created": existing_note[
                         "date_created"
                     ],  # Keep original creation date
-                    "date_modified": datetime.datetime.now(datetime.timezone.utc),
+                    "date_modified": datetime.now(timezone.utc),
                     "last_modified_by": editor.get("id"),
                     "version": version,
                     "owner": existing_note["owner"],
@@ -395,9 +395,7 @@ class NotesService:
             raise PermissionError("Only the note owner can remove editors")
 
         # Check if the user is an editor
-        editor_exists = any(
-            ed["id"] == editor_id for ed in note.get("editors", [])
-        )
+        editor_exists = any(ed["id"] == editor_id for ed in note.get("editors", []))
         if not editor_exists:
             raise ValueError("User is not an editor")
 
@@ -409,7 +407,6 @@ class NotesService:
                 "$pull": {"editors": {"id": editor_id}}
             },  # Remove dictionary matching user_id
         )
-
 
 
 def get_notes_service(db_manager):

@@ -11,9 +11,7 @@ class AuthManager:
         """Hash a password with a random salt using PBKDF2."""
         if not password:
             raise ValueError("Password cannot be empty.")
-        salt = os.urandom(
-            16
-        )  # Generate a random salt, TODO: get this salt from stoorage
+        salt = os.urandom(16)
         kdf = PBKDF2HMAC(
             algorithm=SHA256(),
             length=32,

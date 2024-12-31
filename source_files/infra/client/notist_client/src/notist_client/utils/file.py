@@ -69,14 +69,14 @@ class FileHandler:
 
     @staticmethod
     def clean_notes_directory(directory: str) -> None:
-        # clean note files
+        """Cleans the notes directory by removing all subdirectories."""
         for sub_dir in os.listdir(directory):
             sub_dir_path = os.path.join(directory, sub_dir)
             FileHandler.clean_note_directory(sub_dir_path)
 
     @staticmethod
     def clean_note_directory(directory: str) -> None:
-        # clean note files
+        """Cleans the note directory by removing all note files, but leaving the key file."""
         for file in os.listdir(directory):
             if file.endswith(".notist"):
                 os.remove(os.path.join(directory, file))
@@ -89,76 +89,30 @@ class FileHandler:
         keyFile: str,
         key_manager: KeyManager,
         # note data
-        id: int,
-        title: str,
-        content: str,
-        owner: str,
-        version: int,
-        editors: List[str] = [],
-        viewers: List[str] = [],
+        note_data: Dict[str, Any],
     ) -> None:
         """Writes content to a file in the specified format."""
-        uuid = str(uuid4())
-        # TODO: por favor isto é dogwater code race condition vulnerable
-        tempFilePath = f"/tmp/notist_temp_{uuid}.json"
-        tempKeyFile = f"/tmp/notist_key_{uuid}.json"
-        note_key = key_manager.load_note_key(keyFile)
-        cls.store_key(note_key, tempKeyFile)
-
-        note_data = {
-            "id": id,
-            "title": title,
-            "note": content,
-            "owner": owner,
-            "editors": editors,
-            "viewers": viewers,
-            "version": version,
-        }
 
         try:
-            with open(tempFilePath, "w") as f:
-                json.dump(note_data, f, indent=4)
+            note_key = key_manager.load_note_key(keyFile)
 
             handler = SecureDocumentHandler()
-            handler.protect(tempFilePath, tempKeyFile, filePath)
+            handler.protect(note_data, note_key, filePath)
         except Exception as e:
             raise Exception(f"Failed to write and encrypt file: {e}")
-        finally:
-            if os.path.exists(tempFilePath):
-                os.remove(tempFilePath)
-            if os.path.exists(tempKeyFile):
-                os.remove(tempKeyFile)
 
     @classmethod
     def read_encrypted_note(
         cls, filePath: str, keyFile: str, key_manager: KeyManager
     ) -> str:
         """Reads teh entire note from a file after verification and decryption."""
-        uuid = str(uuid4())
-        # TODO: por favor isto é dogwater code race condition vulnerable
-        tempFilePath = f"/tmp/notist_temp_{uuid}.json"
-        tempKeyFile = f"/tmp/notist_key_{uuid}.json"
-
-        note_key = key_manager.load_note_key(keyFile)
-        cls.store_key(note_key, tempKeyFile)
-
         try:
+            note_key = key_manager.load_note_key(keyFile)
             handler = SecureDocumentHandler()
-
-            if not handler.checkSingleFile(filePath, tempKeyFile):
-                raise Exception("The note's integrity is compromised.")
-
-            handler.unprotect(filePath, tempKeyFile, tempFilePath)
-
-            note_data = cls.read_json(tempFilePath)
+            note_data = handler.unprotect(filePath, note_key)
             return note_data
         except Exception as e:
             raise Exception(f"Failed to read and decrypt file: {e}")
-        finally:
-            if os.path.exists(tempFilePath):
-                os.remove(tempFilePath)
-            if os.path.exists(tempKeyFile):
-                os.remove(tempKeyFile)
 
     def get_highest_version(directory: str) -> int:
         """
@@ -173,7 +127,6 @@ class FileHandler:
         Raises:
             Exception: If no notes are found in the directory.
         """
-        # TODO: try catch maybe idrk
         highest_version = -1
 
         for filename in os.listdir(directory):
