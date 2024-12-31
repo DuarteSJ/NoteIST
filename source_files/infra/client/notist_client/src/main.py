@@ -15,7 +15,7 @@ def main():
             choice = display_menu()
             handle_choice(client, choice)
         except Exception as e:
-            print(f"Error: {e}")
+            print(f"An unexpected error occured: {e}")
 
 
 def display_menu() -> str:

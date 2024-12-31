@@ -124,6 +124,7 @@ class UsersModel(BaseModel):
     editor_notes: List[int] = Field(...)
     viewer_notes: List[int] = Field(...)
     keys: Dict[str, bytes] = Field(...)
+    last_request: str = Field(...)
 
 
 class NotesModel(BaseModel):

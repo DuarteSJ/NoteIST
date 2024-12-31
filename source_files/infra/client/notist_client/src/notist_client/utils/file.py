@@ -64,12 +64,8 @@ class FileHandler:
                 shutil.rmtree(path)  # Try removing it as a directory
             except NotADirectoryError:
                 os.remove(path)  # Fallback to removing it as a file
-            except FileNotFoundError:
-                print(f"Path does not exist: {path}")
-            except Exception as e:
-                print(f"Error deleting {path}: {e}")
-            else:
-                print(f"Successfully deleted: {path}")
+            except Exception:
+                continue # If it fails, just continue
 
     @staticmethod
     def clean_notes_directory(directory: str) -> None:
@@ -259,7 +255,6 @@ class FileHandler:
         try:
             for folder in os.listdir(directory):
                 folder_path = os.path.join(directory, folder)
-                print(os.listdir(folder_path))
                 if len(os.listdir(folder_path)) == 1 and "key" in os.listdir(
                     folder_path
                 ):

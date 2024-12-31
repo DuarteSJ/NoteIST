@@ -1,3 +1,4 @@
+import datetime
 import socket
 import ssl
 import json
@@ -72,6 +73,23 @@ class Server:
         except Exception as e:
             self.logger.error(f"Error processing request: {e}")
             return {"status": "error", "message": str(e)}
+        
+    def verify_freshness(self, req: SignedRequestModel) -> bool:
+        request_time_str = req.data.get("timestamp")
+        request_time = datetime.strptime(request_time_str, "%Y-%m-%d %H:%M:%S.%f")
+        if not request_time:
+            return False
+        user = self.user_service.get_user(req.username)
+        last_request_str = user.get("last_request")
+        last_request = datetime.strptime(last_request_str, "%Y-%m-%d %H:%M:%S.%f")
+        if not last_request:
+            return True
+        print (f" Previous request time: {last_request}")
+        print (f" Current request time: {request_time}")
+        if request_time > last_request:
+            self.user_service.update_last_request(user.get("id"), request_time_str)
+            return True
+        return False
 
     def handle_pull_request(self, req: PullRequest) -> ResponseModel:
         """
@@ -80,6 +98,9 @@ class Server:
         try:
             if not self.verify_signature(req):
                 return {"status": "error", "message": "Signature verification failed"}
+
+            if not self.verify_freshness(req):
+                return {"status": "error", "message": "Request is stale"}
 
             user = self.user_service.get_user(req.username)
             local_hmac = req.data.get("digest_of_hmacs")
@@ -123,6 +144,9 @@ class Server:
             # Verify signature first
             if not self.verify_signature(req):
                 return {"status": "error", "message": "Signature verification failed"}
+            
+            if not self.verify_freshness(req):
+                return {"status": "error", "message": "Request is stale"}
 
             # user was found for signature verification
             self.user_service.get_user(req.username)
@@ -154,6 +178,9 @@ class Server:
             # Verify signature first
             if not self.verify_signature(req):
                 return {"status": "error", "message": "Signature verification failed"}
+            
+            if not self.verify_freshness(req):
+                return {"status": "error", "message": "Request is stale"}
 
             # user was found for signature verification
             user = self.user_service.get_user(req.username)

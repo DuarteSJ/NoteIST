@@ -1,3 +1,4 @@
+import datetime
 import ssl
 import socket
 from typing import Dict, Any, List
@@ -81,18 +82,19 @@ class NetworkHandler:
                 user_results=[],
                 action_results=[],
             )
-        changes = {"note_changes": note_changes, "user_changes": user_changes}
+        data = {"note_changes": note_changes, "user_changes": user_changes, "timestamp": str(datetime.now())}
         private_key = self.key_manager.load_private_key(private_key_path)
-        signature = self.secure_handler.sign_request(changes, private_key)
+        signature = self.secure_handler.sign_request(data, private_key)
 
         payload = self.secure_handler.create_signed_payload(
-            RequestType.PUSH.value, self.username, changes, signature
+            RequestType.PUSH.value, self.username, data, signature
         )
         return self._send_request(payload)
 
     def final_push(self, private_key_path: str, data: Dict[str, Any]) -> Response:
         """Pushes changes to the server."""
         private_key = self.key_manager.load_private_key(private_key_path)
+        data["timestamp"] = str(datetime.now())
         signature = self.secure_handler.sign_request(data, private_key)
 
         payload = self.secure_handler.create_signed_payload(
@@ -106,7 +108,7 @@ class NetworkHandler:
 
         # get notes
 
-        data = {"digest_of_hmacs": hash_of_hmacs}
+        data = {"digest_of_hmacs": hash_of_hmacs, "timestamp": str(datetime.now())}
 
         signature = self.secure_handler.sign_request(data, private_key)
 
@@ -120,5 +122,4 @@ class NetworkHandler:
         payload = self.secure_handler.create_unsigned_payload(
             RequestType.REGISTER.value, self.username, {"public_key": public_key}
         )
-        print(payload)
         return self._send_request(payload)

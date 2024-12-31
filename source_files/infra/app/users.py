@@ -1,3 +1,4 @@
+import datetime
 import logging
 from typing import Dict, Any
 from db_manager import DatabaseManager
@@ -40,6 +41,7 @@ class UsersService:
                 "editor_notes": [],
                 "viewer_notes": [],
                 "keys": {},
+                "last_request": str(datetime.now()),
             }
 
             # Validate using Pydantic model
@@ -77,6 +79,23 @@ class UsersService:
         except Exception as e:
             self.logger.error(f"Error updating user keys: {e}")
             raise
+
+    def update_last_request(self, user_id: str, timestamp: str):
+        """
+        Update the last request timestamp for a user.
+
+        Args:
+            user_id (str): The ID of the user
+            timestamp (str): The timestamp to be updated
+        """
+        try:
+            self.db_manager.update_document(
+                "users", {"id": user_id}, {"$set": {"last_request": timestamp}}
+            )
+        except Exception as e:
+            self.logger.error(f"Error updating user last request: {e}")
+            raise
+
 
     def get_user(self, identifier: str, by_username: bool = True) -> Dict[str, Any]:
         """

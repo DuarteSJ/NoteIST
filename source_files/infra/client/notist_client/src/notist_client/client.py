@@ -99,7 +99,6 @@ class NoteISTClient:
             if not self.username:
                 raise Exception("Username not found in configuration")
             if not local_password:
-                # TODO: WHAT TO DO?
                 raise Exception("Password not found in configuration")
             if not self.salt:
                 raise Exception("Salt not found in configuration")
@@ -108,7 +107,7 @@ class NoteISTClient:
 
             AuthManager.verify_password(local_password, password)
 
-            self.key_manager = KeyManager(password, self.salt)
+            self.key_manager = KeyManager(password, self.salt, self.username)
 
             self.network_handler = NetworkHandler(
                 self.username, self.host, self.port, self.cert_path, self.key_manager
@@ -128,15 +127,7 @@ class NoteISTClient:
         return res in [
             "yes",
             "y",
-            "ye",
-            "aight",
-            "sure",
-            "ok",
-            "okay",
-            "yup",
-            "yep",
-            "yeah",
-            "yessir",
+            "david"
         ]
 
     def _register_new_user(self) -> None:
@@ -172,7 +163,7 @@ class NoteISTClient:
                 # Generate and store key pair
                 self.username = username
                 self.salt = os.urandom(16)
-                self.key_manager = KeyManager(password, self.salt)
+                self.key_manager = KeyManager(password, self.salt, self.username)
                 public_key = self.key_manager.generate_key_pair(self.priv_key_path)
                 # Initialize network handler
                 self.network_handler = NetworkHandler(
@@ -213,7 +204,6 @@ class NoteISTClient:
         for note in changes:
             id = note.get("id")
             if not id:
-                print("Wrongly formatted document, skipping")
                 continue
 
             # If we're processing a new group, create a new folder
@@ -417,7 +407,6 @@ class NoteISTClient:
         for encrypted_title in os.listdir(self.notes_dir):
             note_dir = os.path.join(self.notes_dir, encrypted_title)
             for version in os.listdir(note_dir):
-                print(f"version: {version}")
                 if version == "key":
                     continue
                 note = FileHandler.read_json(os.path.join(note_dir, version))
@@ -670,7 +659,6 @@ class NoteISTClient:
         if choice < 1 or choice > len(contributors):
             raise ValueError("Invalid choice. Number out of range.")
         
-        print(f"chosen contributor: {contributors[choice - 1]}")
 
         return contributors[choice - 1]
 
@@ -753,7 +741,6 @@ class NoteISTClient:
         """
         client_response = {}
 
-        print(f"public_key_dict: {public_key_dict}")
         for note_id in public_key_dict:
             note_dir = os.path.join(self.notes_dir, note_id)
             # decrypt the key with master key
