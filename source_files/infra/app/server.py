@@ -1,4 +1,4 @@
-import datetime
+from datetime import datetime
 import socket
 import ssl
 import json
@@ -633,7 +633,6 @@ class Server:
             return False
 
     def _serialize_document(self, doc):
-        from datetime import datetime
 
         for key, value in doc.items():
             if isinstance(value, datetime):

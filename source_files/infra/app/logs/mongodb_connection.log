@@ -530,3 +530,60 @@
 2024-12-31 12:57:10,271 - __main__ - INFO - Connection from ('192.168.1.201', 53006)
 2024-12-31 12:57:10,274 - db_manager - INFO - Updated document in users
 2024-12-31 12:57:42,887 - __main__ - INFO - Connection from ('192.168.1.200', 54320)
+2024-12-31 16:40:34,494 - db_manager - INFO - Successfully connected to MongoDB
+2024-12-31 16:40:34,494 - __main__ - INFO - Server listening on 0.0.0.0:5000
+2024-12-31 16:40:39,363 - __main__ - INFO - Connection from ('192.168.1.200', 36858)
+2024-12-31 16:40:39,365 - users - ERROR - Error creating user: module 'datetime' has no attribute 'now'
+2024-12-31 16:40:39,365 - __main__ - ERROR - Error processing request: module 'datetime' has no attribute 'now'
+2024-12-31 16:42:02,322 - db_manager - INFO - MongoDB connection closed
+2024-12-31 16:42:45,110 - db_manager - INFO - Successfully connected to MongoDB
+2024-12-31 16:42:45,113 - __main__ - INFO - Server listening on 0.0.0.0:5000
+2024-12-31 16:42:51,622 - __main__ - INFO - Connection from ('192.168.1.200', 55140)
+2024-12-31 16:42:51,631 - db_manager - INFO - Inserted document in users with ID: 67741f0bf17ff0720b46fd8e
+2024-12-31 16:42:51,631 - users - INFO - User created with ID: 67741f0bf17ff0720b46fd8e
+2024-12-31 16:43:25,296 - __main__ - INFO - Connection from ('192.168.1.200', 60780)
+2024-12-31 16:43:25,302 - db_manager - INFO - Updated document in users
+2024-12-31 16:43:25,305 - notes - ERROR - Error creating note: type object 'datetime.datetime' has no attribute 'datetime'
+2024-12-31 16:44:09,835 - __main__ - INFO - Connection from ('192.168.1.200', 55486)
+2024-12-31 16:44:09,838 - db_manager - INFO - Updated document in users
+2024-12-31 16:44:09,840 - notes - ERROR - Error creating note: type object 'datetime.datetime' has no attribute 'datetime'
+2024-12-31 16:47:34,847 - __main__ - INFO - Connection from ('192.168.1.200', 57752)
+2024-12-31 16:47:34,850 - db_manager - INFO - Updated document in users
+2024-12-31 16:47:34,852 - notes - ERROR - Error creating note: type object 'datetime.datetime' has no attribute 'datetime'
+2024-12-31 16:47:49,666 - db_manager - INFO - MongoDB connection closed
+2024-12-31 16:47:50,282 - db_manager - INFO - Successfully connected to MongoDB
+2024-12-31 16:47:50,282 - __main__ - INFO - Server listening on 0.0.0.0:5000
+2024-12-31 16:48:34,896 - db_manager - INFO - MongoDB connection closed
+2024-12-31 16:48:35,803 - db_manager - INFO - Successfully connected to MongoDB
+2024-12-31 16:48:35,804 - __main__ - INFO - Server listening on 0.0.0.0:5000
+2024-12-31 16:48:44,573 - __main__ - INFO - Connection from ('192.168.1.200', 41676)
+2024-12-31 16:48:44,584 - db_manager - INFO - Updated document in users
+2024-12-31 16:48:44,591 - db_manager - INFO - Inserted document in notes with ID: 6774206cd26ca216d0f2507d
+2024-12-31 16:48:44,593 - db_manager - INFO - Updated document in users
+2024-12-31 16:48:44,593 - notes - INFO - Note created with ID: 1ac5ac30-a61d-47ac-8f88-bc9f90f58bcb
+2024-12-31 16:49:18,051 - db_manager - INFO - MongoDB connection closed
+2024-12-31 16:49:18,801 - db_manager - INFO - Successfully connected to MongoDB
+2024-12-31 16:49:18,801 - __main__ - INFO - Server listening on 0.0.0.0:5000
+2024-12-31 16:49:29,146 - __main__ - INFO - Connection from ('192.168.1.200', 40328)
+2024-12-31 16:49:29,154 - db_manager - INFO - Updated document in users
+2024-12-31 16:49:29,159 - db_manager - INFO - Inserted document in notes with ID: 677420991119e15c6285ac35
+2024-12-31 16:49:29,162 - db_manager - INFO - Updated document in users
+2024-12-31 16:49:29,162 - notes - INFO - Note created with ID: 512c420f-ff45-4baf-baf8-5952f752b845
+2024-12-31 16:52:23,722 - __main__ - INFO - Connection from ('192.168.1.200', 37148)
+2024-12-31 16:52:23,728 - db_manager - INFO - Updated document in users
+2024-12-31 16:52:23,730 - db_manager - INFO - Inserted document in notes with ID: 677421471119e15c6285ac36
+2024-12-31 16:52:23,731 - db_manager - INFO - Updated document in users
+2024-12-31 16:52:23,731 - notes - INFO - Note created with ID: 19a0390d-07aa-4ca8-b064-4d1ced0fb785
+2024-12-31 16:52:35,904 - __main__ - INFO - Connection from ('192.168.1.200', 45874)
+2024-12-31 16:52:38,026 - __main__ - INFO - Connection from ('192.168.1.200', 45888)
+2024-12-31 16:52:38,763 - __main__ - INFO - Connection from ('192.168.1.200', 45890)
+2024-12-31 16:56:12,703 - db_manager - INFO - MongoDB connection closed
+2024-12-31 16:56:14,256 - db_manager - INFO - Successfully connected to MongoDB
+2024-12-31 16:56:14,257 - __main__ - INFO - Server listening on 0.0.0.0:5000
+2024-12-31 16:56:20,307 - __main__ - INFO - Connection from ('192.168.1.200', 52902)
+2024-12-31 16:56:28,522 - __main__ - INFO - Connection from ('192.168.1.200', 59000)
+2024-12-31 16:56:57,800 - db_manager - INFO - MongoDB connection closed
+2024-12-31 16:56:59,159 - db_manager - INFO - Successfully connected to MongoDB
+2024-12-31 16:56:59,161 - __main__ - INFO - Server listening on 0.0.0.0:5000
+2024-12-31 16:57:05,653 - __main__ - INFO - Connection from ('192.168.1.200', 45314)
+2024-12-31 16:57:58,816 - __main__ - INFO - Connection from ('192.168.1.200', 56348)

@@ -1,7 +1,6 @@
 import logging
 from typing import Optional, Dict, Any, List
-import datetime
-
+from datetime import datetime, timezone
 from db_manager import DatabaseManager
 from pymongo.errors import DuplicateKeyError
 
@@ -43,8 +42,8 @@ class NotesService:
                 "hmac": hmac,
                 "title": title,
                 "note": content,
-                "date_created": datetime.datetime.now(datetime.timezone.utc),
-                "date_modified": datetime.datetime.now(datetime.timezone.utc),
+                "date_created": datetime.now(timezone.utc),
+                "date_modified": datetime.now(timezone.utc),
                 "last_modified_by": owner_id,
                 "version": 1,
                 "owner": {"id": owner_id, "username": owner.get("username")},
@@ -396,7 +395,9 @@ class NotesService:
             raise PermissionError("Only the note owner can remove editors")
 
         # Check if the user is an editor
-        editor_exists = any(ed["id"] == editor_id for ed in note.get("editors", []))
+        editor_exists = any(
+            ed["id"] == editor_id for ed in note.get("editors", [])
+        )
         if not editor_exists:
             raise ValueError("User is not an editor")
 
@@ -408,6 +409,7 @@ class NotesService:
                 "$pull": {"editors": {"id": editor_id}}
             },  # Remove dictionary matching user_id
         )
+
 
 
 def get_notes_service(db_manager):

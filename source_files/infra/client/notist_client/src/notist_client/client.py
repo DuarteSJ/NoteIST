@@ -351,6 +351,7 @@ class NoteISTClient:
             response = self.network_handler.push_changes(
                 self.priv_key_path, note_changes, user_changes
             )
+            print(f"Server response: {response.status} - {response.message}")
             if response.status != "success":
                 return
             for res in response.action_results:

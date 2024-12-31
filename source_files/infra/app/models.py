@@ -1,6 +1,6 @@
 from pydantic import BaseModel, Field, GetCoreSchemaHandler
 from pydantic_core import CoreSchema, core_schema
-import datetime
+from datetime import datetime
 from enum import Enum
 from typing import Optional, List, Union, Dict, Any
 
@@ -135,7 +135,7 @@ class NotesModel(BaseModel):
     owner: int = Field(...)
     editors: List[int] = Field(...)
     viewers: List[int] = Field(...)
-    date_created: datetime.datetime = Field(...)
-    date_modified: datetime.datetime = Field(...)
+    date_created: datetime = Field(...)
+    date_modified: datetime = Field(...)
     last_modified_by: int = Field(...)
     version: int = Field(...)

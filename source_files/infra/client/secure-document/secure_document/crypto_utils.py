@@ -21,6 +21,7 @@ class SecureDocumentHandler:
         try:
             with open(file_path, "w") as file:
                 json.dump(data, file, indent=indent)
+            # print(f"JSON data successfully written to {file_path}")
         except Exception as e:
             print(f"Error writing JSON to file: {e}")
 
@@ -168,6 +169,7 @@ class SecureDocumentHandler:
             for k, v in json_data.items():
                 if k in ["title", "note"]:
                     # Convert value to bytes for encryption
+                    # TODO: assuming its string
                     value_bytes = str(v).encode("utf-8")
 
                     # Encrypt the value
