@@ -89,8 +89,8 @@ class NetworkHandler:
             RequestType.PUSH.value, self.username, changes, signature
         )
         return self._send_request(payload)
-    
-    def final_push(self, private_key_path: str,data: Dict[str, Any]) -> Response:
+
+    def final_push(self, private_key_path: str, data: Dict[str, Any]) -> Response:
         """Pushes changes to the server."""
         private_key = self.key_manager.load_private_key(private_key_path)
         signature = self.secure_handler.sign_request(data, private_key)

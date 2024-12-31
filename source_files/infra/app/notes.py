@@ -154,7 +154,7 @@ class NotesService:
 
             if not result:
                 return False
-            
+
             print("result: ", result)
 
             if isinstance(result, dict):
@@ -187,7 +187,7 @@ class NotesService:
 
             if not result:
                 return False
-            
+
             print("result: ", result)
 
             if isinstance(result, dict):
@@ -239,7 +239,6 @@ class NotesService:
 
             raise ValueError("Note deletion failed")
 
-
         except Exception as e:
             self.logger.error(f"Error deleting notes: {e}")
             raise
@@ -287,7 +286,6 @@ class NotesService:
         Returns:
             Dict with status of the operation
         """
-        
 
         # Check if the requesting user is the owner
         if owner_id != note["owner"]["id"]:
@@ -302,7 +300,9 @@ class NotesService:
 
         # Add user as a viewer
         self.db_manager.update_documents(
-            "notes", {"id": note_id}, {"$push": {"viewers": {"id": user_id, "username": viewer.get("username")}}}
+            "notes",
+            {"id": note_id},
+            {"$push": {"viewers": {"id": user_id, "username": viewer.get("username")}}},
         )
 
     def remove_viewer_from_note(
@@ -327,15 +327,19 @@ class NotesService:
             raise PermissionError("Only the note owner can remove viewers")
 
         # Check if the user is a viewer
-        viewer_exists = any(vie.get("id") == viewer_id for vie in note.get("viewers", []))
+        viewer_exists = any(
+            vie.get("id") == viewer_id for vie in note.get("viewers", [])
+        )
         if not viewer_exists:
             raise ValueError("User is not a viewer")
 
         # Remove the viewer
         self.db_manager.update_documents(
-            "notes", 
-            {"id": note_id}, 
-            {"$pull": {"viewers": {"id": viewer_id}}}  # Remove dictionary matching user_id
+            "notes",
+            {"id": note_id},
+            {
+                "$pull": {"viewers": {"id": viewer_id}}
+            },  # Remove dictionary matching user_id
         )
 
     def add_editor_to_note(
@@ -365,12 +369,18 @@ class NotesService:
 
         # Add user as an editor
         self.db_manager.update_documents(
-            "notes", {"id": note_id}, {"$push": {"editors": {"id": editor_id, "username": editor.get("username")}}}
+            "notes",
+            {"id": note_id},
+            {
+                "$push": {
+                    "editors": {"id": editor_id, "username": editor.get("username")}
+                }
+            },
         )
 
     def remove_editor_from_note(
-            self, note: Dict[str, Any], owner_id: str, editor_id: str
-        ) -> Dict[str, Any]:
+        self, note: Dict[str, Any], owner_id: str, editor_id: str
+    ) -> Dict[str, Any]:
         """
         Remove an editor from a note
 
@@ -390,16 +400,21 @@ class NotesService:
             raise PermissionError("Only the note owner can remove editors")
 
         # Check if the user is an editor
-        editor_exists = any(ed["user_id"] == editor_id for ed in note.get("editors", []))
+        editor_exists = any(
+            ed["user_id"] == editor_id for ed in note.get("editors", [])
+        )
         if not editor_exists:
             raise ValueError("User is not an editor")
 
         # Remove the editor
         self.db_manager.update_documents(
-            "notes", 
-            {"id": note_id}, 
-            {"$pull": {"editors": {"user_id": editor_id}}}  # Remove dictionary matching user_id
+            "notes",
+            {"id": note_id},
+            {
+                "$pull": {"editors": {"user_id": editor_id}}
+            },  # Remove dictionary matching user_id
         )
+
 
 def get_notes_service(db_manager):
     """

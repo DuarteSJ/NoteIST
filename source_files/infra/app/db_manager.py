@@ -232,7 +232,9 @@ class DatabaseManager:
             result = collection.update_many(query, update, upsert=upsert)
 
             if result.matched_count > 0:
-                self.logger.info(f"Updated {result.modified_count} documents in {collection_name}")
+                self.logger.info(
+                    f"Updated {result.modified_count} documents in {collection_name}"
+                )
                 return {
                     "matched_count": result.matched_count,
                     "modified_count": result.modified_count,

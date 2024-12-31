@@ -18,7 +18,6 @@ from uuid import uuid4
 import base64
 
 
-
 class NoteISTClient:
     """
     Main client class for the NoteIST application. Handles user management,
@@ -114,7 +113,6 @@ class NoteISTClient:
             self.network_handler = NetworkHandler(
                 self.username, self.host, self.port, self.cert_path, self.key_manager
             )
-
         except ValueError as e:
             # password mismatch or missing username
             print(f"Login failed: {e}")
@@ -124,8 +122,22 @@ class NoteISTClient:
 
     def _prompt_user(self, msg) -> bool:
         """Prompt the user."""
-        res = input(f"Would you like to {msg}, {self.username if self.username else ''}? [yes/no]").lower()
-        return res in ["yes", "y", "ye", "aight", "sure", "ok", "okay", "yup", "yep", "yeah", "yessir"]
+        res = input(
+            f"Would you like to {msg}, {self.username if self.username else ''}? [yes/no]"
+        ).lower()
+        return res in [
+            "yes",
+            "y",
+            "ye",
+            "aight",
+            "sure",
+            "ok",
+            "okay",
+            "yup",
+            "yep",
+            "yeah",
+            "yessir",
+        ]
 
     def _register_new_user(self) -> None:
         """Handle the registration process for a new user."""
@@ -189,7 +201,9 @@ class NoteISTClient:
                 if not self._prompt_user("try again"):
                     self.exit(force=True)
 
-    def _apply_server_changes(self, changes: List[Dict[str, Any]], new_keys: Dict[str, str]) -> None:
+    def _apply_server_changes(
+        self, changes: List[Dict[str, Any]], new_keys: Dict[str, str]
+    ) -> None:
         """Apply changes received from server to local state."""
 
         FileHandler.clean_note_directory(self.notes_dir)
@@ -217,12 +231,14 @@ class NoteISTClient:
 
             folder_path = os.path.join(self.notes_dir, note_id)
             FileHandler.ensure_directory(folder_path)
-            
-            encrypted_key=base64.b64decode(encrypted_key.encode("utf-8"))
-            key = self.key_manager.decrypt_key_with_private_key(encrypted_key, self.priv_key_path)
-            self.key_manager.store_note_key(key, os.path.join(self.notes_dir, note_id, "key"))
 
-
+            encrypted_key = base64.b64decode(encrypted_key.encode("utf-8"))
+            key = self.key_manager.decrypt_key_with_private_key(
+                encrypted_key, self.priv_key_path
+            )
+            self.key_manager.store_note_key(
+                key, os.path.join(self.notes_dir, note_id, "key")
+            )
 
     def create_note(self) -> None:
         """
@@ -232,7 +248,7 @@ class NoteISTClient:
             title: The title of the note
             content: The content of the note
         """
-        
+
         title = input("Enter note title: ")
         content = input("Enter note content: ")
 
@@ -341,7 +357,6 @@ class NoteISTClient:
         # Open the file and append the JSON-encoded string
         FileHandler.save_change(changes_path, change_record)
 
-
     def push_changes(self) -> Response:
         """Push recorded changes to the server."""
         try:
@@ -365,17 +380,19 @@ class NoteISTClient:
             print(response.public_keys_dict)
             if response.public_keys_dict == {}:
                 return
-            newly_encrypted_note_keys = self.encrypt_key_with_users_public_keys(response.public_keys_dict)
-    
-            print (f"\nnewly_encrypted_note_keys: {newly_encrypted_note_keys}\n")
-            response = self.network_handler.final_push(self.priv_key_path, {"note_keys_dict": newly_encrypted_note_keys})
-                
+            newly_encrypted_note_keys = self.encrypt_key_with_users_public_keys(
+                response.public_keys_dict
+            )
+
+            print(f"\nnewly_encrypted_note_keys: {newly_encrypted_note_keys}\n")
+            response = self.network_handler.final_push(
+                self.priv_key_path, {"note_keys_dict": newly_encrypted_note_keys}
+            )
+
             print(f"Server response: {response}")
             FileHandler.clean_file(self.user_changes_path)
         except Exception as e:
             raise Exception(f"Failed final step of push changes: {e}")
-
-
 
     def pull_changes(self) -> Response:
         """Sync with server."""
@@ -412,7 +429,6 @@ class NoteISTClient:
         hmac_str = "".join(sorted_notes)
         hash = SecureHandler.hash_hmacs_str(hmac_str)
         return hash
-
 
     def get_note_list(self) -> List[tuple]:
         """Get a list of all local notes with their latest versions."""
@@ -541,7 +557,9 @@ class NoteISTClient:
         """
         note = self.select_note()
 
-        if self.username != note["owner"]["username"] and not any( editor.get("username") == self.username for editor in note["editors"]):
+        if self.username != note["owner"]["username"] and not any(
+            editor.get("username") == self.username for editor in note["editors"]
+        ):
             raise Exception(f"You do not have permission to edit this note")
 
         new_title = input("\nEnter new title: ")
@@ -631,7 +649,7 @@ class NoteISTClient:
         print("Contributors:")
 
         contributors = []
-        
+
         # List viewers who are not editors
         editors_usernames = {editor.get("username") for editor in note["editors"]}
         print("Viewers:")
@@ -698,9 +716,7 @@ class NoteISTClient:
         from subprocess import call
         from tempfile import NamedTemporaryFile
 
-        with NamedTemporaryFile(
-            delete=False, mode="w+", suffix=".txt"
-        ) as temp_file:
+        with NamedTemporaryFile(delete=False, mode="w+", suffix=".txt") as temp_file:
             temp_file_name = temp_file.name
             temp_file.write(old_content)
             temp_file.flush()
@@ -714,9 +730,11 @@ class NoteISTClient:
         os.unlink(temp_file_name)  # Clean up the temporary file
         return new_content.strip()
 
-    def encrypt_key_with_users_public_keys(self, public_key_dict: Dict[str,List[Dict[str,str]]]) -> Dict[str,List[Dict[str,str]]]:
+    def encrypt_key_with_users_public_keys(
+        self, public_key_dict: Dict[str, List[Dict[str, str]]]
+    ) -> Dict[str, List[Dict[str, str]]]:
         """
-        encrypt the key of each note with the public key of each user 
+        encrypt the key of each note with the public key of each user
 
         Receives:
              {
@@ -725,7 +743,7 @@ class NoteISTClient:
 
         Args:
             public_key_dict: dictionary with the public key of each user
-        
+
         Returns:
             {
                 "note_id": [ {user_id: user_id, key: encrypted_key}, {user_id: user_id2, key: encrypted_key2} ],
@@ -737,20 +755,24 @@ class NoteISTClient:
         print(f"public_key_dict: {public_key_dict}")
         for note_id in public_key_dict:
             note_dir = os.path.join(self.notes_dir, note_id)
-            #decrypt the key with master key
+            # decrypt the key with master key
             key_path = os.path.join(note_dir, "key")
             note_key = self.key_manager.load_note_key(key_path)
-            all_encrypted_keys_for_note= []
+            all_encrypted_keys_for_note = []
 
-            #encrypt the key with the public key of each user
+            # encrypt the key with the public key of each user
             for user in public_key_dict[note_id]:
                 user_id = user["user_id"]
-                public_key = self.key_manager.load_public_key_from_json_serializable(user["key"])
-                encrypted_note_key = self.key_manager.encrypt_key_with_public_key(note_key, public_key)
-                new_encrypted_note_key ={
-                    "user_id":user_id,
-                    "key" :  base64.b64encode(encrypted_note_key).decode("utf-8"),
-                    }
+                public_key = self.key_manager.load_public_key_from_json_serializable(
+                    user["key"]
+                )
+                encrypted_note_key = self.key_manager.encrypt_key_with_public_key(
+                    note_key, public_key
+                )
+                new_encrypted_note_key = {
+                    "user_id": user_id,
+                    "key": base64.b64encode(encrypted_note_key).decode("utf-8"),
+                }
                 all_encrypted_keys_for_note.append(new_encrypted_note_key)
             client_response[note_id] = all_encrypted_keys_for_note
         return client_response

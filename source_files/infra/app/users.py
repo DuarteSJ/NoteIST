@@ -72,7 +72,7 @@ class UsersService:
             self.db_manager.update_document(
                 "users",
                 {"id": user_id},
-                {"$set": {f"keys.{note_id}": key}}  # Dynamic key update
+                {"$set": {f"keys.{note_id}": key}},  # Dynamic key update
             )
         except Exception as e:
             self.logger.error(f"Error updating user keys: {e}")

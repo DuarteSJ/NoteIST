@@ -61,6 +61,7 @@ class PushRequest(SignedRequestModel):
 
     type: RequestType = RequestType.PUSH
 
+
 class PushFinalRequest(SignedRequestModel):
 
     type: RequestType = RequestType.PUSH_FINAL
@@ -95,7 +96,7 @@ class RequestFactory:
             RequestType.REGISTER.value: RegisterRequest,
             RequestType.PUSH.value: PushRequest,
             RequestType.PULL.value: PullRequest,
-            RequestType.PUSH_FINAL.value: PushFinalRequest
+            RequestType.PUSH_FINAL.value: PushFinalRequest,
         }
 
         request_class = request_map.get(request_type)

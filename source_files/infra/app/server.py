@@ -103,7 +103,7 @@ class Server:
                     "status": "synced",
                     "message": "All files are already up to date. Sync successful",
                 }
-            
+
             keys = user.get("keys")
 
             return {
@@ -119,27 +119,27 @@ class Server:
         except Exception as e:
             self.logger.error(f"Error processing request: {e}")
             return {"status": "error", "message": str(e)}
-        
-    def handle_push_final_request(self, req: PushRequest) -> Dict[str,any]:
+
+    def handle_push_final_request(self, req: PushRequest) -> Dict[str, any]:
         try:
 
             # Verify signature first
             if not self.verify_signature(req):
                 return {"status": "error", "message": "Signature verification failed"}
-            
+
             # user was found for signature verification
             self.user_service.get_user(req.username)
 
             note_keys_dict = req.data.get("note_keys_dict")
-            
+
             for note_id, user_list in note_keys_dict.items():
                 for user in user_list:
                     user_id = user.get("user_id")
                     user_key = user.get("key")
-                    self.user_service.update_user_keys(user_id,note_id,user_key)
+                    self.user_service.update_user_keys(user_id, note_id, user_key)
 
             return {"status": "success", "message": "Keys updated successfully"}
-        
+
         except ValidationError as ve:
             self.logger.error(f"Validation Error: {ve}")
             return {"status": "error", "message": str(ve)}
@@ -229,7 +229,7 @@ class Server:
                             "message": f'No handler found for action: {collab.get("type")}',
                         }
                     )
-            
+
             return {
                 "status": "success",
                 "message": "Actions processed",
@@ -263,7 +263,9 @@ class Server:
         return action_handlers.get(action)
 
     def _handle_create_note(
-        self, action: Dict[str, Any], user: Dict[str, Any],
+        self,
+        action: Dict[str, Any],
+        user: Dict[str, Any],
     ) -> Dict[str, Any]:
         """
         Handle creating a new note for the user.
@@ -453,15 +455,18 @@ class Server:
                 )
                 self.user_service.add_editor_note(collaborator, note_id)
 
-            self.notes_service.add_viewer_to_note(
-                note, user.get("id"), collaborator
-            )
+            self.notes_service.add_viewer_to_note(note, user.get("id"), collaborator)
             self.user_service.add_viewer_note(collaborator, note_id)
 
         if note_id not in public_keys_dict:
             public_keys_dict[note_id] = []
 
-        public_keys_dict[note_id].append({"user_id": collaborator.get("id"), "key": collaborator.get("public_key").decode("utf-8")})
+        public_keys_dict[note_id].append(
+            {
+                "user_id": collaborator.get("id"),
+                "key": collaborator.get("public_key").decode("utf-8"),
+            }
+        )
 
         return {
             "status": "success",
@@ -516,7 +521,12 @@ class Server:
         if note_id not in public_keys_dict:
             public_keys_dict[note_id] = []
 
-        public_keys_dict[note_id].append({"user_id": collaborator.get("id") , "key": collaborator.get("public_key").decode("utf-8")})
+        public_keys_dict[note_id].append(
+            {
+                "user_id": collaborator.get("id"),
+                "key": collaborator.get("public_key").decode("utf-8"),
+            }
+        )
 
         return {
             "status": "success",
@@ -536,7 +546,7 @@ class Server:
 
             elif request.type == RequestType.PUSH:
                 return self.handle_push_request(req=request)
-            
+
             elif request.type == RequestType.PUSH_FINAL:
                 return self.handle_push_final_request(req=request)
 

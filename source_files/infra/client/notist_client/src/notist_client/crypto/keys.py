@@ -172,7 +172,9 @@ class KeyManager:
     def load_public_key_from_json_serializable(public_key: str) -> rsa.RSAPublicKey:
         """Loads an RSA public key from a JSON-serializable format."""
         public_key_bytes = base64.b64decode(public_key)
-        return serialization.load_der_public_key(public_key_bytes, backend=default_backend())
+        return serialization.load_der_public_key(
+            public_key_bytes, backend=default_backend()
+        )
 
     @staticmethod
     def generate_symmetric_key() -> bytes:
@@ -195,7 +197,7 @@ class KeyManager:
 
         except Exception as e:
             raise Exception(f"Failed to load or decrypt the note key: {e}")
-        
+
     def store_note_key(cls, note_key: bytes, note_key_path: str):
         """Encrypts and stores the note's secret key in an encrypted format."""
         try:
@@ -204,10 +206,9 @@ class KeyManager:
 
             with open(note_key_path, "wb") as key_file:
                 key_file.write(encrypted_note_key)
-        
+
         except Exception as e:
             raise Exception(f"Failed to store the note key: {e}")
-
 
     def derive_master_key(self, password: str) -> bytes:
         """
@@ -230,9 +231,11 @@ class KeyManager:
         )
         return kdf.derive(password.encode("utf-8"))
 
-    def encrypt_key_with_public_key(self, key: bytes, public_key: rsa.RSAPublicKey) -> bytes:
+    def encrypt_key_with_public_key(
+        self, key: bytes, public_key: rsa.RSAPublicKey
+    ) -> bytes:
         """Encrypts a key using an RSA public key."""
-        
+
         return public_key.encrypt(
             key,
             padding.OAEP(
@@ -241,8 +244,10 @@ class KeyManager:
                 label=None,
             ),
         )
-    
-    def decrypt_key_with_private_key(self, encrypted_key: bytes, private_key_path: str) -> bytes:
+
+    def decrypt_key_with_private_key(
+        self, encrypted_key: bytes, private_key_path: str
+    ) -> bytes:
         """Decrypts a key using an RSA private key."""
         private_key = self.load_private_key(private_key_path)
 
@@ -254,5 +259,3 @@ class KeyManager:
                 label=None,
             ),
         )
-    
-    
