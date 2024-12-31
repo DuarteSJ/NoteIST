@@ -95,9 +95,6 @@ class Server:
             digest_of_hmacs.update(hmac_str.encode("utf-8"))
             digest_of_hmacs = digest_of_hmacs.finalize().hex()
 
-            print(f"Server: {digest_of_hmacs}")
-            print(f"Client: {local_hmac}")
-
             if digest_of_hmacs == local_hmac:
                 return {
                     "status": "synced",

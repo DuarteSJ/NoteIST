@@ -246,18 +246,12 @@ class UsersService:
         """
         try:
 
-            user = self.get_user(user_id, by_username=False)
-            print("note_id:", note_id)
-            print("User before:", user.get("keys"))
             # Update user document
             self.db_manager.update_document(
                 "users", 
                 {"id": user_id}, 
                 {"$unset": {f"keys.{note_id}": ""}}
             )
-
-            user_after = self.get_user(user_id, by_username=False)
-            print("User after:", user_after.get("keys"))
 
         except Exception as e:
             self.logger.error(f"Error removing keys from user: {e}")
