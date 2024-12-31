@@ -96,7 +96,6 @@ class UsersService:
             self.logger.error(f"Error updating user last request: {e}")
             raise
 
-
     def get_user(self, identifier: str, by_username: bool = True) -> Dict[str, Any]:
         """
         Retrieve user details by username or user ID.
@@ -267,9 +266,7 @@ class UsersService:
 
             # Update user document
             self.db_manager.update_document(
-                "users", 
-                {"id": user_id}, 
-                {"$unset": {f"keys.{note_id}": ""}}
+                "users", {"id": user_id}, {"$unset": {f"keys.{note_id}": ""}}
             )
 
         except Exception as e:

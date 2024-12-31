@@ -73,7 +73,7 @@ class Server:
         except Exception as e:
             self.logger.error(f"Error processing request: {e}")
             return {"status": "error", "message": str(e)}
-        
+
     def verify_freshness(self, req: SignedRequestModel) -> bool:
         request_time_str = req.data.get("timestamp")
         request_time = datetime.strptime(request_time_str, "%Y-%m-%d %H:%M:%S.%f")
@@ -84,8 +84,8 @@ class Server:
         last_request = datetime.strptime(last_request_str, "%Y-%m-%d %H:%M:%S.%f")
         if not last_request:
             return True
-        print (f" Previous request time: {last_request}")
-        print (f" Current request time: {request_time}")
+        print(f" Previous request time: {last_request}")
+        print(f" Current request time: {request_time}")
         if request_time > last_request:
             self.user_service.update_last_request(user.get("id"), request_time_str)
             return True
@@ -144,7 +144,7 @@ class Server:
             # Verify signature first
             if not self.verify_signature(req):
                 return {"status": "error", "message": "Signature verification failed"}
-            
+
             if not self.verify_freshness(req):
                 return {"status": "error", "message": "Request is stale"}
 
@@ -178,7 +178,7 @@ class Server:
             # Verify signature first
             if not self.verify_signature(req):
                 return {"status": "error", "message": "Signature verification failed"}
-            
+
             if not self.verify_freshness(req):
                 return {"status": "error", "message": "Request is stale"}
 
@@ -437,7 +437,6 @@ class Server:
             viewer = self.user_service.get_user(viewer.get("username"))
             self.user_service.remove_viewer_note(viewer, note_id)
 
-
         return {"status": "success", "message": f"Note {note_id} deleted"}
 
     def _handle_add_collaborator(
@@ -521,7 +520,6 @@ class Server:
 
         if not note_id or not collaborator_username:
             raise ValueError("Missing required note fields")
-        
 
         collaborator = self.user_service.get_user(collaborator_username)
         if not collaborator:
@@ -529,12 +527,12 @@ class Server:
 
         if collaborator.get("id") == user.get("id"):
             raise ValueError("User cannot add themselves as a collaborator")
-        
 
-        all_versions = self.notes_service.get_all_versions_of_note(note_id, user.get("id"))
+        all_versions = self.notes_service.get_all_versions_of_note(
+            note_id, user.get("id")
+        )
         if not all_versions:
             raise ValueError(f"Note with id {note_id} not found")
-        
 
         for note in all_versions:
             if editorFlag:

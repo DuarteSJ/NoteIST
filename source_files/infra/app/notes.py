@@ -396,9 +396,7 @@ class NotesService:
             raise PermissionError("Only the note owner can remove editors")
 
         # Check if the user is an editor
-        editor_exists = any(
-            ed["id"] == editor_id for ed in note.get("editors", [])
-        )
+        editor_exists = any(ed["id"] == editor_id for ed in note.get("editors", []))
         if not editor_exists:
             raise ValueError("User is not an editor")
 
@@ -410,7 +408,6 @@ class NotesService:
                 "$pull": {"editors": {"id": editor_id}}
             },  # Remove dictionary matching user_id
         )
-
 
 
 def get_notes_service(db_manager):

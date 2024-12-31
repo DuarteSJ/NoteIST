@@ -197,10 +197,10 @@ class DatabaseManager:
         try:
             collection = self.db[collection_name]
             result = collection.find_one_and_update(
-                query, 
+                query,
                 update,
                 return_document=ReturnDocument.AFTER,  # Instead of True
-                upsert=upsert
+                upsert=upsert,
             )
 
             if result:

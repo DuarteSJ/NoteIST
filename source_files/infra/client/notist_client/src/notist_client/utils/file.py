@@ -65,7 +65,7 @@ class FileHandler:
             except NotADirectoryError:
                 os.remove(path)  # Fallback to removing it as a file
             except Exception:
-                continue # If it fails, just continue
+                continue  # If it fails, just continue
 
     @staticmethod
     def clean_notes_directory(directory: str) -> None:

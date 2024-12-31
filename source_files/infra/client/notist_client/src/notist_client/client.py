@@ -124,11 +124,7 @@ class NoteISTClient:
         res = input(
             f"Would you like to {msg}, {self.username if self.username else ''}? [yes/no]"
         ).lower()
-        return res in [
-            "yes",
-            "y",
-            "david"
-        ]
+        return res in ["yes", "y", "david"]
 
     def _register_new_user(self) -> None:
         """Handle the registration process for a new user."""
@@ -658,7 +654,6 @@ class NoteISTClient:
 
         if choice < 1 or choice > len(contributors):
             raise ValueError("Invalid choice. Number out of range.")
-        
 
         return contributors[choice - 1]
 

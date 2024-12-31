@@ -8,6 +8,7 @@ from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
 from cryptography.hazmat.primitives import hashes as crypto_hashes
 from cryptography.hazmat.primitives.asymmetric import padding
 
+
 class KeyManager:
     """Handles cryptographic key operations including generation, storage, and loading."""
 
@@ -81,7 +82,9 @@ class KeyManager:
             public_exponent=65537, key_size=key_size, backend=default_backend()
         )
 
-    def _store_private_key(self, private_key: rsa.RSAPrivateKey, private_key_path: str) -> None:
+    def _store_private_key(
+        self, private_key: rsa.RSAPrivateKey, private_key_path: str
+    ) -> None:
         """Stores the RSA private key in an encrypted format."""
         if not os.path.exists(os.path.dirname(private_key_path)):
             os.makedirs(os.path.dirname(private_key_path))
@@ -124,7 +127,9 @@ class KeyManager:
         self._store_private_key(private_key, private_key_path)
         return public_key
 
-    def encrypt_key_with_public_key(self, key: bytes, public_key: rsa.RSAPublicKey) -> bytes:
+    def encrypt_key_with_public_key(
+        self, key: bytes, public_key: rsa.RSAPublicKey
+    ) -> bytes:
         """Encrypts a key using an RSA public key."""
         return public_key.encrypt(
             key,
@@ -135,7 +140,9 @@ class KeyManager:
             ),
         )
 
-    def decrypt_key_with_private_key(self, encrypted_key: bytes, private_key_path: str) -> bytes:
+    def decrypt_key_with_private_key(
+        self, encrypted_key: bytes, private_key_path: str
+    ) -> bytes:
         """Decrypts a key using an RSA private key."""
         private_key = self.load_private_key(private_key_path)
         return private_key.decrypt(

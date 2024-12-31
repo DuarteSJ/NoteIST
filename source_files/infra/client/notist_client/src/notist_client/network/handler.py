@@ -82,7 +82,11 @@ class NetworkHandler:
                 user_results=[],
                 action_results=[],
             )
-        data = {"note_changes": note_changes, "user_changes": user_changes, "timestamp": str(datetime.now())}
+        data = {
+            "note_changes": note_changes,
+            "user_changes": user_changes,
+            "timestamp": str(datetime.now()),
+        }
         private_key = self.key_manager.load_private_key(private_key_path)
         signature = self.secure_handler.sign_request(data, private_key)
 
