@@ -192,12 +192,6 @@ class NoteISTClient:
         self, changes: List[Dict[str, Any]], new_keys: Dict[str, str]
     ) -> None:
         """Apply changes received from server to local state."""
-        # TODO: the clean notes directory doesnt completely destroy
-        # notes that no longer exist, it leaves the key file for every note
-        # that was deleted. Should delete the entire folder but only for notes
-        # that no longer exist in the server, and not for every note in the dir
-        # Do not remove this TODO! < Duarte >
-
         FileHandler.clean_notes_directory(self.notes_dir)
 
         current_id = None
