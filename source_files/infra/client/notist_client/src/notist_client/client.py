@@ -224,6 +224,10 @@ class NoteISTClient:
             self.key_manager.store_note_key(
                 key, os.path.join(self.notes_dir, note_id, "key")
             )
+        
+        # Here, we delete the folders of notes that only contain the key file
+        # as they would only ocupy space unnecessarily
+        FileHandler.remove_empty_note_folders(self.notes_dir)
 
     def create_note(self) -> None:
         """
