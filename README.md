@@ -1,24 +1,15 @@
-# CXX NotIST / TicketIST / MotorIST / MessagIST Project Read Me
-
-<!-- this is an instruction line; after you follow the instruction, delete the corresponding line. Do the same for all instruction lines! -->
-
-*(replace CXX above with group identifier, for example, A07 ou T22)*
-
-*(keep only your scenario name and delete the other names)*
+# A62 NotIST Project Read Me
 
 ## Team
 
 | Number | Name              | User                             | E-mail                              |
 | -------|-------------------|----------------------------------| ------------------------------------|
-| 11111  | Alice Network     | <https://github.com/AliceUser>   | <mailto:alice@tecnico.ulisboa.pt>   |
-| 22222  | Bob Computer      | <https://github.com/BobUser>     | <mailto:bob@tecnico.ulisboa.pt>     |
-| 33333  | Charlie Security  | <https://github.com/CharlieUser> | <mailto:charlie@tecnico.ulisboa.pt> |
+| 99970  | João Maçãs     | <https://github.com/joaodrmacas>   | <mailto:joaomacas02@tecnico.ulisboa.pt>   |
+| 103369  | Miguel Parece      | <https://github.com/BobUser>     | <mailto:miguelparece.ulisboa.pt>     |
+| 103708  | Duarte Sao Jose  | <https://github.com/DuarteSJ> | <duarte.s.jose@tecnico.ulisboa.pt> |
 
-*(fill table above with team member information)*  
+![João](img/joaomacas.png) ![Miguel](img/miguelparece.jpeg) ![Duarte](img/duartesaojose.jpeg)
 
-![Alice](img/alice.png) ![Bob](img/bob.png) ![Charlie](img/charlie.png)
-
-*(add face photos with 150px height; faces should have similar size and framing)*
 
 ## Contents
 
@@ -29,73 +20,115 @@ It offers insights into the rationale behind these choices, the project's archit
 
 This document presents installation and demonstration instructions.
 
-*(adapt all of the following to your project, changing to the specific Linux distributions, programming languages, libraries, etc)*
-
 ## Installation
 
-To see the project in action, it is necessary to setup a virtual environment, with N networks and M machines.  
+To see the project in action, it is necessary to setup a virtual environment, with 2 networks and 4 machines.  
 
 The following diagram shows the networks and machines:
+
+![Diagrama](img/diagrama.png)
 
 *(include a text-based or an image-based diagram)*
 
 ### Prerequisites
 
-All the virtual machines are based on: Linux 64-bit, Kali 2023.3  
-
-[Download](https://...link_to_download_installation_media) and [install](https://...link_to_installation_instructions) a virtual machine of Kali Linux 2023.3.  
-Clone the base machine to create the other machines.
-
-*(above, replace witch actual links)*
+Install Vagrant on your system: https://developer.hashicorp.com/vagrant/downloads
 
 ### Machine configurations
 
-For each machine, there is an initialization script with the machine name, with prefix `init-` and suffix `.sh`, that installs all the necessary packages and makes all required configurations in the a clean machine.
-
-Inside each machine, use Git to obtain a copy of all the scripts and code.
-
+1. Start the virtual machines:
 ```sh
-$ git clone https://github.com/tecnico-sec/cxx...
+$ vagrant up
 ```
 
-*(above, replace with link to actual repository)*
+2 Check available machines:
+```sh
+$ vagrant status
+```
 
-Next we have custom instructions for each machine.
+3. Connect to the desired machine:
+```sh
+$ vagrant ssh <machine-name>
+```
 
-#### Machine 1
+For each machine, there is an initialization script with the machine name (prefix `setup-`, suffix `.sh`) that installs necessary packages and configures the clean machine.
+**These scripts are run automatically by executing vagrant up**
 
-This machine runs ...
+The Vagrantfile in the repository manages the VM configurations and provisioning.
 
-*(describe what kind of software runs on this machine, e.g. a database server (PostgreSQL 16.1))*
+#### DB Server Machine
+
+This machine runs a MongoDB server that provides data storage for the application.
 
 To verify:
-
 ```sh
-$ setup command
+$ mongod --version
+$ systemctl status mongod
 ```
-
-*(replace with actual commands)*
 
 To test:
-
 ```sh
-$ test command
+$ mongosh --tls \
+    --host 192.168.56.17 \
+    --tlsCertificateKeyFile /home/vagrant/certs/mongodb/mongodb-server.pem \
+    --tlsCAFile /home/vagrant/certs/ca.crt
+> use secure_document_db
+> db.runCommand({ ping: 1 })
 ```
 
-*(replace with actual commands)*
+The expected results are a successful connection to MongoDB with status code 1.
 
-The expected results are ...
+If you receive the following message "Failed to connect to MongoDB", then:
+```sh
+$ sudo systemctl start mongod
+$ sudo systemctl enable mongod
+```
 
-*(explain what is supposed to happen if all goes well)*
+#### App Server Machine
 
-If you receive the following message ... then ...
+This machine runs a Python socket server handling network communications with both users and the database.
 
-*(explain how to fix some known problem)*
+To verify:
+```sh
+$ python3 -V
+```
 
-#### Machine ...
+To test:
+```sh
+$ cd app
+$ python3 server.py
+```
 
-*(similar content structure as Machine 1)*
+The expected results are the server starting and listening for incoming connections on the 5000 port.
 
+If you receive the message "Address already in use", then:
+```sh
+$ sudo lsof -i :5000
+$ sudo kill <process_id>
+```
+
+#### Client Machine
+
+This machine runs a Text User Interface (TUI) application built in Python that allows users to interact with our application.
+
+To verify:
+```sh
+$ python3 -V  # Verify Python installation
+```
+
+To test:
+```sh
+$ notist-client #start the TUI
+```
+
+The expected results are a TUI interface appearing in your terminal where it will tell you that no user was found and if you want to create a 
+
+If you receive the following message "ModuleNotFoundError", then ensure you have all required Python packages installed:
+```sh
+$ cd client/notist_client/src
+$ pip install -r requirements.txt
+```
+TODO:
 ## Demonstration
 
 Now that all the networks and machines are up and running, ...
@@ -122,7 +155,7 @@ This concludes the demonstration.
 
 ### Versioning
 
-We use [SemVer](http://semver.org/) for versioning.  
+We use [SemVer](http://semver.org/) for versioning.
 
 ### License
 
