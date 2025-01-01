@@ -4,8 +4,8 @@ import socket
 from typing import Dict, Any, List
 from ..crypto.secure import SecureHandler
 from ..crypto.keys import KeyManager
-from ..models.responses import Response
-from ..models.actions import RequestType
+from ..models.models import Response
+from ..models.models  import RequestType
 import json
 
 

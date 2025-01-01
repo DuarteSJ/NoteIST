@@ -4,8 +4,8 @@ from .crypto.keys import KeyManager
 from .network.handler import NetworkHandler
 from .utils.file import FileHandler
 from .utils.auth import AuthManager
-from .models.actions import ActionType
-from .models.responses import Response
+from .models.models import ActionType
+from .models.models import Response
 from .config.paths import (
     get_config_file,
     get_notes_dir,
