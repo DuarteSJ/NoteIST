@@ -11,7 +11,7 @@ The project addresses the growing need for secure, private note-taking solutions
 
 ### 1. Secure Documents
 - Notes are stored as JSON documents containing metadata and content
-- Sens
+- Sensitive information (note and title) of the notes are kept encrypted
 - Document structure includes ownership information, access controls, and version tracking
 - Support for different access levels (owners, editors, viewers)
 
@@ -22,10 +22,10 @@ The system consists of three main components:
 - Database Server: A MongoDB instance storing encrypted notes and user data
 
 ### 3. Security Challenge
-The primary security challenge involves implementing secure note sharing while maintaining:
+Security challenge A was the one chosen for our implementation which involves implementing secure note sharing while maintaining:
 - End-to-end encryption for personal and shared notes
-- Access control mechanisms for different user roles
-- Version control with integrity verification
+- Access control mechanisms for both viewers and editors
+- Version control with integrity verification for owner and collaborators
 - Authentication and authorization systems
 
 <!-- ## System Architecture
@@ -77,17 +77,104 @@ classDiagram
 
 ### 2.1. Secure Document Format
 
-#### 2.1.1. Design
+### 2.1.1 Design
 
-(_Outline the design of your custom cryptographic library and the rationale behind your design choices, focusing on how it addresses the specific needs of your chosen business scenario._)
+The cryptographic library for NotIST was designed to meet the requirements of secure note storage and sharing. It provides several high-level methods that secure encryption, decryption, and integrity checks, both for files and raw JSON data.
 
-(_Include a complete example of your data format, with the designed protections._)
+**Library Methods Provided:**
 
-#### 2.1.2. Implementation
+1. **CLI Commands**:
+   - `protect`: Encrypts a file, adds integrity protection, and saves the result as an encrypted JSON file.
+   - `unprotect`: Decrypts a protected file and verifies its integrity.
+   - `check-single`: Verifies the integrity of a single file by comparing its HMAC.
+   - `check-multiple`: Checks the integrity of multiple files in a directory against a provided digest of the sum of file's HMACs.
 
-(_Detail the implementation process, including the programming language and cryptographic libraries used._)
+2. **Programmatic Methods**:
+   - `protect(json_data, key, output_file)`: Encrypts and protects JSON data directly, allowing seamless integration into the NotIST app.
+   - `unprotect(input_file, key)`: Decrypts and verifies integrity for JSON data, returning the original content.
+   - `checkSingleFile(file, key_file)`: Verifies the integrity of a single encrypted file by checking its HMAC.
+   - `checkMissingFiles(directoryPath, digestOfHmacs)`: Checks the integrity of multiple files in a directory against a digest of concatenated HMACs.
+   - `protect_file(input_file, key_file, output_file)`: Protects a file by encrypting and adding integrity protection.
+   - `unprotect_to_file(input_file, key_file, output_file)`: Decrypts a protected file, verifies its integrity, and saves the output as a plain JSON file
+   
 
-(_Include challenges faced and how they were overcome._)
+**Encryption and Integrity Features:**
+
+- AES in CBC mode is used to encrypt sensitive fields (`title` and `note`), ensuring confidentiality with a unique Initialization Vector (IV) for each operation.
+- HMAC (SHA-256) ensures data integrity by detecting tampering or corruption in the encrypted file.
+
+**File Structure:**
+
+Encrypted files include metadata such as IV and HMAC, alongside encrypted sensitive data. **In the project we considered the title and content to be the only sensitive information therefore, additional keys will remain unencrypted.**
+
+**Example JSON Format (Encrypted):**
+
+```json
+{
+    "id": "69444617-03cd-40c9-88a7-b00106cae2cb",
+    "iv": "305cc94e5afb2b17e4369f47e7cad6e2",
+    "hmac": "542fca04ab5f5d98d32d6f4bf90d712c8dda6cbf9f5a0b393c8eec1cdaa087a0",
+    "title": "5de2069ca85b23a4e17eb8fb5978db1e",
+    "note": "39c77fe29eefabd713dfca9167099737",
+    "date_created": "2025-01-01T19:11:26.077000",
+    "date_modified": "2025-01-01T19:12:05.734000",
+    "last_modified_by": "de319afa-060c-4e20-ad04-ce184ce1e8e9",
+    "version": 3,
+    "owner": {
+        "id": "de319afa-060c-4e20-ad04-ce184ce1e8e9",
+        "username": "la"
+    },
+    "editors": [
+        {
+            "id": "26b22be0-addc-411e-8bd5-d02ca195e4b5",
+            "username": "alo"
+        }
+    ],
+    "viewers": [
+        {
+            "id": "26b22be0-addc-411e-8bd5-d02ca195e4b5",
+            "username": "alo"
+        }
+    ]
+}
+```
+
+---
+
+### 2.1.2 Implementation
+
+The library was implemented in **Python**, using the `PyCryptodome` library for cryptographic operations. The system comprises several modules that handle encryption, integrity checks, and file parsing.
+
+**Implementation Steps:**
+
+1. **Encryption and Protection**:
+   - Files are parsed to extract sensitive fields.
+   - Fields are encrypted using AES-CBC with a randomly generated IV.
+   - Encrypted data is concatenated and used as input to compute an HMAC.
+
+2. **Decryption and Verification**:
+   - The HMAC is recalculated and compared with the stored value to verify data integrity.
+   - If the integrity check passes, encrypted fields are decrypted.
+
+**Challenges and Solutions**:
+#TODO:
+
+1. **Challenge**: Handling missing fields or corrupted files.
+   - **Solution**: Validation checks and exception handling were added to identify and handle malformed inputs gracefully.
+2. **Challenge**: Key management during encryption and decryption.
+   - **Solution**: Keys are stored separately, and a secure key parsing method ensures compatibility across operations.
+
+**Example of Library Usage:**
+
+- **Encrypting a File**:
+  ```bash
+  python cli.py protect input.json keyfile output.json
+  ```
+- **Verifying Integrity**:
+  ```bash
+  python cli.py check-single encrypted.json keyfile
+  ```
+
 
 ### 2.2. Infrastructure
 
