@@ -378,7 +378,7 @@ class Server:
         note_iv = sent_note.get("iv")
         note_title = sent_note.get("title")
         note_note = sent_note.get("note")
-        note_version = sent_note.get("version")
+        note_version = server_note.get("version") + 1
 
         if (
             not note_id
@@ -386,20 +386,19 @@ class Server:
             or not note_iv
             or not note_title
             or not note_note
-            or not note_version
             or not owner_id
         ):
             raise ValueError("Missing required note fields")
 
         self.notes_service.edit_note(
-            title=note_title,
-            content=note_note,
-            id=note_id,
-            iv=note_iv,
-            hmac=note_hmac,
-            owner=owner,
-            editor=user,
-            version=note_version,
+            new_iv=note_iv,
+            new_hmac=note_hmac,
+            previous_note=server_note,
+            new_title=note_title,
+            new_content=note_note,
+            new_version=note_version,
+            editor_id=user.get("id"),
+
         )
 
         return {"status": "success", "message": f"Note {note_id} edited"}
@@ -414,10 +413,6 @@ class Server:
         :param user: User details
         :return: Details of the deleted note
         """
-
-        # sent_note = action.get('data', {}).get('note')
-        # if not sent_note:
-        #     raise ValueError("Missing note data")
 
         owner = user
         note_id = action.get("data", {}).get("note_id")

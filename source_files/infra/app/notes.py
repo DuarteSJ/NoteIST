@@ -68,70 +68,53 @@ class NotesService:
 
     def edit_note(
         self,
-        title: str,
-        content: str,
-        id: int,
-        iv: str,
-        hmac: str,
-        owner: Dict[str, Any],
-        editor: Dict[str, Any],
-        version: int,
-        max_retries: int = 3,
+        new_iv: str,
+        new_hmac: str,
+        previous_note: Dict[str, Any],
+        new_title: str,
+        new_content: str,
+        editor_id: Dict[str, Any],
+        new_version: int,
+
     ) -> Dict[str, Any]:
-        retries = 0
-        while retries < max_retries:
-            try:
-                # First, retrieve the existing note to get the current version and other details
-                existing_note = self.get_note(id, owner.get("id"))
-                last_server_version = existing_note.get("version")
+        try:
 
-                if not existing_note:
-                    raise ValueError("Note no longer exists")
+            # Prepare note data for the new version
+            note_data = {
+                "id": previous_note.get("id"),
+                "iv": new_iv,
+                "hmac": new_hmac,
+                "title": new_title,
+                "note": new_content,
+                "date_created": previous_note[
+                    "date_created"
+                ],  # Keep original creation date
+                "date_modified": datetime.now(timezone.utc),
+                "last_modified_by": editor_id,
+                "version": new_version,
+                "owner": previous_note.get("owner"),
+                "editors": previous_note.get("editors", []),
+                "viewers": previous_note.get("viewers", []),
+            }
 
-                if last_server_version < version:
-                    version = last_server_version + 1
-                elif last_server_version > version:
-                    raise ValueError(
-                        "Something went wrong with the versioning. Trying restarting the app."
-                    )
+            # Insert the new version of the note
+            note_id = self.db_manager.insert_document("notes", note_data)
 
-                # Prepare note data for the new version
-                note_data = {
-                    "id": id,
-                    "iv": iv,
-                    "hmac": hmac,
-                    "title": title,
-                    "note": content,
-                    "date_created": existing_note[
-                        "date_created"
-                    ],  # Keep original creation date
-                    "date_modified": datetime.now(timezone.utc),
-                    "last_modified_by": editor.get("id"),
-                    "version": version,
-                    "owner": existing_note["owner"],
-                    "editors": existing_note.get("editors", []),
-                    "viewers": existing_note.get("viewers", []),
-                }
+            # Log and return
+            self.logger.info(
+                f"Note edited with ID: {note_id}, new version: {previous_note['version'] + 1}"
+            )
+            return {**note_data, "id": note_id}
 
-                # Insert the new version of the note
-                note_id = self.db_manager.insert_document("notes", note_data)
-
-                # Log and return
-                self.logger.info(
-                    f"Note edited with ID: {note_id}, new version: {version}"
-                )
-                return {**note_data, "id": note_id}
-
-            except Exception as e:
-                self.logger.error(f"Error editing note: {e}")
-                raise
-            except DuplicateKeyError:
-                # Increment retry counter and try again
-                retries += 1
-                print(
-                    f"DuplicateKeyError encountered, retrying... Attempt {retries}/{max_retries}"
-                )
-        raise ValueError("Failed to insert a new version after multiple retries")
+        except Exception as e:
+            self.logger.error(f"Error editing note: {e}")
+            raise
+        except DuplicateKeyError:
+            # Increment retry counter and try again
+            retries += 1
+            print(
+                f"DuplicateKeyError encountered, retrying... Attempt {retries}/{max_retries}"
+            )
 
     def get_all_versions_of_note(self, note_id: str, owner_id: str) -> Dict[str, Any]:
         """
