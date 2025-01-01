@@ -5,7 +5,12 @@
 - a user will only access from one computer
 - if the user loses private key he can't recover it
 
-a parte de assumptions, falar dos salts dos titles das pastas e que usamos username como salt para master key derivation
+outras coisas:
+ falar dos salts dos titles das pastas e que usamos username como salt para master key derivation
+ no secure documents temos que falar que precisavamos de uma symmetric key para cada nota e uma master key derivada de uma password (especificar o algoritmo)
+ Quando fomos implementar o key sharing dizemos que precisavamos de um par de keys por isso alteramos o login de username e password no server para usar authentication com private e public key o que nos permitiu tambem dar key sharing.
+ ESPECIFICAR TODOS OS ALGORITMOS USADOS EM TUDO
+ FALTA UML'S E HONESTAMENTE NAO QUERO FAZER - MASSAS
 ## 1. Introduction
 
 NotIST is a secure note-taking application designed with a "local-first" architecture, prioritizing user privacy and data security while enabling collaborative features. The application allows users to create, manage, and share notes with other users, with all data being encrypted both locally and during synchronization with the backup server without ever exposing sensitive information.
@@ -162,7 +167,7 @@ The **Vagrantfile** simplifies the configuration of network interfaces and share
     - Allow incoming connections on port **5000**  
     - Block all other traffic  
 
-- **DbServer** (Database Server):  
+- **DBServer** (Database Server):  
   - Operating System: **Ubuntu 20.04 LTS**  
   - Network Interfaces:  
     - **Private Interface**: **192.168.56.17** (used for secure communication with the AppServer)  
@@ -177,9 +182,9 @@ The **Vagrantfile** simplifies the configuration of network interfaces and share
   - The client possesses the CA certificate that signed the AppServer's certificate, allowing it to verify the server's identity.  
   - This setup ensures secure, encrypted communication and guarantees the client is interacting with the correct server.  
 
-- **AppServer ↔ DbServer Communication**:  
-  - Communication between the AppServer and DbServer is secured using **mutual TLS (mTLS)**.  
-  - Both the AppServer and DbServer have certificates signed by the same CA and possess the CA certificate, enabling them to verify each other's identity.  
+- **AppServer ↔ DBServer Communication**:  
+  - Communication between the AppServer and DBServer is secured using **mutual TLS (mTLS)**.  
+  - Both the AppServer and DBServer have certificates signed by the same CA and possess the CA certificate, enabling them to verify each other's identity.  
   - This setup ensures both endpoints are authenticated, and the communication is fully encrypted.
 
 
@@ -198,7 +203,7 @@ The **Vagrantfile** simplifies the configuration of network interfaces and share
 *Fully Trusted*:
 - Client-side application when running on user's machine
 - User's private key and local master key
-- Database Server (DbServer)
+- Database Server (DBServer)
   - Stores and maintains integrity of users' public keys
   - Critical for the security of note sharing
 
@@ -295,7 +300,7 @@ When a user shares a note, the following sequence occurs:
 - **Master Key**: Stored only in the memory of the client, derived from the user’s password and a salt.  
 
 **Encryption and Trust Model for the Servers:**  
-The AppServer and DbServer are treated as untrusted entities regarding note content. Sensitive data (note title and content) remains encrypted throughout all operations. This ensures end-to-end encryption where only the client can decrypt the content.  
+The AppServer and DBServer are treated as untrusted entities regarding note content. Sensitive data (note title and content) remains encrypted throughout all operations. This ensures end-to-end encryption where only the client can decrypt the content.  
 
 **Authentication and Request Handling:**  
 - Requests are authenticated using the user’s private key, with each request digitally signed to ensure integrity and non-repudiation.  
@@ -308,6 +313,7 @@ The server is responsible for maintaining note versions. When multiple collabora
 3. Integrity of versions is ensured by verifying signatures and maintaining an immutable history of changes.  
 
 **Communication Diagram:**  
+TODO:
 The interaction among the entities can be summarized as follows (a UML diagram can be created to visualize these steps):  
 1. User A initiates note sharing by encrypting the note key with User B's public key.  
 2. User A sends the encrypted key to the AppServer, which stores it securely in the database.  
