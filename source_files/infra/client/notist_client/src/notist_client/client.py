@@ -122,9 +122,9 @@ class NoteISTClient:
     def _prompt_user(self, msg) -> bool:
         """Prompt the user."""
         res = input(
-            f"Would you like to {msg}, {self.username if self.username else ''}? [yes/no]"
+            f"Would you like to {msg}{', ' + self.username if self.username else ''}? [yes/no]"
         ).lower()
-        return res in ["yes", "y", "david"]
+        return res in ["y", "yes", "ye"]
 
     def _register_new_user(self) -> None:
         """Handle the registration process for a new user."""
@@ -453,6 +453,8 @@ class NoteISTClient:
 
         self.list_notes(notes)
 
+        if notes == []:
+            return
         while True:
             try:
                 choice = input("Select a note by number: ")
@@ -471,6 +473,9 @@ class NoteISTClient:
             version: Optional specific version to retrieve (latest if not specified)
         """
         note = self.select_note()
+
+        if not note:
+            return
 
         while True:
             try:
@@ -539,6 +544,9 @@ class NoteISTClient:
             new_content: The new content for the note
         """
         note = self.select_note()
+        
+        if not note:
+            return
 
         if self.username != note["owner"]["username"] and not any(
             editor.get("username") == self.username for editor in note["editors"]
@@ -574,6 +582,10 @@ class NoteISTClient:
             title: The title of the note to delete
         """
         note = self.select_note()
+
+        if not note:
+            return
+
         note_id = note.get("id")
         note_dir = os.path.join(self.notes_dir, note_id)
 
@@ -584,6 +596,10 @@ class NoteISTClient:
 
     def add_contributor(self) -> None:
         note = self.select_note()
+        
+        if not note:
+            return
+        
         contributor = input("Enter the username of the contributor: ")
         if contributor.strip() == "" or not contributor:
             raise ValueError("Contributor cannot be empty.")
@@ -594,6 +610,9 @@ class NoteISTClient:
 
         if self.username != note["owner"]["username"]:
             raise Exception(f"Only the owner can add contributors to the note")
+
+        if self.username == contributor:
+            raise Exception(f"Cannot add yourself as a contributor to the note")
 
         if any(editor.get("username") == contributor for editor in note["editors"]):
             raise Exception(f"{contributor} is already an editor of the note")
@@ -645,6 +664,9 @@ class NoteISTClient:
 
     def remove_contributor(self) -> None:
         note = self.select_note()
+
+        if not note:
+            return
 
         if self.username != note["owner"]["username"]:
             raise Exception(f"Only the owner can remove contributors from the note")
