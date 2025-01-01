@@ -186,12 +186,7 @@ class SecureDocumentHandler:
                 if field not in json_data:
                     continue
 
-                try :
-                    encrypted_value = bytes.fromhex(json_data[field])
-                except ValueError:
-                    raise Exception(
-                        "Your file has been tampered with. Integrity check failed."
-                    )
+                encrypted_value = bytes.fromhex(json_data[field])
                 decrypted_value = unpad(
                     cipher.decrypt(encrypted_value), AES.block_size
                 ).decode("utf-8")
@@ -204,13 +199,13 @@ class SecureDocumentHandler:
 
             if hmac.hexdigest() != stored_hmac:
                 raise Exception(
-                    "Your file has been tampered with. Integrity check failed."
+                    "Hmac does not match its computed value."
                 )
 
             return json_data
 
         except Exception as e:
-            raise Exception(f"Decryption failed: {e}")
+            raise Exception(f"Decryption failed. It is likely that your file has been tampered with. Details: {e}")
 
     def checkSingleFile(self, file: str, key_file: str) -> bool:
         """
