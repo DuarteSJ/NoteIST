@@ -68,9 +68,11 @@ class FileHandler:
                 continue  # If it fails, just continue
 
     @staticmethod
-    def clean_notes_directory(directory: str) -> None:
-        """Cleans the notes directory by removing all subdirectories."""
+    def clean_notes_directory(directory: str, keep: List[Dict[str, Any]]) -> None:
+        """Cleans the notes directory by removing all subdirectories,
+        but leaving the key files for the ones that are in the keep array."""
         for sub_dir in os.listdir(directory):
+            
             sub_dir_path = os.path.join(directory, sub_dir)
             FileHandler.clean_note_directory(sub_dir_path)
 
