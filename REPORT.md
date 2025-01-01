@@ -176,26 +176,48 @@ The library was implemented in **Python**, using the `PyCryptodome` library for 
   ```
 
 
-### 2.2. Infrastructure
+  ### 2.2. Infrastructure  
 
-#### 2.2.1. Network and Machine Setup
+#### 2.2.1. Network and Machine Setup  
 
-For machine provisioning we decided to use **vagrant** as it help us easily deploy all our virtual machines at once. We can also set them to automaticaly run their setups scripts essentially enabling us to have all our vms plus our stack deployed with a single **"vagrant up"** command.
+To streamline machine provisioning, we chose **Vagrant** for its ability to efficiently deploy all virtual machines simultaneously. Vagrant allows us to automatically execute setup scripts during provisioning, enabling a complete environment—virtual machines and software stack—with a single **`vagrant up`** command.  
 
-In the Vagrantfile we can configure network interfaces and shared host folders with a single line.
+The **Vagrantfile** simplifies the configuration of network interfaces and shared folders, allowing for quick customization with minimal effort.  
 
-* ##### AppServer :
-    * Running **Ubuntu 20.04 LTS**
-    * Network Interfaces:
-        * Public: **192.168.1.228 (accessible from internet)**
-        * Private: **192.168.56.14 (for database communication)**
-        * FireWall Rull
+- **Client/Client2** (Simulated clients):  
+  - Operating System: **Ubuntu 20.04 LTS**  
+  - Network Interfaces:  
+    - Public Interface: *(to be specified)*  
 
-#### 2.2.2. Server Communication Security
+- **AppServer** (Application Server):  
+  - Operating System: **Ubuntu 20.04 LTS**  
+  - Network Interfaces:  
+    - **Public DMZ Interface**: **192.168.1.228** (accessible from the internet)  
+    - **Private Interface**: **192.168.56.14** (used for database communication)  
+  - **Firewall Rules**:  
+    - Allow incoming connections on port **5000**  
+    - Block all other traffic  
 
-(_Discuss how server communications were secured, including the secure channel solutions implemented and any challenges encountered._)
+- **DbServer** (Database Server):  
+  - Operating System: **Ubuntu 20.04 LTS**  
+  - Network Interfaces:  
+    - **Private Interface**: **192.168.56.17** (used for secure communication with the AppServer)  
+  - **Firewall Rules**:  
+    - Allow incoming connections on port **27017**  
+    - Block all other traffic  
 
-(_Explain what keys exist at the start and how are they distributed?_)
+#### 2.2.2. Server Communication Security  
+
+- **Client ↔ AppServer Communication**:  
+  - Communication between the client and the AppServer is secured using **TLS**.  
+  - The client possesses the CA certificate that signed the AppServer's certificate, allowing it to verify the server's identity.  
+  - This setup ensures secure, encrypted communication and guarantees the client is interacting with the correct server.  
+
+- **AppServer ↔ DbServer Communication**:  
+  - Communication between the AppServer and DbServer is secured using **mutual TLS (mTLS)**.  
+  - Both the AppServer and DbServer have certificates signed by the same CA and possess the CA certificate, enabling them to verify each other's identity.  
+  - This setup ensures both endpoints are authenticated, and the communication is fully encrypted.
+
 
 ### 2.3. Security Challenge
 
