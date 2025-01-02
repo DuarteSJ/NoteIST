@@ -94,20 +94,17 @@ class NoteISTClient:
             user_info = FileHandler.read_json(self.config_path)
             self.username = user_info.get("username")
             local_password = user_info.get("password")
-            salt = bytes.fromhex(user_info.get("salt"))
 
             if not self.username:
                 raise Exception("Username not found in configuration")
             if not local_password:
                 raise Exception("Password not found in configuration")
-            if not salt:
-                raise Exception("Salt not found in configuration")
 
             password = input(f"Hi {self.username}, enter your password: ")
 
             AuthManager.verify_password(local_password, password)
 
-            self.key_manager = KeyManager(password, salt, self.username)
+            self.key_manager = KeyManager(password, self.username)
 
             self.network_handler = NetworkHandler(
                 self.username, self.host, self.port, self.cert_path, self.key_manager
@@ -158,8 +155,7 @@ class NoteISTClient:
                 passwordHash = AuthManager.hash_password(password)
                 # Generate and store key pair
                 self.username = username
-                salt = os.urandom(16)
-                self.key_manager = KeyManager(password, salt, self.username)
+                self.key_manager = KeyManager(password, self.username)
                 public_key = self.key_manager.generate_key_pair(self.priv_key_path)
                 # Initialize network handler
                 self.network_handler = NetworkHandler(
@@ -177,7 +173,6 @@ class NoteISTClient:
                     {
                         "username": username,
                         "password": passwordHash,
-                        "salt": salt.hex(),
                     },
                 )
                 print(f"Welcome to NoteIST, {username}!")

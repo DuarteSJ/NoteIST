@@ -12,9 +12,8 @@ from cryptography.hazmat.primitives.asymmetric import padding
 class KeyManager:
     """Handles cryptographic key operations including generation, storage, and loading."""
 
-    def __init__(self, password: str, salt: bytes, username: str):
+    def __init__(self, password: str, username: str):
         self.master_key = self.derive_master_key(password, username)
-        self.note_title_salt = salt
 
     # -------------------------------------
     # Master Key Functions
@@ -166,6 +165,16 @@ class KeyManager:
         """Decrypts a symmetric key encrypted with the master key."""
         salt = encrypted_key[:16]
         return self._decrypt_with_master_key(encrypted_key[16:], salt)
+    
+    def encrypt_data_with_master_key(self, data: str) -> bytes:
+        """Encrypts data using the master key."""
+        salt = os.urandom(16)
+        return salt + self._encrypt_with_master_key(data.encode("utf-8"), salt)
+    
+    def decrypt_data_with_master_key(self, encrypted_data: bytes) -> str:
+        """Decrypts data encrypted with the master key."""
+        salt = encrypted_data[:16]
+        return self._decrypt_with_master_key(encrypted_data[16:], salt).decode("utf-8")
 
     # -------------------------------------
     # Note Key Functions
