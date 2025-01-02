@@ -38,8 +38,11 @@ To simplify the business logic of our program, we decided to make a couple of as
  for it would be unnecessary complicated. In a real scenario we would implement a merkle tree and rapidly know what the changes were and on- Local attacks:
     - If a hacker has access to the computer of a user, he cannot impersonate the user and interact with the server in any way since everything is locally encripted with a master key, derived from a password only the user knows (he cannot even interact with the client side of the app). However, destructive behaviour is possible, as the malicious person can delete the user's private key from the local device, even tho it is encrypted and there are no available recovery methods (the server does not keep any of this sensible information).
 
-
+### 1.4 Diagrams
+#### Server
 ![](img/serverUML.svg)
+#### Client
+![](img/clientUML.svg)
 
 ## 2. Project Development
 
