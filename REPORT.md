@@ -31,10 +31,13 @@ Security challenge A was the one chosen for our implementation which involves im
 
 ### 1.3 Assumptions
 
-make an assumptions page on the introduction. We did some assumption to simplify the business logic of the program.
-- destructive pull (everything no pushed will be destroyed on pull)
-- a user will only access from one computer
-- if the user loses private key he can't recover it
+To simplify the business logic of our program, we decided to make a couple of assumptions:
+- Pull command:
+    - We always trust the state of the server over the state of the client when pulling changes from the server. This means that if the user has any sort of unpushed local changes, these will be deleted when pulling server changes.
+    - When there is any descrepancy between the server and the client's state, everything is pulled from the server into the client.
+    - We decided to do this because the logi
+ for it would be unnecessary complicated. In a real scenario we would implement a merkle tree and rapidly know what the changes were and on- Local attacks:
+    - If a hacker has access to the computer of a user, he cannot impersonate the user and interact with the server in any way since everything is locally encripted with a master key, derived from a password only the user knows (he cannot even interact with the client side of the app). However, destructive behaviour is possible, as the malicious person can delete the user's private key from the local device, even tho it is encrypted and there are no available recovery methods (the server does not keep any of this sensible information).
 
 
 #TODO:
@@ -68,7 +71,7 @@ The library was designed to provide the following protection to the files:
    - `checkMissingFiles(directoryPath, digestOfHmacs)`: Checks the integrity of multiple files in a directory against a digest of concatenated HMACs.
    - `protect_file(input_file, key_file, output_file)`: Protects a file by encrypting and adding integrity protection.
    - `unprotect_to_file(input_file, key_file, output_file)`: Decrypts a protected file, verifies its integrity, and saves the output as a plain JSON file
-   
+
 
 **Encryption and Integrity Features:**
 
@@ -77,6 +80,7 @@ AES in CBC mode is used to encrypt sensitive fields (`title` and `note`), since 
 **File Structure:**
 
 Encrypted files include metadata such as IV and HMAC, sensitive encrypted data (note and title) and non-sensitive unencrypted data. The unencrypted data is mainly used for client-side information display. Below is an example of how the notes are being stored:
+TODO explicar o porquê da so encriptar o title e o content (o resto e chill se alguem mudar a mao e nao e sensitive info)
 
 **Example JSON Format (Encrypted):**
 
@@ -93,18 +97,18 @@ Encrypted files include metadata such as IV and HMAC, sensitive encrypted data (
     "version": 3,
     "owner": {
         "id": "de319afa-060c-4e20-ad04-ce184ce1e8e9",
-        "username": "la"
+        "username": "david"
     },
     "editors": [
         {
             "id": "26b22be0-addc-411e-8bd5-d02ca195e4b5",
-            "username": "alo"
+            "username": "ricardo"
         }
     ],
     "viewers": [
         {
             "id": "26b22be0-addc-411e-8bd5-d02ca195e4b5",
-            "username": "alo"
+            "username": "ricardo"
         }
     ]
 }
@@ -121,24 +125,19 @@ The library was implemented in **Python**, using the `PyCryptodome` library for 
 1. **Encryption**:
    - Files are parsed to extract sensitive fields (title and note).
    - Sensitive fields are encrypted using AES-CBC with a randomly generated IV.
-   - Sensible encrypted data will be concatenated and computed in order to generate and hmac.
-   - The hmac and the randomly generated IV is stored in the file.
+   - Sensible encrypted data will be concatenated and computed in order to generate and hmac (hmac  is computed using the encrypted data in order to avoid having to decrypt to check integrity)
+   - The hmac and the randomly generated IV are stored in the file.
 
 2. **Decryption and Verification**:
-   - The encrypted sensible fields are concatenated and the hmac of them is computed. 
-   - The computed hmac is compared to the stored file hmac to check integrity.
-   - If the integrity check passes means there was no tampering and encrypted fields are decrypted.
+   - The encrypted sensible fields are concatenated and their hmac is computed. 
+   - The computed hmac is compared to the stored file's hmac so as to to check for integrity.
+   - If the integrity check passes, it means that there was no tampering and encrypted fields are decrypted.
 
 **Challenges and Solutions**:
-#TODO:
-Talvez dizer que nao nos conseguiamos decidir no algoritmo a usar
+#TODO: queremos meter aqui alguma merda?
 
 1. **Challenge**: Handling missing fields or corrupted files.
    - **Solution**: Validation checks and exception handling were added to identify and handle malformed inputs gracefully.
-2. **Challenge**: Key management during encryption and decryption.
-   - **Solution**: Keys are stored separately, and a secure key parsing method ensures compatibility across operations.
-
-
 
 **Example of Library Usage:**
 
@@ -150,13 +149,17 @@ Talvez dizer que nao nos conseguiamos decidir no algoritmo a usar
   ```bash
   secure-document check-single encrypted.json keyfile
   ```
+- **Decrypting a file**:
+  ```bash
+  secure-document unprotect input.json keyfile output.json
+  ```
 
 
 ### 2.2. Infrastructure  
 
 #### 2.2.1. Network and Machine Setup  
 
-To streamline machine provisioning, we chose **Vagrant** for its ability to efficiently deploy all virtual machines simultaneously. Vagrant allows us to automatically execute setup scripts during provisioning, enabling a complete environment—virtual machines and software stack—with a single **`vagrant up`** command.  
+To streamline machine provisioning, we chose **Vagrant** for its ability to efficiently deploy all virtual machines simultaneously. Vagrant allows us to automatically execute setup scripts during provisioning, enabling a complete environment — virtual machines and software stack — with a single **`vagrant up`** command.  
 
 The **Vagrantfile** simplifies the configuration of network interfaces and shared folders, allowing for quick customization with minimal effort.  
 
@@ -187,7 +190,8 @@ The **Vagrantfile** simplifies the configuration of network interfaces and share
 - **Client ↔ AppServer Communication**:  
   - Communication between the client and the AppServer is secured using **TLS**.  
   - The client possesses the CA certificate that signed the AppServer's certificate, allowing it to verify the server's identity.  
-  - This setup ensures secure, encrypted communication and guarantees the client is interacting with the correct server.  
+  - This setup ensures secure, encrypted communication and guarantees the client is interacting with the correct server.
+  - On the other hand, the server can verify the client's identity by checking its signature that comes with all requests that require it.
 
 - **AppServer ↔ DBServer Communication**:  
   - Communication between the AppServer and DBServer is secured using **mutual TLS (mTLS)**.  
@@ -199,8 +203,6 @@ The **Vagrantfile** simplifies the configuration of network interfaces and share
 
 #### 2.3.1. Challenge Overview
 
-#TODO: explicar os tipos de chaves que tivemos de criar (a master key ja iamos precisar para o secure documents)
-
 The users of NotIST want to share their notes with anyone on the web. To achieve this, the required functionality must ensure secure note sharing while meeting the following security requirements:
 
 - **[SRA1: Authentication]** Only authenticated and authorized users can see the content of the notes.
@@ -211,14 +213,16 @@ The users of NotIST want to share their notes with anyone on the web. To achieve
 
 #### Impact on the Original Design
 
-To address these requirements, we had to refactor our program, particularly the way authentication and integrity were handled. Initially, the system used a **username and password** for login, followed by a session token for subsequent requests. While this method provided basic authentication, it lacked the cryptographic rigor required for secure note sharing.
+To address these requirements, we had to refactor our program, particularly the way authentication and integrity were handled. Initially, the system used a **username and password** for login, followed by a session token exchange, to be used for subsequent requests. While this method provided basic authentication, it lacked the cryptographic rigor required for secure note sharing.
 
-Given the need for sharing encrypted files, which required the use of key pairs, we implemented the following changes:
+Given the need for sharing encrypted files, we decided to give each client a key pair, which led to having to implement the following changes:
 
-- Replaced the previous username-password login system with an authentication mechanism that uses **signed requests**. Each request is signed with the user's private key and includes a **timestamp**. This by itself guarantees authentication (only registered users will pass the signature check) and integrity (only untampered data requests will pass the signature check and only fresh requests will pass the timestamp check). 
-- The versioning of the notes was kept the same with the introduced challenge because we consider one symmetric key for each note and all their versions.
+- Firstly, we replaced the previous session token exchange mechanism with the use of **signed requests** for authentication (this also has the advantage that, since we have a local first application, there are no long request exchange sessions, so it is more efficient to sign every request, since for each exchange there are a maximum of 2 requests in a row sent by the client). Each request is signed with the user's private key and includes a **timestamp** in its data section. This by itself guarantees that the request is comming from the correct user (only the user has access to his private key) and authenticity (only untampered data requests will pass the signature check and only fresh requests will pass the timestamp check).
+- The versioning of the notes was kept the same with the introduced challenge because we consider one symmetric key for each note and all its versions.
 
-These changes not only meet the requirements of the security challenge but also enhance the overall security of the system by ensuring strong cryptographic guarantees for authentication and integrity.
+- The key sharing is done th
+
+These changes not only meet the requirements of the security challenge but also enhance the overall security of the system by ensuring strong cryptographic guarantees for authentication and authenticity.
 
 
 #### 2.3.2. Attacker Model
@@ -228,18 +232,18 @@ These changes not only meet the requirements of the security challenge but also 
 *Fully Trusted*:
 - Client-side application when running on user's machine
 - User's private key and local master key
-- Database Server (DBServer)
-  - Stores and maintains integrity of users' public keys
-  - Critical for the security of note sharing
 
 *Partially Trusted*:
 - Application Server (AppServer)
   - Trusted for authentication and message delivery
   - Not trusted with note contents or keys
   - Responsible for enforcing access control and versioning
+- Database Server (DBServer)
+  - Trusted on storing and maintaining integrity of users' public keys
+  - Not trusted with note content or keys
 
 *Untrusted*:
-- Network communications (protected by TLS)
+- Network communications (protected by TLS and signatures)
 - Other users' machines
 - Stored encrypted data on disk
 - Other users (even those with legitimate access to shared notes)
@@ -249,7 +253,7 @@ TODO: REVER ISTO?
 
 The attacker is assumed to have the following capabilities:
 - Full network access (can intercept, modify, or inject network traffic)
-- Ability to attempt replay attacks on API endpoints
+- Ability to attempt replay attacks on endpoints
 - Access to encrypted data stored on disk
 - Ability to attempt impersonation of users
 - Ability to register as a legitimate user
@@ -259,53 +263,30 @@ The attacker is assumed to have the following capabilities:
 
 The attacker cannot:
 - Compromise the database server (this would break the public key infrastructure)
-- Access users' private keys TODO: pode ter acesso a private key desde que nao saiba a password? Mas ao mesmo tempo com a private key consegue mandar requests para o server que vao ser aceites
-- Derive the master key without knowing the user's password
-- Decrypt note contents without the corresponding note key
-- Forge valid signatures without the private key
-- Successfully replay requests due to timestamp verification
-- Access plain text of sensitive note data (title and content) on the servers
-- Have access to the certificate authority (CA) private key or the dbserver and appserver private keys
+- Access users' passwords (they aren't stored anywhere by our app, so the attacker could only get them by applying social engineering on the user)
+- Have access to the certificate authority (CA) private key or the dbserver and appserver private keys.
+
 **Security Guarantees**
 
 Against this attacker model, our system provides:
 1. **Confidentiality**: 
-   - Note contents remain encrypted at rest and in transit
-   - Note keys are securely shared using public key encryption
-   - Local notes are protected by the master key
+   - Note contents remain encrypted at rest and in transit, meaning they can only be accessed by authorized users.
+   - Note keys are securely shared with only the users that have access to them using public key encryption.
 
 2. **Integrity**: 
-   - All requests are signed with user's private key
-   - Note versions are controlled server-side
-   - Tampering with encrypted data is detectable
+   - All requests are signed with the private key of the user that is sending them.
+   - Note versions are controlled by the server-side, meaning that if two diferent users create a new version of the same note locally and push their changes, the server will create two different versions, which can tehn be retrieve by the users on a pull command.
+   - Tampering with encrypted data is always detectable.
 
 3. **Authentication**:
-   - All operations are signed with user's private key
-   - Timestamp verification prevents replay attacks
-   - Server maintains last request time for freshness
+   - All requests performed by the user are signed with their private key.
+   - Timestamp verification prevents replay attacks.
+   - Server maintains last request time for freshness.
 
 4. **Access Control**:
    - Note keys are only shared with authorized collaborators
    - Each collaborator receives their own encrypted copy of the note key
-   - Server controls authorization lists for each note (only sends to the current collaborators)
-
-<!-- **Future Security Enhancements**
-
-To strengthen the security model, the following improvements could be considered:
-1. **Public Key Verification**:
-   - Implement a certificate authority (CA) system to sign user public keys
-   - Add key rotation mechanisms for periodic key updates
-   - Create a public key verification system using blockchain or a transparency log
-
-2. **Database Security**:
-   - Implement additional integrity checks for stored public keys
-   - Add digital signatures to public key records
-   - Create a backup verification system for public keys
-
-3. **Access Control**:
-   - Add capability to revoke access to shared notes
-   - Implement fine-grained permissions for shared notes
-   - Add audit logging for all sharing operations -->
+   - Server controls authorization lists for each note (only sends to the current collaborators. Note that even if the server sends notes to users who shouldn't access them, they won't have access to the note's secret key, meaning they won't be able to decrypt it)
 
 #### 2.3.3. Solution Design and Implementation
 
@@ -315,8 +296,8 @@ To meet the security challenge, the solution was redesigned to the following:
 Given that this is a local-first application, we implemented some measures to protect notes if an attacker gains access to the user's computer.
 
 - **Master Key**:  
-  The master key is derived from the user’s password using a Password-Based Key Derivation using SHA-256 algorithm and a unique salt. 
-  The master key is stored only in memory and is used to encrypt the symmetric keys of the notes.
+  The master key is derived from the user’s password using a Password-Based Key Derivation using SHA-256 algorithm and a the username as salt. 
+  The master key is stored only in memory and is used to encrypt the symmetric keys of the notes and the private key of the user, which is locally stored.
 
 - **Encrypted Note Keys**:  
   Encrypted note keys are saved locally. This ensures that even if local files are accessed, the keys remain secure.  
@@ -327,8 +308,8 @@ Given that this is a local-first application, we implemented some measures to pr
 This way we can guarantee that even if the user's computer is compromised he won't be able to see the notes unless he also has access to the user's password.
 
 **Storage and Trust Model for Keys:**  
-- **Private Key of User**: Stored securely on the client side and protected by the user's master key.  TODO: ???
-- **Public Key of User**: Stored on the server, accessible for key-sharing operations.  
+- **Private Key of User**: Stored securely on the client side and protected by the user's master key.
+- **Public Key of User**: Stored on the server, accessible for key-sharing operations and signature checking.
 - **Note Key**: Stored on the client, encrypted using the local master key for protection.  
 - **Master Key**: Stored only in the memory of the client, derived from the user’s password and a salt. 
 
@@ -360,7 +341,7 @@ To handle the removal of a collaborator from a shared note, the system implement
   The note's symmetric key is not re-encrypted or changed when a collaborator is removed. This avoids unnecessary disruptions for the remaining collaborators.
 
 - **Server Validation**:  
-  The server enforces access control, validating who has permission to access the note. When a removed collaborator attempts to pull the note, the server denies access, ensuring they no longer receive updates.  
+  The server enforces access control, validating who has permission to access the note. When a removed collaborator attempts to pull the note, the server denies access, ensuring they no longer receive updates. 
 
 - **Local Key Deletion**:  
   On the next synchronization, the removed collaborator’s client automatically deletes the locally stored encrypted note key. Without the key, the removed collaborator can no longer decrypt or access the note content.
@@ -376,17 +357,15 @@ This implementation doesn't stop old collaborators to have access to the older v
 
 ## 3. Conclusion
 
-## 3. Conclusion
-
-### Main Achievements
+#### Main Achievements
 
 Our implementation of NotIST successfully delivered a secure, local-first note-taking application that prioritizes both security and collaboration. The key achievements include:
-- Implementation of end-to-end encryption for notes using AES-CBC
-- Development of a robust public key infrastructure for secure note sharing
-- Creation of a multi-layered security architecture combining local security (master key) with distributed security (note keys)
-- Implementation of a secure version control system that maintains integrity across collaborative edits
+- Implementation of end-to-end encryption for notes using AES-CBC.
+- Development of a robust public key infrastructure for secure note sharing.
+- Creation of a multi-layered security architecture combining local security (master key) with distributed security (note keys and users' public/private keys).
+- Implementation of a secure version control system that maintains integrity across collaborative edits.
 
-### Requirements Analysis
+#### Requirements Analysis
 
 All specified requirements were successfully satisfied:
 
@@ -401,20 +380,18 @@ All specified requirements were successfully satisfied:
 - **[SRA2: Integrity 1]** ✓ Satisfied by extending the HMAC verification system to all users with note access.
 - **[SRA3: Integrity 2]** ✓ Satisfied through server-side version control and by using the same symmetric key across all note versions.
 
-### Future Enhancements
+#### Future Enhancements
 
 Several potential improvements could further enhance the system:
 1. **Key Rotation Mechanism**: Implement periodic key rotation for both user keys and note keys to improve long-term security.
 2. **Advanced Access Control**: Develop more granular permissions and the ability to securely revoke access with automatic key re-encryption.
-
-### Conclusion
 
 The development of NotIST demonstrated that it's possible to create a secure focused, local-first architecture application that maintains the benefit of note sharing. The project helped us understand how the different cryptographic services can be used to meet modern day security requirements. Along the project we swapped multiple times how the security needs were being handled since we would constantly think of better ways to do them and this provided us with insights of not only concepts that we implemented (digital signatures, hmac, etc...) but also the ones we tried to make work (sessions authentication, key revocation, etc...) until we reached this final concept.
 The project provided valuable insights into the challenges of building secure systems, particularly in balancing security requirements with user experience and performance considerations.
 
 ## 4. Bibliography
 
-(_Present bibliographic references, with clickable links. Always include at least the authors, title, "where published", and year._)
+[**Courses resources (slides)**](https://fenix.tecnico.ulisboa.pt/disciplinas/SIRS11/2024-2025/1-semestre/aulas-teoricas) - David Matos & Ricardo Chaves, 2024\
+[**Network Security Essentials: Applications and Standards**](https://www.amazon.com/Network-Security-Essentials-Applications-Standards/dp/013452733X) - William Stallings 2017 4th Edition, Pearson. ISBN: 978-0134527338
 
-----
-END OF REPORT
+
