@@ -33,6 +33,3 @@ fi
 echo "Reloading ~/.bashrc..."
 source ~/.bashrc
 
-# Example: Uncomment the next line to automatically run the client script
-# echo "Running client script..."
-# python3 /home/vagrant/client/notist_client/src/main.py
