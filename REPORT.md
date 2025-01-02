@@ -266,7 +266,7 @@ The attacker cannot:
 - Forge valid signatures without the private key
 - Successfully replay requests due to timestamp verification
 - Access plain text of sensitive note data (title and content) on the servers
-
+- Have access to the certificate authority (CA) private key or the dbserver and appserver private keys
 **Security Guarantees**
 
 Against this attacker model, our system provides:
