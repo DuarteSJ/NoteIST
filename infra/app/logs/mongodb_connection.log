@@ -815,6 +815,7 @@
 2024-12-31 19:17:43,189 - db_manager - INFO - Updated document in users
 2025-01-02 20:43:13,785 - db_manager - INFO - Successfully connected to MongoDB
 2025-01-02 20:43:13,786 - __main__ - INFO - Server listening on 0.0.0.0:5000
+<<<<<<< Updated upstream
 2025-01-02 20:53:44,441 - db_manager - INFO - Successfully connected to MongoDB
 2025-01-02 20:53:44,442 - __main__ - INFO - Server listening on 0.0.0.0:5000
 2025-01-02 20:55:02,327 - __main__ - INFO - Connection from ('192.168.1.200', 32776)
