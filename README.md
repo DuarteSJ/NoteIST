@@ -84,9 +84,6 @@ $ sudo systemctl start mongod
 $ sudo systemctl enable mongod
 ```
 
-
-TODO acho que deviamos falar do que a app faz em concreto quando falamos do client dizer o que ele faz e qnd falamos do server dizer o que ele faz mas not sure
-
 #### App Server Machine
 
 This machine runs a server with a Python socket. It is responsible for handling client requests in a secure manner and ensures network communications with both users and the database.
@@ -132,16 +129,169 @@ If you get a message that looks like `ModuleNotFoundError`, then ensure you have
 $ cd /home/vagrant/client/notist_client
 $ pip install -r requirements.txt
 ```
-TODO:
 ## Demonstration
 
-Now that all the networks and machines are up and running, ...
+Now that all the networks and machines are up and running, the following section will show how to use the client and how the requests are being sent between components.
 
-*(give a tour of the best features of the application; add screenshots when relevant)*
+If you followed the instructions above, your client should be displaying the following message.
 
-```sh
-$ demo command
 ```
+No user found. Proceeding with registration.
+ATTENTION- This will overwrite any existing user data.
+Would you like to continue? [yes/no]
+> yes
+Enter your username (must be unique): 
+Enter your password: 
+```
+
+Make sure to answer yes to the first prompt and then proceed to create the user. At this point, the main menu of the application should appear:
+
+```
+=== NoteIST ===
+1. Create a Note
+2. Show Notes List
+3. View Note Content
+4. Edit a Note
+5. Delete a Note
+6. Add contributor to a note
+7. Remove contributor from a note
+8. Push changes to remote server
+9: Pull changes from remote server
+10. Exit
+Choose an option:
+```
+
+These are the functionalities of our program. After registering, all of them except the push and pull from server will be available without internet connection.
+
+### Create Note
+
+To create a note simply press 1 and you will be prompted with the following:
+
+```
+Choose an option: 1
+Enter note title: ola
+Enter note content: ola
+```
+
+Locally a directory is createdd on ~/.local/share/NoteIST/notes <note_id> with a key and the following file:
+
+```
+{
+  "id": "04a34e14-2f3d-4d8b-b631-a30b0712f048",
+  "title": "78882c834cd90b65516caa4cd16ef1ec",
+  "note": "4037afed5bec821498ee59ffe1c10e4b",
+  "owner": {
+    "username": "joao"
+  },
+  "version": 1,
+  "editors": [],
+  "viewers": [],
+  "iv": "33f5c845e79510b1016860e5cea4cc43",
+  "hmac": "11eb278f3cae1ba4bc7ffffd6d0a72d27409d53bc35d65761a04c1f0592f7efd"
+}
+```
+
+As we can see the sensitive information is censored and completely unreadable. **The key in the folder alongside this note is NOT the key to unencrypt it.**
+
+### Adding Collaborator to Note
+
+To add a collaborator to your note, you will need to know the collaborator username beforehand. When you have this information press 6 on the main menu:
+
+```
+Choose an option: 6
+Available notes:
+1: ola (v1)
+Select a note by number: 1
+Enter the username of the contributor: miguel
+Would you like to give miguel editing permissions to this note, joao? [yes/no]y
+```
+
+This adds miguel as a editor to your note, however for him to receive the note, we have to push this changes to the server.
+
+### Pushing changes to the server
+
+Still using the main menu, we will press 8 to send every change to the server. A report of all the changes will be printed for you to know what was successful.
+
+```
+Server response: success - Actions processed
+{'action': 'create_note', 'status': 'success', 'result': {'status': 'success', 'message': 'Note 04a34e14-2f3d-4d8b-b631-a30b0712f048 created'}}
+{'collab': 'add_collaborator', 'status': 'success', 'result': {'status': 'success', 'message': 'Collaborator miguel added to note 04a34e14-2f3d-4d8b-b631-a30b0712f048'}}
+```
+
+Here we can see how the communication is being made to the server and the added TLS layer security
+
+TODO: pareca
+
+
+As we can see the note creation and adding miguel as collaborator worked. When the server receives a note, it will add some metadata to it and sent to the database to store.\
+
+### Pull and Show Note
+
+Now switching to the miguel POV we can see that by pressing 9 followed by a 3, 1on the main menu we get this:
+
+```
+Select an option: 9
+Server response: success - Documents retrieved successfully
+
+...
+
+Select an option: 3
+Available notes:
+1: ola (v1)
+Select a note by number: 1
+Title: ola
+Content: ola
+```
+
+We can see that Miguel received the note that was encrypted initially without the server or db ever getting access to the sensitive content. As we can see, this is how the note is in the database:
+
+```
+{
+    _id: ObjectId('67770560239543ab8405e278'),
+    id: '04a34e14-2f3d-4d8b-b631-a30b0712f048',
+    iv: '33f5c845e79510b1016860e5cea4cc43',
+    hmac: '11eb278f3cae1ba4bc7ffffd6d0a72d27409d53bc35d65761a04c1f0592f7efd',
+    title: '78882c834cd90b65516caa4cd16ef1ec',
+    note: '4037afed5bec821498ee59ffe1c10e4b',
+    date_created: ISODate('2025-01-02T21:30:08.098Z'),
+    date_modified: ISODate('2025-01-02T21:30:08.098Z'),
+    last_modified_by: 'a21b1134-62e9-4533-8ac8-152f69fa7a07',
+    version: 1,
+    owner: { id: 'a21b1134-62e9-4533-8ac8-152f69fa7a07', username: 'joao' },
+    editors: [
+      {
+        id: '48ad0cc5-1eb4-42af-9b19-217b0dd3dfdd',
+        username: 'miguel'
+      },
+    ],
+    viewers: [
+      {
+        id: '48ad0cc5-1eb4-42af-9b19-217b0dd3dfdd',
+        username: 'miguel'
+      },
+    ]
+  }
+```
+
+### Attacks
+
+#### Locally tampering notes title and content
+
+If someone get's access to your computer and changes the content of a note the following will appear when you try to read it
+
+```
+An unexpected error occured: Failed to read and decrypt file: Decryption failed. It is likely that your file has been tampered with. Details: non-hexadecimal number found in fromhex() arg at position 33
+
+or 
+
+An unexpected error occured: Failed to read and decrypt file: Decryption failed. It is likely that your file has been tampered with. Details: Padding is incorrect.
+```
+
+
+
+
+
+When an attack is performed, pulling from the server will solve the attacks and getting your versions back
 
 *(replace with actual commands)*
 
@@ -166,7 +316,7 @@ This concludes the demonstration.
   - Repository: [**pypa/setuptools**](https://github.com/pypa/setuptools)
   - Package Index: [**setuptools on PyPI**](https://pypi.org/project/setuptools/)
 
-- **wheel (≥0.40.0)**  TODO acho que esta ta nos requirements mas nao é required. tentar tira-la de la e ver se o client funciona
+- **wheel (≥0.40.0)** 
 
   - Documentation: [**wheel docs**](https://wheel.readthedocs.io/en/stable/)
   - Repository: [**pypa/wheel**](https://github.com/pypa/wheel)
@@ -178,7 +328,7 @@ This concludes the demonstration.
   - Repository: [**pyca/cryptography**](https://github.com/pyca/cryptography)
   - Package Index: [**cryptography on PyPI**](https://pypi.org/project/cryptography/3.4.7/)
 
-- **pycryptodome (==3.21.0)** TODO de certeza que o Crypto que usamos no secure-documents vem daqui? Acho que sim, mas tamos a usar uma old version no secure-document. temos de ver isto
+- **pycryptodome (==3.21.0)**
   - Documentation: [**pycryptodome docs**](https://pycryptodome.readthedocs.io/)
   - Repository: [**Legrandin/pycryptodome**](https://github.com/Legrandin/pycryptodome)
   - Package Index: [**pycryptodome on PyPI**](https://pypi.org/project/pycryptodome/3.21.0/)
@@ -189,7 +339,7 @@ This concludes the demonstration.
   - Repository: [**pydantic/pydantic**](https://github.com/pydantic/pydantic)
   - Package Index: [**pydantic on PyPI**](https://pypi.org/project/pydantic/2.10.4/)
 
-- **importlib_metadata (≥4.13.0)**  TODO acho que esta ta nos requirements mas nao é required. tentar tira-la de la e ver se o client funciona
+- **importlib_metadata (≥4.13.0)**
   - Documentation: [**importlib_metadata docs**](https://importlib-metadata.readthedocs.io/)
   - Repository: [**python/importlib_metadata**](https://github.com/python/importlib_metadata)
   - Package Index: [**importlib_metadata on PyPI**](https://pypi.org/project/importlib-metadata/)
@@ -201,10 +351,8 @@ This concludes the demonstration.
   - Download: [**vagrant downloads**](https://developer.hashicorp.com/vagrant/downloads)
 
 ### License
-TODO ya n sei acho que é só deixar essa
 This project is licensed under the MIT License - see the [LICENSE.txt](LICENSE.txt) for details.
 
-*(switch to another license, or no license, as you see fit)*
 
 ----
 END OF README

@@ -815,3 +815,85 @@
 2024-12-31 19:17:43,189 - db_manager - INFO - Updated document in users
 2025-01-02 20:43:13,785 - db_manager - INFO - Successfully connected to MongoDB
 2025-01-02 20:43:13,786 - __main__ - INFO - Server listening on 0.0.0.0:5000
+2025-01-02 20:53:44,441 - db_manager - INFO - Successfully connected to MongoDB
+2025-01-02 20:53:44,442 - __main__ - INFO - Server listening on 0.0.0.0:5000
+2025-01-02 20:55:02,327 - __main__ - INFO - Connection from ('192.168.1.200', 32776)
+2025-01-02 20:55:02,346 - db_manager - INFO - Inserted document in users with ID: 6776fd2652e93c6312b3b6ef
+2025-01-02 20:55:02,346 - users - INFO - User created with ID: 6776fd2652e93c6312b3b6ef
+2025-01-02 21:02:47,534 - __main__ - INFO - Connection from ('192.168.1.200', 35626)
+2025-01-02 21:02:47,544 - db_manager - INFO - Updated document in users
+2025-01-02 21:02:47,557 - db_manager - INFO - Inserted document in notes with ID: 6776fef752e93c6312b3b6f0
+2025-01-02 21:02:47,559 - db_manager - INFO - Updated document in users
+2025-01-02 21:02:47,560 - notes - INFO - Note created with ID: e0c86541-8d8b-43e9-86de-891bb117680f
+2025-01-02 21:02:47,564 - db_manager - INFO - Inserted document in notes with ID: 6776fef752e93c6312b3b6f1
+2025-01-02 21:02:47,566 - db_manager - INFO - Updated document in users
+2025-01-02 21:02:47,567 - notes - INFO - Note created with ID: e4d4c3c5-b460-4b90-9bc0-27f8cef9e1fa
+2025-01-02 21:08:25,472 - __main__ - INFO - Connection from ('192.168.1.200', 42328)
+2025-01-02 21:08:25,475 - db_manager - INFO - Inserted document in users with ID: 6777004952e93c6312b3b6f2
+2025-01-02 21:08:25,475 - users - INFO - User created with ID: 6777004952e93c6312b3b6f2
+2025-01-02 21:09:00,064 - __main__ - INFO - Connection from ('192.168.1.200', 59024)
+2025-01-02 21:09:00,068 - db_manager - INFO - Updated document in users
+2025-01-02 21:09:22,760 - db_manager - INFO - MongoDB connection closed
+2025-01-02 21:09:25,796 - db_manager - INFO - Successfully connected to MongoDB
+2025-01-02 21:09:25,798 - __main__ - INFO - Server listening on 0.0.0.0:5000
+2025-01-02 21:09:43,412 - __main__ - INFO - Connection from ('192.168.1.200', 37288)
+2025-01-02 21:09:43,418 - db_manager - INFO - Updated document in users
+2025-01-02 21:09:43,421 - db_manager - INFO - Inserted document in notes with ID: 67770097239543ab8405e272
+2025-01-02 21:09:43,423 - db_manager - INFO - Updated document in users
+2025-01-02 21:09:43,423 - notes - INFO - Note created with ID: 4033826e-8477-485c-a6ac-f984a918cda5
+2025-01-02 21:12:52,894 - __main__ - INFO - Connection from ('192.168.1.200', 42206)
+2025-01-02 21:12:52,902 - db_manager - INFO - Updated document in users
+2025-01-02 21:12:52,907 - db_manager - INFO - Inserted document in notes with ID: 67770154239543ab8405e273
+2025-01-02 21:12:52,911 - db_manager - INFO - Updated document in users
+2025-01-02 21:12:52,911 - notes - INFO - Note created with ID: 061890d8-bd1e-4eaa-b396-c018392860be
+2025-01-02 21:19:29,696 - __main__ - INFO - Connection from ('192.168.1.200', 49746)
+2025-01-02 21:19:29,699 - db_manager - INFO - Updated document in users
+2025-01-02 21:19:29,702 - db_manager - INFO - Inserted document in notes with ID: 677702e1239543ab8405e274
+2025-01-02 21:19:29,703 - db_manager - INFO - Updated document in users
+2025-01-02 21:19:29,704 - notes - INFO - Note created with ID: 04a34e14-2f3d-4d8b-b631-a30b0712f048
+2025-01-02 21:19:29,710 - db_manager - INFO - Updated 1 documents in notes
+2025-01-02 21:19:29,712 - db_manager - INFO - Updated 1 documents in users
+2025-01-02 21:19:29,714 - db_manager - INFO - Updated 1 documents in notes
+2025-01-02 21:19:29,715 - db_manager - INFO - Updated 1 documents in users
+2025-01-02 21:19:29,808 - __main__ - INFO - Connection from ('192.168.1.200', 49754)
+2025-01-02 21:19:29,812 - db_manager - INFO - Updated document in users
+2025-01-02 21:19:29,813 - db_manager - INFO - Updated document in users
+2025-01-02 21:27:45,907 - __main__ - INFO - Connection from ('192.168.1.200', 52740)
+2025-01-02 21:27:45,911 - db_manager - INFO - Inserted document in users with ID: 677704d1239543ab8405e275
+2025-01-02 21:27:45,911 - users - INFO - User created with ID: 677704d1239543ab8405e275
+2025-01-02 21:28:57,564 - __main__ - INFO - Connection from ('192.168.1.200', 45394)
+2025-01-02 21:28:57,567 - db_manager - INFO - Inserted document in users with ID: 67770519239543ab8405e276
+2025-01-02 21:28:57,567 - users - INFO - User created with ID: 67770519239543ab8405e276
+2025-01-02 21:29:50,612 - __main__ - INFO - Connection from ('192.168.1.200', 48870)
+2025-01-02 21:29:50,615 - db_manager - INFO - Inserted document in users with ID: 6777054e239543ab8405e277
+2025-01-02 21:29:50,615 - users - INFO - User created with ID: 6777054e239543ab8405e277
+2025-01-02 21:30:08,092 - __main__ - INFO - Connection from ('192.168.1.200', 44368)
+2025-01-02 21:30:08,096 - db_manager - INFO - Updated document in users
+2025-01-02 21:30:08,099 - db_manager - INFO - Inserted document in notes with ID: 67770560239543ab8405e278
+2025-01-02 21:30:08,100 - db_manager - INFO - Updated document in users
+2025-01-02 21:30:08,101 - notes - INFO - Note created with ID: 03a95ecb-598e-4507-ba79-823359e3bd1e
+2025-01-02 21:30:08,105 - db_manager - INFO - Updated 1 documents in notes
+2025-01-02 21:30:08,107 - db_manager - INFO - Updated 1 documents in users
+2025-01-02 21:30:08,108 - db_manager - INFO - Updated 1 documents in notes
+2025-01-02 21:30:08,109 - db_manager - INFO - Updated 1 documents in users
+2025-01-02 21:30:08,202 - __main__ - INFO - Connection from ('192.168.1.200', 44370)
+2025-01-02 21:30:08,205 - db_manager - INFO - Updated document in users
+2025-01-02 21:30:08,207 - db_manager - INFO - Updated document in users
+2025-01-02 21:31:21,126 - __main__ - INFO - Connection from ('192.168.1.200', 33042)
+2025-01-02 21:31:21,130 - db_manager - INFO - Updated document in users
+2025-01-02 21:31:21,134 - db_manager - INFO - Updated 1 documents in notes
+2025-01-02 21:31:21,135 - db_manager - INFO - Updated 1 documents in users
+2025-01-02 21:31:21,136 - db_manager - INFO - Updated 1 documents in notes
+2025-01-02 21:31:21,138 - db_manager - INFO - Updated 1 documents in users
+2025-01-02 21:31:21,233 - __main__ - INFO - Connection from ('192.168.1.200', 33044)
+2025-01-02 21:31:21,237 - db_manager - INFO - Updated document in users
+2025-01-02 21:31:21,238 - db_manager - INFO - Updated document in users
+2025-01-02 21:32:36,186 - __main__ - INFO - Connection from ('192.168.1.200', 43026)
+2025-01-02 21:32:36,189 - db_manager - INFO - Updated document in users
+2025-01-02 21:46:03,397 - __main__ - INFO - Connection from ('192.168.1.200', 32954)
+2025-01-02 21:46:03,402 - db_manager - INFO - Updated document in users
+2025-01-02 21:47:37,732 - __main__ - INFO - Connection from ('192.168.1.200', 33124)
+2025-01-02 21:47:37,735 - db_manager - INFO - Inserted document in users with ID: 67770979239543ab8405e279
+2025-01-02 21:47:37,735 - users - INFO - User created with ID: 67770979239543ab8405e279
+2025-01-02 21:50:54,402 - __main__ - INFO - Connection from ('192.168.1.200', 52220)
+2025-01-02 21:50:54,406 - db_manager - INFO - Updated document in users

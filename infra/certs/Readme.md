@@ -1,4 +1,3 @@
 # certificate guide 
 
 ### server
-* TODO

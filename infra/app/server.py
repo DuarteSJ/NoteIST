@@ -98,7 +98,7 @@ class Server:
         try:
             if not self.verify_signature(req):
                 return {"status": "error", "message": "Signature verification failed"}
-
+            
             if not self.verify_freshness(req):
                 return {"status": "error", "message": "Request is stale"}
 
@@ -116,8 +116,6 @@ class Server:
             digest_of_hmacs.update(hmac_str.encode("utf-8"))
             digest_of_hmacs = digest_of_hmacs.finalize().hex()
 
-            print(f"Local HMAC: {local_hmac}")
-            print(f"Digest of HMACs: {digest_of_hmacs}")
             if digest_of_hmacs == local_hmac:
                 return {
                     "status": "synced",
