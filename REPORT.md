@@ -18,6 +18,7 @@ The project addresses the growing need for secure, private note-taking solutions
 ### 1.2 Main Components
 
 ### 1.2.1 Secure Documents
+#TODO: change this to text
 - Notes are stored as JSON documents containing metadata and content
 - Sensitive information (note and title) of the notes are kept encrypted
 - Document structure includes ownership information, access controls, and version tracking
@@ -71,12 +72,11 @@ The library was designed to provide the following protection to the files:
 
 **Encryption and Integrity Features:**
 
-- AES in CBC mode is used to encrypt sensitive fields (`title` and `note`), ensuring confidentiality with a unique Initialization Vector (IV) for each operation.
-- HMAC (SHA-256) ensures data integrity by detecting tampering or corruption in the encrypted file.
+AES in CBC mode is used to encrypt sensitive fields (`title` and `note`), since we focused on a reliable confidentiality and handled the integrity separetely by using HMAC (SHA-256) for tampering detection or corruption. The library stores the fields "hmac" and "iv" in the note file to be able to unencrypt and check changes on the file later.
 
 **File Structure:**
 
-Encrypted files include metadata such as IV and HMAC, alongside encrypted sensitive data. **In the project we considered the title and content to be the only sensitive information therefore, additional keys will remain unencrypted.**
+Encrypted files include metadata such as IV and HMAC, sensitive encrypted data (note and title) and non-sensitive unencrypted data. The unencrypted data is mainly used for client-side information display. Below is an example of how the notes are being stored:
 
 **Example JSON Format (Encrypted):**
 
@@ -114,21 +114,24 @@ Encrypted files include metadata such as IV and HMAC, alongside encrypted sensit
 
 ### 2.1.2 Implementation
 
-The library was implemented in **Python**, using the `PyCryptodome` library for cryptographic operations. The system comprises several modules that handle encryption, integrity checks, and file parsing.
+The library was implemented in **Python**, using the `PyCryptodome` library for cryptographic operations.
 
 **Implementation Steps:**
 
-1. **Encryption and Protection**:
-   - Files are parsed to extract sensitive fields.
+1. **Encryption**:
+   - Files are parsed to extract sensitive fields (title and note).
    - Sensitive fields are encrypted using AES-CBC with a randomly generated IV.
-   - Encrypted data is concatenated and used as input to compute an HMAC.
+   - Sensible encrypted data will be concatenated and computed in order to generate and hmac.
+   - The hmac and the randomly generated IV is stored in the file.
 
 2. **Decryption and Verification**:
-   - The HMAC is recalculated and compared with the stored value to verify data integrity.
-   - If the integrity check passes, encrypted fields are decrypted.
+   - The encrypted sensible fields are concatenated and the hmac of them is computed. 
+   - The computed hmac is compared to the stored file hmac to check integrity.
+   - If the integrity check passes means there was no tampering and encrypted fields are decrypted.
 
 **Challenges and Solutions**:
 #TODO:
+Talvez dizer que nao nos conseguiamos decidir no algoritmo a usar
 
 1. **Challenge**: Handling missing fields or corrupted files.
    - **Solution**: Validation checks and exception handling were added to identify and handle malformed inputs gracefully.
@@ -141,11 +144,11 @@ The library was implemented in **Python**, using the `PyCryptodome` library for 
 
 - **Encrypting a File**:
   ```bash
-  python cli.py protect input.json keyfile output.json
+  secure-document protect input.json keyfile output.json
   ```
 - **Verifying Integrity**:
   ```bash
-  python cli.py check-single encrypted.json keyfile
+  secure-document check-single encrypted.json keyfile
   ```
 
 
@@ -198,8 +201,6 @@ The **Vagrantfile** simplifies the configuration of network interfaces and share
 
 #TODO: explicar os tipos de chaves que tivemos de criar (a master key ja iamos precisar para o secure documents)
 
-(_Describe the new requirements introduced in the security challenge and how they impacted your original design._)
-
 The users of NotIST want to share their notes with anyone on the web. To achieve this, the required functionality must ensure secure note sharing while meeting the following security requirements:
 
 - **[SRA1: Authentication]** Only authenticated and authorized users can see the content of the notes.
@@ -214,10 +215,8 @@ To address these requirements, we had to refactor our program, particularly the 
 
 Given the need for sharing encrypted files, which required the use of key pairs, we implemented the following changes:
 
-**Authentication and Integrity Update**
-
-- Replaced the previous username-password login system with an authentication mechanism that uses **signed requests**. Each request is signed with the user's private key and includes a **timestamp**, ensuring the **authenticity** of the user and the **integrity** of the request.
-- Digital signatures were also incorporated into encrypted notes and requests, enabling detection of tampering. This, combined with note versioning, ensures users can verify the integrity of their notes across multiple versions.
+- Replaced the previous username-password login system with an authentication mechanism that uses **signed requests**. Each request is signed with the user's private key and includes a **timestamp**. This by itself guarantees authentication (only registered users will pass the signature check) and integrity (only untampered data requests will pass the signature check and only fresh requests will pass the timestamp check). 
+- The versioning of the notes was kept the same with the introduced challenge because we consider one symmetric key for each note and all their versions.
 
 These changes not only meet the requirements of the security challenge but also enhance the overall security of the system by ensuring strong cryptographic guarantees for authentication and integrity.
 
@@ -288,9 +287,9 @@ Against this attacker model, our system provides:
 4. **Access Control**:
    - Note keys are only shared with authorized collaborators
    - Each collaborator receives their own encrypted copy of the note key
-   - Server enforces access control lists for each note
+   - Server controls authorization lists for each note (only sends to the current collaborators)
 
-**Future Security Enhancements**
+<!-- **Future Security Enhancements**
 
 To strengthen the security model, the following improvements could be considered:
 1. **Public Key Verification**:
@@ -306,44 +305,18 @@ To strengthen the security model, the following improvements could be considered
 3. **Access Control**:
    - Add capability to revoke access to shared notes
    - Implement fine-grained permissions for shared notes
-   - Add audit logging for all sharing operations
+   - Add audit logging for all sharing operations -->
 
 #### 2.3.3. Solution Design and Implementation
 
 To meet the security challenge, the solution was redesigned to the following:
 
-**Key Management for Shared Notes:**  
-When a user shares a note, the following sequence occurs:  
-1. The client fetches the public key of the collaborator from the server.  
-2. The client encrypts the note’s symmetric key (used to encrypt the note content) with the collaborator's public key.  
-3. The encrypted note key is sent to the server and stored in the collaborator's database record.  
-4. When the collaborator pulls the note, they decrypt the note key using their private key to access the content.  
-
-**Storage and Trust Model for Keys:**  
-- **Private Key of User**: Stored securely on the client side and protected by the user's master key.  
-- **Public Key of User**: Stored on the server, accessible for key-sharing operations.  
-- **Note Key**: Stored on the client, encrypted using the local master key for protection.  
-- **Master Key**: Stored only in the memory of the client, derived from the user’s password and a salt.  
-
-**Encryption and Trust Model for the Servers:**  
-The AppServer and DBServer are treated as untrusted entities regarding note content. Sensitive data (note title and content) remains encrypted throughout all operations. This ensures end-to-end encryption where only the client can decrypt the content.  
-
-**Authentication and Request Handling:**  
-- Requests are authenticated using the user’s private key, with each request digitally signed to ensure integrity and non-repudiation.  
-- A timestamp mechanism is incorporated into requests to prevent replay attacks. The server maintains the last request time for freshness checks.  
-
-**Note Versioning:**  
-The server is responsible for maintaining note versions. When multiple collaborators make edits:  
-1. Each update from a client is treated as a new version of the note.  
-2. The server increments the version number sequentially.  
-3. Integrity of versions is ensured by verifying signatures and maintaining an immutable history of changes.  
-
 #### Local Security
-Given that this is a local-first application, additional measures were implemented to protect notes if an attacker gains access to the user's computer.
+Given that this is a local-first application, we implemented some measures to protect notes if an attacker gains access to the user's computer.
 
 - **Master Key**:  
   The master key is derived from the user’s password using a Password-Based Key Derivation using SHA-256 algorithm and a unique salt. 
-  The master key is stored only in memory and is used to encrypt the symmetric keys of the notes.  
+  The master key is stored only in memory and is used to encrypt the symmetric keys of the notes.
 
 - **Encrypted Note Keys**:  
   Encrypted note keys are saved locally. This ensures that even if local files are accessed, the keys remain secure.  
@@ -353,12 +326,38 @@ Given that this is a local-first application, additional measures were implement
 
 This way we can guarantee that even if the user's computer is compromised he won't be able to see the notes unless he also has access to the user's password.
 
-#### Key Revocation and Collaborator Removal
+**Storage and Trust Model for Keys:**  
+- **Private Key of User**: Stored securely on the client side and protected by the user's master key.  TODO: ???
+- **Public Key of User**: Stored on the server, accessible for key-sharing operations.  
+- **Note Key**: Stored on the client, encrypted using the local master key for protection.  
+- **Master Key**: Stored only in the memory of the client, derived from the user’s password and a salt. 
+
+**Trust Model for the Servers:**  
+The AppServer and DBServer are treated as untrusted entities regarding note content. Sensitive data (note title and content) remains encrypted throughout all operations. This ensures end-to-end encryption where only the client can decrypt the content.
+
+**Authentication and Request Handling:**  
+- Requests are authenticated using the user’s private key, with each request digitally signed to ensure integrity and non-repudiation.  
+- A timestamp mechanism is incorporated into requests to prevent replay attacks. The server maintains the last request time for freshness checks.  
+
+**Key Management for Shared Notes:**  
+When a user shares a note, the following sequence occurs:  
+1. The client fetches the public key of the collaborator from the server.  
+2. The client encrypts the note’s symmetric key (used to encrypt the note content) with the collaborator's public key.  
+3. The encrypted note key is sent to the server and stored in the collaborator's database record.  
+4. When the collaborator pulls the note, they decrypt the note key using their private key to access the content.  
+
+**Note Versioning:**  
+The server is responsible for maintaining note versions. When multiple collaborators make edits:  
+1. Each update from a client is treated as a new version of the note.  
+2. The server increments the version number sequentially.  
+3. Integrity of versions is ensured by verifying signatures and maintaining an immutable history of changes.  
+
+#### Collaborator Removal
 
 To handle the removal of a collaborator from a shared note, the system implements the following mechanism:
 
 - **Key Retention**:  
-  The note's symmetric key is not re-encrypted or changed when a collaborator is removed. This avoids unnecessary disruptions for the remaining collaborators.  
+  The note's symmetric key is not re-encrypted or changed when a collaborator is removed. This avoids unnecessary disruptions for the remaining collaborators.
 
 - **Server Validation**:  
   The server enforces access control, validating who has permission to access the note. When a removed collaborator attempts to pull the note, the server denies access, ensuring they no longer receive updates.  
@@ -366,16 +365,13 @@ To handle the removal of a collaborator from a shared note, the system implement
 - **Local Key Deletion**:  
   On the next synchronization, the removed collaborator’s client automatically deletes the locally stored encrypted note key. Without the key, the removed collaborator can no longer decrypt or access the note content.
 
-This approach balances efficiency and security by minimizing changes to the shared note while ensuring that removed collaborators lose access.
+This implementation doesn't stop old collaborators to have access to the older versions if they make a local copy. However, we don't think this is preventable.
 
 
 **Communication Diagram:**  
 
 ![](img/communication.png)
 
-
-
-By combining public key cryptography, client-side encryption, and server-side version control, the solution effectively addresses the security challenge while maintaining usability.
 
 
 ## 3. Conclusion
