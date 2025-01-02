@@ -7,7 +7,7 @@ from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
 from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
 from cryptography.hazmat.primitives import hashes as crypto_hashes
 from cryptography.hazmat.primitives.asymmetric import padding
-
+import json
 
 class KeyManager:
     """Handles cryptographic key operations including generation, storage, and loading."""
@@ -165,6 +165,37 @@ class KeyManager:
         """Decrypts a symmetric key encrypted with the master key."""
         salt = encrypted_key[:16]
         return self._decrypt_with_master_key(encrypted_key[16:], salt)
+    
+    def encrypt_data_with_master_key(self, data: dict) -> str:
+        """
+        Encrypts a dictionary using the master key and returns a base64-encoded string.
+
+        Args:
+            data: The dictionary to encrypt.
+
+        Returns:
+            A base64-encoded string of the encrypted data.
+        """
+        salt = os.urandom(16)
+        json_data = json.dumps(data).encode('utf-8')
+        encrypted_data = self._encrypt_with_master_key(json_data, salt)
+        combined_data = salt + encrypted_data
+        return base64.b64encode(combined_data).decode('utf-8')
+
+    def decrypt_data_with_master_key(self, encrypted_data: str) -> dict:
+        """
+        Decrypts a base64-encoded string of encrypted data.
+
+        Args:
+            encrypted_data: The base64-encoded encrypted data as a string.
+
+        Returns:
+            The decrypted dictionary.
+        """
+        combined_data = base64.b64decode(encrypted_data.encode('utf-8'))
+        salt = combined_data[:16]
+        decrypted_bytes = self._decrypt_with_master_key(combined_data[16:], salt)
+        return json.loads(decrypted_bytes.decode('utf-8'))
 
     # -------------------------------------
     # Note Key Functions

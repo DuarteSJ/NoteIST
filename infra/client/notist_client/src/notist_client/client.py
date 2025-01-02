@@ -331,15 +331,15 @@ class NoteISTClient:
         # Get the corresponding file path and data
         changes_path, data = action_mapping[action_type]
         change_record = {"type": action_type.value, "data": data}
-
+        change_record = self.key_manager.encrypt_data_with_master_key(change_record)
         # Open the file and append the JSON-encoded string
         FileHandler.save_change(changes_path, change_record)
 
     def push_changes(self) -> Response:
         """Push recorded changes to the server."""
         try:
-            note_changes = FileHandler.read_changes(self.note_changes_path)
-            user_changes = FileHandler.read_changes(self.user_changes_path)
+            note_changes = FileHandler.read_changes(self.note_changes_path, self.key_manager.decrypt_data_with_master_key)
+            user_changes = FileHandler.read_changes(self.user_changes_path, self.key_manager.decrypt_data_with_master_key)
             response = self.network_handler.push_changes(
                 self.priv_key_path, note_changes, user_changes
             )
