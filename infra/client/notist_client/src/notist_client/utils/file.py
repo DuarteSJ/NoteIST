@@ -1,5 +1,5 @@
 import os
-from typing import Dict, Any, List, Callable
+from typing import Dict, Any, List
 from secure_document import SecureDocumentHandler
 from uuid import uuid4
 import shutil
@@ -178,34 +178,24 @@ class FileHandler:
         except Exception as e:
             raise Exception(f"Failed to save change for file {filepath}: {e}")
 
-    def read_changes(filepath: str, decryptor: Callable) -> List[Dict[str, Any]]:
-        """
-        Reads and decrypts changes from a JSON file.
-
-        Args:
-            filepath: Path to the file storing the changes.
-            decryptor: A callable function to decrypt the data (e.g., self.key_manager.decrypt_data_with_master_key).
-
-        Returns:
-            A list of decrypted change records.
-        """
+    def read_changes(filepath: str) -> List[Dict[str, Any]]:
+        """Reads a JSON file containing a list of dictionaries."""
         try:
-            if not os.path.exists(filepath):
-                return []
-
             with open(filepath, "r") as f:
-                try:
-                    encrypted_data = json.load(f)
-                    if not isinstance(encrypted_data, list):
-                        raise ValueError(f"The file ({filepath}) does not contain a JSON array.")
-                except json.JSONDecodeError:
+                content = f.read().strip()
+                if not content:  # Handle empty file
                     return []
-
-            # Decrypt each record
-            decrypted_data = [decryptor(record) for record in encrypted_data]
-            return decrypted_data
+                data = json.loads(content)
+                if not isinstance(data, list):
+                    raise ValueError("The file does not contain a JSON array.")
+                return data
+        except FileNotFoundError:
+            # Return an empty list if the file does not exist
+            return []
+        except json.JSONDecodeError as e:
+            raise Exception(f"Invalid JSON file: {e}")
         except Exception as e:
-            raise Exception(f"Failed to read changes from file {filepath}: {e}")
+            raise Exception(f"Failed to read changes: {e}")
 
     def remove_empty_note_folders(directory: str) -> None:
         """
