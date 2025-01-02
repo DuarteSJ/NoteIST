@@ -121,7 +121,8 @@ $ python3 -V  # Verify Python installation
 
 To test:
 ```sh
-$ notist-client #start the TUI
+$ cd /home/vagrant/client/notist_client/src
+$ python3 main.py
 ```
 
 The expected results are a TUI appearing in your terminal where it will tell you that no user was found and ask if you want to create a new account.
