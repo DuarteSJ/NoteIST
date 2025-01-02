@@ -6,9 +6,6 @@
 - if the user loses private key he can't recover it
 
 outras coisas:
- falar dos salts dos titles das pastas e que usamos username como salt para master key derivation
- no secure documents temos que falar que precisavamos de uma symmetric key para cada nota e uma master key derivada de uma password (especificar o algoritmo)
- Quando fomos implementar o key sharing dizemos que precisavamos de um par de keys por isso alteramos o login de username e password no server para usar authentication com private e public key o que nos permitiu tambem dar key sharing.
  ESPECIFICAR TODOS OS ALGORITMOS USADOS EM TUDO
  FALTA UML'S E HONESTAMENTE NAO QUERO FAZER - MASSAS
 ## 1. Introduction
@@ -49,6 +46,11 @@ Security challenge A was the one chosen for our implementation which involves im
 ### 2.1.1 Design
 
 The cryptographic library for NotIST was designed to meet the requirements of secure note storage and sharing. It provides several high-level methods that secure encryption, decryption, and integrity checks, both for files and raw JSON data.
+The library was designed to provide the following protection to the files:
+- **[SR1: Confidentiality]** Only the owner of the notes can see their content.
+- **[SR2: Integrity 1]** The owner of the notes can verify they were not tampered with.
+- **[SR3: Integrity 2]** The owner of the notes can verify if any note is missing.
+- **[SR4: Authentication]** Only the owner of the notes can access them.
 
 **Library Methods Provided:**
 
@@ -133,6 +135,8 @@ The library was implemented in **Python**, using the `PyCryptodome` library for 
 2. **Challenge**: Key management during encryption and decryption.
    - **Solution**: Keys are stored separately, and a secure key parsing method ensures compatibility across operations.
 
+
+
 **Example of Library Usage:**
 
 - **Encrypting a File**:
@@ -195,6 +199,28 @@ The **Vagrantfile** simplifies the configuration of network interfaces and share
 #TODO: explicar os tipos de chaves que tivemos de criar (a master key ja iamos precisar para o secure documents)
 
 (_Describe the new requirements introduced in the security challenge and how they impacted your original design._)
+
+The users of NotIST want to share their notes with anyone on the web. To achieve this, the required functionality must ensure secure note sharing while meeting the following security requirements:
+
+- **[SRA1: Authentication]** Only authenticated and authorized users can see the content of the notes.
+- **[SRA2: Integrity 1]** Anyone that has access to the note can verify its integrity.
+- **[SRA3: Integrity 2]** It is possible to verify the integrity of the notes throughout their versions.
+
+(Security challenge A)
+
+#### Impact on the Original Design
+
+To address these requirements, we had to refactor our program, particularly the way authentication and integrity were handled. Initially, the system used a **username and password** for login, followed by a session token for subsequent requests. While this method provided basic authentication, it lacked the cryptographic rigor required for secure note sharing.
+
+Given the need for sharing encrypted files, which required the use of key pairs, we implemented the following changes:
+
+**Authentication and Integrity Update**
+
+- Replaced the previous username-password login system with an authentication mechanism that uses **signed requests**. Each request is signed with the user's private key and includes a **timestamp**, ensuring the **authenticity** of the user and the **integrity** of the request.
+- Digital signatures were also incorporated into encrypted notes and requests, enabling detection of tampering. This, combined with note versioning, ensures users can verify the integrity of their notes across multiple versions.
+
+These changes not only meet the requirements of the security challenge but also enhance the overall security of the system by ensuring strong cryptographic guarantees for authentication and integrity.
+
 
 #### 2.3.2. Attacker Model
 
@@ -284,7 +310,7 @@ To strengthen the security model, the following improvements could be considered
 
 #### 2.3.3. Solution Design and Implementation
 
-To meet the security challenge, the solution was redesigned and extended with a focus on secure key management, robust authentication, and integrity verification. Below are the details of the solution:  
+To meet the security challenge, the solution was redesigned to the following:
 
 **Key Management for Shared Notes:**  
 When a user shares a note, the following sequence occurs:  
@@ -312,24 +338,45 @@ The server is responsible for maintaining note versions. When multiple collabora
 2. The server increments the version number sequentially.  
 3. Integrity of versions is ensured by verifying signatures and maintaining an immutable history of changes.  
 
-**Communication Diagram:**  
-TODO:
-The interaction among the entities can be summarized as follows (a UML diagram can be created to visualize these steps):  
-1. User A initiates note sharing by encrypting the note key with User B's public key.  
-2. User A sends the encrypted key to the AppServer, which stores it securely in the database.  
-3. User B pulls the shared note and decrypts the note key with their private key.  
-4. Both users push and pull updates, with the server maintaining and verifying note versions.  
+#### Local Security
+Given that this is a local-first application, additional measures were implemented to protect notes if an attacker gains access to the user's computer.
 
-This approach ensures compliance with the security requirements:  
-- **Authentication (SRA1)**: Only authenticated users can decrypt note contents using their private keys.  
-- **Integrity (SRA2 and SRA3)**: Encrypted notes and version history are protected against tampering, with digital signatures verifying integrity.  
+- **Master Key**:  
+  The master key is derived from the user’s password using a Password-Based Key Derivation using SHA-256 algorithm and a unique salt. 
+  The master key is stored only in memory and is used to encrypt the symmetric keys of the notes.  
+
+- **Encrypted Note Keys**:  
+  Encrypted note keys are saved locally. This ensures that even if local files are accessed, the keys remain secure.  
+
+- **Password Prompt on Startup**:  
+  When the client is launched, the user must enter their password to regenerate the master key and decrypt the note keys.
+
+This way we can guarantee that even if the user's computer is compromised he won't be able to see the notes unless he also has access to the user's password.
+
+#### Key Revocation and Collaborator Removal
+
+To handle the removal of a collaborator from a shared note, the system implements the following mechanism:
+
+- **Key Retention**:  
+  The note's symmetric key is not re-encrypted or changed when a collaborator is removed. This avoids unnecessary disruptions for the remaining collaborators.  
+
+- **Server Validation**:  
+  The server enforces access control, validating who has permission to access the note. When a removed collaborator attempts to pull the note, the server denies access, ensuring they no longer receive updates.  
+
+- **Local Key Deletion**:  
+  On the next synchronization, the removed collaborator’s client automatically deletes the locally stored encrypted note key. Without the key, the removed collaborator can no longer decrypt or access the note content.
+
+This approach balances efficiency and security by minimizing changes to the shared note while ensuring that removed collaborators lose access.
+
+
+**Communication Diagram:**  
+
+![](img/communication.png)
+
+
 
 By combining public key cryptography, client-side encryption, and server-side version control, the solution effectively addresses the security challenge while maintaining usability.
 
-
-(_Explain how your team redesigned and extended the solution to meet the security challenge, including key distribution and other security measures._)
-
-(_Identify communication entities and the messages they exchange with a UML sequence or collaboration diagram._)  
 
 ## 3. Conclusion
 
