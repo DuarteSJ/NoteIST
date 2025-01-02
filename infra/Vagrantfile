@@ -47,7 +47,7 @@ Vagrant.configure("2") do |config|
         mount_options: ["dmode=775", "fmode=755"]
     end
 
-    client.vm.provision "shell", path: "scripts/setup_client.sh", privileged: true
+    client.vm.provision "shell", inline: "bash /path/to/scripts/setup_client.sh", privileged: true
   end
 
   config.vm.define "client2" do |client2|
@@ -78,7 +78,7 @@ Vagrant.configure("2") do |config|
         mount_options: ["dmode=775", "fmode=755"]
     end
 
-    client2.vm.provision "shell", path: "scripts/setup_client.sh", privileged: true
+    client2.vm.provision "shell", inline: "bash /path/to/scripts/setup_client.sh", privileged: true
   end
 
 
