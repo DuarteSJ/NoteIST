@@ -237,7 +237,7 @@ Consider the stream caught on the Wireshark:
 
 ![](img/tcpStream.png)
 
-We can identify 5-byte headers that indicate TLS record starts. First byte represents the Record type, second and third bytes represent the TLS version, and the fourth and fifth bytes represent the length of the record. In this Stream we can identify 17 03 03 04 ab Header that means that the record is a TLS 1.3 record with 1195 bytes of length. This is the record that pr contains the message sent by the client to the server. The data following the header is the data sent by the client(encrypted).
+We can identify 5-byte headers that indicate TLS record starts. First byte represents the Record type, second and third bytes represent the TLS version, and the fourth and fifth bytes represent the length of the record. In this Stream we can identify 17 03 03 04 ab Header that means that the record is a TLS 1.3 record with 1195 bytes of length. This is the record that pr contains the message sent by the client to the server. The data following the header is the data sent(encrypted).
 
 
 ### Pull and Show Note
