@@ -32,7 +32,7 @@ The following diagram shows the networks and machines:
 
 ### Prerequisites
 
-Install Vagrant on your system: https://developer.hashicorp.com/vagrant/downloads
+[Install Vagrant](https://developer.hashicorp.com/vagrant/downloads) on your system.
 
 ### Machine configurations
 
@@ -41,7 +41,7 @@ Install Vagrant on your system: https://developer.hashicorp.com/vagrant/download
 $ vagrant up
 ```
 
-2 Check available machines:
+2. Check available machines:
 ```sh
 $ vagrant status
 ```
@@ -51,14 +51,14 @@ $ vagrant status
 $ vagrant ssh <machine-name>
 ```
 
-For each machine, there is an initialization script with the machine name (prefix `setup-`, suffix `.sh`) that installs necessary packages and configures the clean machine.
+For each machine, there is an initialization script inside of the `scripts` folder with the machine name (prefix `setup_`, suffix `.sh`) that installs necessary packages and configures the clean machine.
 **These scripts are run automatically by executing vagrant up**
 
 The Vagrantfile in the repository manages the VM configurations and provisioning.
 
 #### DB Server Machine
 
-This machine runs a MongoDB server that provides data storage for the application.
+This machine runs a [MongoDB](https://www.mongodb.com/) server that provides data storage for the application.
 
 To verify:
 ```sh
@@ -84,9 +84,12 @@ $ sudo systemctl start mongod
 $ sudo systemctl enable mongod
 ```
 
+
+TODO acho que deviamos falar do que a app faz em concreto quando falamos do client dizer o que ele faz e qnd falamos do server dizer o que ele faz mas not sure
+
 #### App Server Machine
 
-This machine runs a Python socket server handling network communications with both users and the database.
+This machine runs a server with a Python socket. It is responsible for handling client requests in a secure manner and ensures network communications with both users and the database.
 
 To verify:
 ```sh
@@ -121,11 +124,11 @@ To test:
 $ notist-client #start the TUI
 ```
 
-The expected results are a TUI interface appearing in your terminal where it will tell you that no user was found and if you want to create a 
+The expected results are a TUI appearing in your terminal where it will tell you that no user was found and ask if you want to create a new account.
 
-If you receive the following message "ModuleNotFoundError", then ensure you have all required Python packages installed:
+If you get a message that looks like `ModuleNotFoundError`, then ensure you have all required Python packages installed by reinstalling all the requirements:
 ```sh
-$ cd client/notist_client/src
+$ cd /home/vagrant/client/notist_client
 $ pip install -r requirements.txt
 ```
 TODO:
@@ -148,17 +151,63 @@ This concludes the demonstration.
 ## Additional Information
 
 ### Links to Used Tools and Libraries
+#### Python Packages
 
-- [Java 11.0.16.1](https://openjdk.java.net/)
-- [Maven 3.9.5](https://maven.apache.org/)
-- ...
+##### Core Python Package/Version Management
+- **pip (≥23.0.0)**
+  - Documentation: [pip docs](https://pip.pypa.io/en/stable/)
+  - Repository: [pypa/pip](https://github.com/pypa/pip)
+  - Package Index: [pip on PyPI](https://pypi.org/project/pip/)
+
+- **setuptools (≥65.5.1)**
+
+  - Documentation: [setuptools docs](https://setuptools.pypa.io/en/latest/)
+  - Repository: [pypa/setuptools](https://github.com/pypa/setuptools)
+  - Package Index: [setuptools on PyPI](https://pypi.org/project/setuptools/)
+
+- **wheel (≥0.40.0)**  TODO acho que esta ta nos requirements mas nao é required. tentar tira-la de la e ver se o client funciona
+
+  - Documentation: [wheel docs](https://wheel.readthedocs.io/en/stable/)
+  - Repository: [pypa/wheel](https://github.com/pypa/wheel)
+  - Package Index: [wheel on PyPI](https://pypi.org/project/wheel/)
+
+##### Security and Cryptography
+- **cryptography (==3.4.7)**
+  - Documentation: [cryptography docs](https://cryptography.io/en/3.4.7/)
+  - Repository: [pyca/cryptography](https://github.com/pyca/cryptography)
+  - Package Index: [cryptography on PyPI](https://pypi.org/project/cryptography/3.4.7/)
+
+- **pycryptodome (==3.21.0)** TODO de certeza que o Crypto que usamos no secure-documents vem daqui? Acho que sim, mas tamos a usar uma old version no secure-document. temos de ver isto
+  - Documentation: [pycryptodome docs](https://pycryptodome.readthedocs.io/)
+  - Repository: [Legrandin/pycryptodome](https://github.com/Legrandin/pycryptodome)
+  - Package Index: [pycryptodome on PyPI](https://pypi.org/project/pycryptodome/3.21.0/)
+
+##### Data Validation and Metadata
+- **pydantic (==2.10.4)**
+  - Documentation: [pydantic docs](https://docs.pydantic.dev/2.10/)
+  - Repository: [pydantic/pydantic](https://github.com/pydantic/pydantic)
+  - Package Index: [pydantic on PyPI](https://pypi.org/project/pydantic/2.10.4/)
+
+- **importlib_metadata (≥4.13.0)**  TODO acho que esta ta nos requirements mas nao é required. tentar tira-la de la e ver se o client funciona
+  - Documentation: [importlib_metadata docs](https://importlib-metadata.readthedocs.io/)
+  - Repository: [python/importlib_metadata](https://github.com/python/importlib_metadata)
+  - Package Index: [importlib_metadata on PyPI](https://pypi.org/project/importlib-metadata/)
+
+#### Development and Virtual Environments
+- **vagrant**
+ - Documentation: [vagrant docs](https://developer.hashicorp.com/vagrant/docs)
+ - Repository: [hashicorp/vagrant](https://github.com/hashicorp/vagrant)
+ - Download: [vagrant downloads](https://developer.hashicorp.com/vagrant/downloads)
+
+- ... TODO add more (also nao checkei os links todos mas parecem estar bem)
 
 ### Versioning
 
 We use [SemVer](http://semver.org/) for versioning.
+TODO I mean... nao usamos nada
 
 ### License
-
+TODO ya n sei acho que é só deixar essa
 This project is licensed under the MIT License - see the [LICENSE.txt](LICENSE.txt) for details.
 
 *(switch to another license, or no license, as you see fit)*

@@ -42,7 +42,7 @@ class Server:
         # Setup logging
         logging.basicConfig(level=logging.INFO)
         self.logger = logging.getLogger(__name__)
-        
+
         # Socket and TLS setup
         self.host = host
         self.port = port
