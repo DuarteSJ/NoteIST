@@ -112,7 +112,6 @@ class ResponseModel(BaseModel):
     digest_of_hashes: Optional[str] = None
     documents: Optional[List[Dict[str, Any]]] = None
     document: Optional[Dict[str, Any]] = None
-    curr_noteid: Optional[int] = None
     keys: Optional[List[Dict[str, Any]]] = None
 
 
@@ -130,6 +129,7 @@ class UsersModel(BaseModel):
 class NotesModel(BaseModel):
     id: str = Field(...)
     hmac: str = Field(...)
+    iv: str = Field(...)
     title: str = Field(...)
     content: str = Field(...)
     owner: int = Field(...)

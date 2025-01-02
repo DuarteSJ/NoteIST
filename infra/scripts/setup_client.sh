@@ -8,12 +8,14 @@ echo "Updating system and installing dependencies..."
 sudo apt-get update -y
 sudo apt-get install -y python3 python3-pip python3-dev build-essential
 
+pip install packaging==22.0
+
 # Install necessary Python libraries for secure communication
 REQUIREMENTS_FILE="/home/vagrant/client/notist_client/requirements.txt"
 
 if [ -f "$REQUIREMENTS_FILE" ]; then
     echo "Installing Python dependencies..."
-    pip3 install -r "$REQUIREMENTS_FILE"
+    pip install -r "$REQUIREMENTS_FILE"
 else
     echo "Error: Requirements file not found at $REQUIREMENTS_FILE"
     exit 1

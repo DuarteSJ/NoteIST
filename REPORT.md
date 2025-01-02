@@ -351,8 +351,9 @@ This implementation doesn't stop old collaborators to have access to the older v
 
 **Communication Diagram:**  
 
-![](img/communication.png)
+<!-- ![](img/communication.png) -->
 
+![](img/communication_req.jpg)
 
 
 ## 3. Conclusion
