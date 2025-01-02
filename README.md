@@ -191,7 +191,7 @@ Locally a directory is createdd on ~/.local/share/NoteIST/notes <note_id> with a
 }
 ```
 
-As we can see the sensitive information is censored and completely unreadable. **The key in the folder alongside this note is NOT the key to unencrypt it.**
+As we can see the sensitive information is censored and completely unreadable. The key file in the folder alongside this note **is NOT the key to unencrypt it**, but an encrypted version of said key with the master key derivated from your password.
 
 ### Adding Collaborator to Note
 
@@ -218,16 +218,31 @@ Server response: success - Actions processed
 {'collab': 'add_collaborator', 'status': 'success', 'result': {'status': 'success', 'message': 'Collaborator miguel added to note 04a34e14-2f3d-4d8b-b631-a30b0712f048'}}
 ```
 
-Here we can see how the communication is being made to the server and the added TLS layer security
+As we can see, the note creation and adding miguel as a collaborator worked. This means the notes secret key was also encrypted with miguel's public key and sent to the server, which then added it to miguel's representation in the db so that he can receive it when the server sends him the note (this will happens when miguel executes a pul command). When the server receives a note, it will add some metadata to it and send it to the database for it to be stored securely.
 
-TODO: pareca
+#### Pushing changes to the server
 
+Here we can see an example of the data sent through the client socket.
 
-As we can see the note creation and adding miguel as collaborator worked. When the server receives a note, it will add some metadata to it and sent to the database to store.\
+![](img/sentMessageOnPush.png)
+
+Now we will compare the data sent before entering the socket and the data caught with wireshark.
+consider these bytes from a push request with a note creation action.
+
+![](img/bytesSent.png)
+
+#### TCP Stream
+
+Consider the stream caught on the Wireshark:
+
+![](img/tcpStream.png)
+
+We can identify 5-byte headers that indicate TLS record starts. First byte represents the Record type, second and third bytes represent the TLS version, and the fourth and fifth bytes represent the length of the record. In this Stream we can identify 17 03 03 04 ab Header that means that the record is a TLS 1.3 record with 1195 bytes of length. This is the record that pr contains the message sent by the client to the server. The data following the header is the data sent by the client(encrypted).
+
 
 ### Pull and Show Note
 
-Now switching to the miguel POV we can see that by pressing 9 followed by a 3, 1on the main menu we get this:
+Now switching to the miguel POV we can see that by pressing 9 followed by a 3 and then a 1 on the main menu we get this:
 
 ```
 Select an option: 9
@@ -243,7 +258,7 @@ Title: ola
 Content: ola
 ```
 
-We can see that Miguel received the note that was encrypted initially without the server or db ever getting access to the sensitive content. As we can see, this is how the note is in the database:
+We can see that Miguel received the note that was encrypted initially without the server or db ever getting access to the sensitive content. This is how the note is represented in the database:
 
 ```
 {
@@ -275,7 +290,7 @@ We can see that Miguel received the note that was encrypted initially without th
 
 ### Attacks
 
-#### Locally tampering notes title and content
+#### Locally tampering with notes title and content
 
 If someone get's access to your computer and changes the content of a note the following will appear when you try to read it
 
@@ -289,17 +304,34 @@ An unexpected error occured: Failed to read and decrypt file: Decryption failed.
 
 #### Request replaying
 
-If someone tries to resend a request you have send in the past, the server will identify that the request was performed by an attacker by using the timestamp. Below we can see a picture of the server receiving 2 exact same requests and identifying that one is stale.
+If someone tries to resend a request you have sent in the past, the server will identify that the request was performed by an attacker by using the timestamp. Below we can see a picture of the server receiving 2 exact same requests and identifying that one is stale.
 
 ![](img/replay-attack.png)
 
 #### Request tampering
 
-If someone catches your request on the network and tries to change any of the data on it, the signature check will fail on the server side and reply with:
+If someone catches your request on the network and tries to change any of the data on it, the signature check will fail on the server side and the server will reply with:
 
 ```
 {"status": "error", "message": "Signature verification failed"}
 ```
+
+#### Deleting notes
+
+ vOk. Now that we kersionsnow there is no way for anyone to change your notes lets see what happens if someone deletes one of your notes locally.
+Here, two things may happen. If you hadn't pushed your changes to the remte server you will permanently loose access to the note, but if your changes were pushed here is what happens:
+
+The user list his notes and sees everything is ok:
+o![](img/listNotesGood.png)
+
+Someone gains access to the local file system and deletes the last version of the note:
+![](img/hackerDeleteVersion.png)
+
+Later, the user lists his notes and sees the last version is missing:
+![](img/listNotesBad.png)
+
+He can just pull from the server and get the note again:
+![](img/listAfterPull.png)
 
 
 
