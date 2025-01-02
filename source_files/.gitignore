@@ -1,0 +1,5 @@
+/secure-document/build
+/secure-document/secure_document.egg-info
+.vagrant
+*.pyc
+/project_env
