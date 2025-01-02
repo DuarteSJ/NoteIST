@@ -10,7 +10,6 @@ The project addresses the growing need for secure, private note-taking solutions
 ### 1.2 Main Components
 
 #### 1.2.1 Secure Documents
-#TODO: change this to text
 - Notes are stored as JSON documents containing metadata and content
 - Sensitive information (note and title) of the notes are kept encrypted
 - Document structure includes ownership information, access controls, and version tracking
@@ -40,8 +39,7 @@ To simplify the business logic of our program, we decided to make a couple of as
     - If a hacker has access to the computer of a user, he cannot impersonate the user and interact with the server in any way since everything is locally encripted with a master key, derived from a password only the user knows (he cannot even interact with the client side of the app). However, destructive behaviour is possible, as the malicious person can delete the user's private key from the local device, even tho it is encrypted and there are no available recovery methods (the server does not keep any of this sensible information).
 
 
-#TODO:
-(_Include a structural diagram, in UML or other standard notation._)
+![](img/serverUML.svg)
 
 ## 2. Project Development
 
@@ -134,7 +132,6 @@ The library was implemented in **Python**, using the `PyCryptodome` library for 
    - If the integrity check passes, it means that there was no tampering and encrypted fields are decrypted.
 
 **Challenges and Solutions**:
-#TODO: queremos meter aqui alguma merda?
 
 1. **Challenge**: Handling missing fields or corrupted files.
    - **Solution**: Validation checks and exception handling were added to identify and handle malformed inputs gracefully.
@@ -248,7 +245,6 @@ These changes not only meet the requirements of the security challenge but also 
 - Stored encrypted data on disk
 - Other users (even those with legitimate access to shared notes)
 
-TODO: REVER ISTO?
 **Attacker Capabilities**
 
 The attacker is assumed to have the following capabilities:
@@ -351,10 +347,10 @@ This implementation doesn't stop old collaborators to have access to the older v
 
 **Communication Diagram:**  
 
-<!-- ![](img/communication.png) -->
+![](img/communication.png)
 
-![](img/communication_req.jpg)
 
+![](img/Models.jpg)
 
 ## 3. Conclusion
 

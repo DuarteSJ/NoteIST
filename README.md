@@ -155,56 +155,49 @@ This concludes the demonstration.
 
 ##### Core Python Package/Version Management
 - **pip (≥23.0.0)**
-  - Documentation: [pip docs](https://pip.pypa.io/en/stable/)
-  - Repository: [pypa/pip](https://github.com/pypa/pip)
-  - Package Index: [pip on PyPI](https://pypi.org/project/pip/)
+  - Documentation: [**pip docs**](https://pip.pypa.io/en/stable/)
+  - Repository: [**pypa/pip**](https://github.com/pypa/pip)
+  - Package Index: [**pip on PyPI**](https://pypi.org/project/pip/)
 
 - **setuptools (≥65.5.1)**
 
-  - Documentation: [setuptools docs](https://setuptools.pypa.io/en/latest/)
-  - Repository: [pypa/setuptools](https://github.com/pypa/setuptools)
-  - Package Index: [setuptools on PyPI](https://pypi.org/project/setuptools/)
+  - Documentation: [**setuptools docs**](https://setuptools.pypa.io/en/latest/)
+  - Repository: [**pypa/setuptools**](https://github.com/pypa/setuptools)
+  - Package Index: [**setuptools on PyPI**](https://pypi.org/project/setuptools/)
 
 - **wheel (≥0.40.0)**  TODO acho que esta ta nos requirements mas nao é required. tentar tira-la de la e ver se o client funciona
 
-  - Documentation: [wheel docs](https://wheel.readthedocs.io/en/stable/)
-  - Repository: [pypa/wheel](https://github.com/pypa/wheel)
-  - Package Index: [wheel on PyPI](https://pypi.org/project/wheel/)
+  - Documentation: [**wheel docs**](https://wheel.readthedocs.io/en/stable/)
+  - Repository: [**pypa/wheel**](https://github.com/pypa/wheel)
+  - Package Index: [**wheel on PyPI**](https://pypi.org/project/wheel/)
 
 ##### Security and Cryptography
 - **cryptography (==3.4.7)**
-  - Documentation: [cryptography docs](https://cryptography.io/en/3.4.7/)
-  - Repository: [pyca/cryptography](https://github.com/pyca/cryptography)
-  - Package Index: [cryptography on PyPI](https://pypi.org/project/cryptography/3.4.7/)
+  - Documentation: [**cryptography docs**](https://cryptography.io/en/3.4.7/)
+  - Repository: [**pyca/cryptography**](https://github.com/pyca/cryptography)
+  - Package Index: [**cryptography on PyPI**](https://pypi.org/project/cryptography/3.4.7/)
 
 - **pycryptodome (==3.21.0)** TODO de certeza que o Crypto que usamos no secure-documents vem daqui? Acho que sim, mas tamos a usar uma old version no secure-document. temos de ver isto
-  - Documentation: [pycryptodome docs](https://pycryptodome.readthedocs.io/)
-  - Repository: [Legrandin/pycryptodome](https://github.com/Legrandin/pycryptodome)
-  - Package Index: [pycryptodome on PyPI](https://pypi.org/project/pycryptodome/3.21.0/)
+  - Documentation: [**pycryptodome docs**](https://pycryptodome.readthedocs.io/)
+  - Repository: [**Legrandin/pycryptodome**](https://github.com/Legrandin/pycryptodome)
+  - Package Index: [**pycryptodome on PyPI**](https://pypi.org/project/pycryptodome/3.21.0/)
 
 ##### Data Validation and Metadata
 - **pydantic (==2.10.4)**
-  - Documentation: [pydantic docs](https://docs.pydantic.dev/2.10/)
-  - Repository: [pydantic/pydantic](https://github.com/pydantic/pydantic)
-  - Package Index: [pydantic on PyPI](https://pypi.org/project/pydantic/2.10.4/)
+  - Documentation: [**pydantic docs**](https://docs.pydantic.dev/2.10/)
+  - Repository: [**pydantic/pydantic**](https://github.com/pydantic/pydantic)
+  - Package Index: [**pydantic on PyPI**](https://pypi.org/project/pydantic/2.10.4/)
 
 - **importlib_metadata (≥4.13.0)**  TODO acho que esta ta nos requirements mas nao é required. tentar tira-la de la e ver se o client funciona
-  - Documentation: [importlib_metadata docs](https://importlib-metadata.readthedocs.io/)
-  - Repository: [python/importlib_metadata](https://github.com/python/importlib_metadata)
-  - Package Index: [importlib_metadata on PyPI](https://pypi.org/project/importlib-metadata/)
+  - Documentation: [**importlib_metadata docs**](https://importlib-metadata.readthedocs.io/)
+  - Repository: [**python/importlib_metadata**](https://github.com/python/importlib_metadata)
+  - Package Index: [**importlib_metadata on PyPI**](https://pypi.org/project/importlib-metadata/)
 
 #### Development and Virtual Environments
 - **vagrant**
- - Documentation: [vagrant docs](https://developer.hashicorp.com/vagrant/docs)
- - Repository: [hashicorp/vagrant](https://github.com/hashicorp/vagrant)
- - Download: [vagrant downloads](https://developer.hashicorp.com/vagrant/downloads)
-
-- ... TODO add more (also nao checkei os links todos mas parecem estar bem)
-
-### Versioning
-
-We use [SemVer](http://semver.org/) for versioning.
-TODO I mean... nao usamos nada
+  - Documentation: [**vagrant docs**](https://developer.hashicorp.com/vagrant/docs)
+  - Repository: [**hashicorp/vagrant**](https://github.com/hashicorp/vagrant)
+  - Download: [**vagrant downloads**](https://developer.hashicorp.com/vagrant/downloads)
 
 ### License
 TODO ya n sei acho que é só deixar essa
