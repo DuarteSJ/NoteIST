@@ -897,3 +897,90 @@
 2025-01-02 21:47:37,735 - users - INFO - User created with ID: 67770979239543ab8405e279
 2025-01-02 21:50:54,402 - __main__ - INFO - Connection from ('192.168.1.200', 52220)
 2025-01-02 21:50:54,406 - db_manager - INFO - Updated document in users
+2025-01-02 22:00:20,335 - __main__ - INFO - Connection from ('192.168.1.200', 48566)
+2025-01-02 22:00:20,339 - db_manager - INFO - Updated document in users
+2025-01-02 22:00:20,342 - db_manager - INFO - Inserted document in notes with ID: 67770c74239543ab8405e27a
+2025-01-02 22:00:20,344 - db_manager - INFO - Updated document in users
+2025-01-02 22:00:20,344 - notes - INFO - Note created with ID: 49f0dc2a-8df9-4d25-b93f-9e521c87836a
+2025-01-02 22:01:54,331 - db_manager - INFO - MongoDB connection closed
+2025-01-02 22:01:57,926 - db_manager - INFO - Successfully connected to MongoDB
+2025-01-02 22:01:57,927 - __main__ - INFO - Server listening on 0.0.0.0:5000
+2025-01-02 22:02:02,150 - __main__ - INFO - Connection from ('192.168.1.200', 40982)
+2025-01-02 22:02:02,151 - __main__ - ERROR - Server error: 'str' object has no attribute 'get'
+2025-01-02 22:02:29,828 - db_manager - INFO - MongoDB connection closed
+2025-01-02 22:02:30,947 - db_manager - INFO - Successfully connected to MongoDB
+2025-01-02 22:02:30,948 - __main__ - INFO - Server listening on 0.0.0.0:5000
+2025-01-02 22:02:34,612 - __main__ - INFO - Connection from ('192.168.1.200', 60602)
+2025-01-02 22:02:34,612 - __main__ - ERROR - Server error: 'str' object has no attribute 'get'
+2025-01-02 22:03:19,719 - __main__ - INFO - Connection from ('192.168.1.200', 58922)
+2025-01-02 22:03:19,719 - __main__ - ERROR - Error processing request: Object of type PushRequest is not JSON serializable
+2025-01-02 22:03:59,521 - db_manager - INFO - MongoDB connection closed
+2025-01-02 22:04:01,047 - db_manager - INFO - Successfully connected to MongoDB
+2025-01-02 22:04:01,049 - __main__ - INFO - Server listening on 0.0.0.0:5000
+2025-01-02 22:04:08,999 - __main__ - INFO - Connection from ('192.168.1.200', 40888)
+2025-01-02 22:04:09,004 - db_manager - INFO - Updated document in users
+2025-01-02 22:04:09,007 - db_manager - INFO - Inserted document in notes with ID: 67770d592478b0491ecc8847
+2025-01-02 22:04:09,008 - db_manager - INFO - Updated document in users
+2025-01-02 22:04:09,008 - notes - INFO - Note created with ID: bd68502b-1bc8-46f8-8ced-ede3a8cdbf01
+2025-01-02 22:04:09,010 - db_manager - INFO - Inserted document in notes with ID: 67770d592478b0491ecc8848
+2025-01-02 22:04:09,011 - db_manager - INFO - Updated document in users
+2025-01-02 22:04:09,011 - notes - INFO - Note created with ID: d5d09f2a-b773-46d9-ae0d-80a65662bb0b
+2025-01-02 22:04:09,013 - db_manager - INFO - Inserted document in notes with ID: 67770d592478b0491ecc8849
+2025-01-02 22:04:09,014 - db_manager - INFO - Updated document in users
+2025-01-02 22:04:09,014 - notes - INFO - Note created with ID: 26088e6e-b758-4174-baab-1a58c6de1032
+2025-01-02 22:04:09,016 - db_manager - INFO - Inserted document in notes with ID: 67770d592478b0491ecc884a
+2025-01-02 22:04:09,017 - db_manager - INFO - Updated document in users
+2025-01-02 22:04:09,017 - notes - INFO - Note created with ID: 4713dc7d-7b01-4c25-bb0d-8ddea34be571
+2025-01-02 22:06:33,129 - db_manager - INFO - MongoDB connection closed
+2025-01-02 22:06:34,979 - db_manager - INFO - Successfully connected to MongoDB
+2025-01-02 22:06:34,980 - __main__ - INFO - Server listening on 0.0.0.0:5000
+2025-01-02 22:06:43,384 - __main__ - INFO - Connection from ('192.168.1.200', 45028)
+2025-01-02 22:06:43,390 - db_manager - INFO - Updated document in users
+2025-01-02 22:06:43,393 - db_manager - INFO - Inserted document in notes with ID: 67770df3ca4cb2095d6e78c9
+2025-01-02 22:06:43,394 - db_manager - INFO - Updated document in users
+2025-01-02 22:06:43,394 - notes - INFO - Note created with ID: f18701f2-5ca2-48f5-a2be-1cf49216eb33
+2025-01-02 22:08:57,910 - __main__ - INFO - Connection from ('192.168.1.200', 53914)
+2025-01-02 22:08:57,911 - __main__ - ERROR - Server error: Expecting value: line 1 column 1 (char 0)
+2025-01-02 22:09:57,680 - db_manager - INFO - MongoDB connection closed
+2025-01-02 22:09:59,928 - db_manager - INFO - Successfully connected to MongoDB
+2025-01-02 22:09:59,929 - __main__ - INFO - Server listening on 0.0.0.0:5000
+2025-01-02 22:10:06,629 - __main__ - INFO - Connection from ('192.168.1.200', 46086)
+2025-01-02 22:10:06,630 - __main__ - ERROR - Server error: Expecting value: line 1 column 1 (char 0)
+2025-01-02 22:10:37,232 - __main__ - INFO - Connection from ('192.168.1.200', 43982)
+2025-01-02 22:10:37,232 - __main__ - ERROR - Server error: Expecting value: line 1 column 1 (char 0)
+2025-01-02 22:11:04,246 - __main__ - INFO - Connection from ('192.168.1.200', 56040)
+2025-01-02 22:11:04,252 - db_manager - INFO - Updated document in users
+2025-01-02 22:11:04,255 - db_manager - INFO - Inserted document in notes with ID: 67770ef801bea4fe6c4e4292
+2025-01-02 22:11:04,257 - db_manager - INFO - Updated document in users
+2025-01-02 22:11:04,257 - notes - INFO - Note created with ID: c9d41155-4cba-44bc-9e61-2e801aeb5398
+2025-01-02 22:11:04,261 - db_manager - INFO - Inserted document in notes with ID: 67770ef801bea4fe6c4e4293
+2025-01-02 22:11:04,263 - db_manager - INFO - Updated document in users
+2025-01-02 22:11:04,264 - notes - INFO - Note created with ID: 6ec1dd58-b8de-4803-9520-e6e816a6640d
+2025-01-02 22:11:04,267 - db_manager - INFO - Inserted document in notes with ID: 67770ef801bea4fe6c4e4294
+2025-01-02 22:11:04,269 - db_manager - INFO - Updated document in users
+2025-01-02 22:11:04,269 - notes - INFO - Note created with ID: 36d8ac75-641c-428a-88b8-58a3ef3535e0
+2025-01-02 22:11:04,272 - db_manager - INFO - Inserted document in notes with ID: 67770ef801bea4fe6c4e4295
+2025-01-02 22:11:04,273 - db_manager - INFO - Updated document in users
+2025-01-02 22:11:04,273 - notes - INFO - Note created with ID: d7c4420d-67f0-41a6-9d5f-ee3f7883bc08
+2025-01-02 22:11:15,680 - db_manager - INFO - MongoDB connection closed
+2025-01-02 22:11:17,670 - db_manager - INFO - Successfully connected to MongoDB
+2025-01-02 22:11:17,671 - __main__ - INFO - Server listening on 0.0.0.0:5000
+2025-01-02 22:11:49,797 - __main__ - INFO - Connection from ('192.168.1.200', 56260)
+2025-01-02 22:11:49,803 - db_manager - INFO - Updated document in users
+2025-01-02 22:11:49,805 - db_manager - INFO - Inserted document in notes with ID: 67770f255be4346f08750185
+2025-01-02 22:11:49,806 - db_manager - INFO - Updated document in users
+2025-01-02 22:11:49,807 - notes - INFO - Note created with ID: 565bb993-b2ca-4de1-bef1-aed9ba9bc226
+2025-01-02 22:12:46,339 - __main__ - INFO - Connection from ('192.168.1.200', 42066)
+2025-01-02 22:13:52,456 - db_manager - INFO - MongoDB connection closed
+2025-01-02 22:13:54,574 - db_manager - INFO - Successfully connected to MongoDB
+2025-01-02 22:13:54,575 - __main__ - INFO - Server listening on 0.0.0.0:5000
+2025-01-02 22:14:12,387 - __main__ - INFO - Connection from ('192.168.1.200', 47338)
+2025-01-02 22:14:12,393 - db_manager - INFO - Updated document in users
+2025-01-02 22:14:12,396 - db_manager - INFO - Inserted document in notes with ID: 67770fb4105a44457d9c7a68
+2025-01-02 22:14:12,397 - db_manager - INFO - Updated document in users
+2025-01-02 22:14:12,397 - notes - INFO - Note created with ID: efc65869-19fa-478a-b2f2-97163da99142
+2025-01-02 22:14:12,400 - db_manager - INFO - Inserted document in notes with ID: 67770fb4105a44457d9c7a69
+2025-01-02 22:14:12,402 - db_manager - INFO - Updated document in users
+2025-01-02 22:14:12,402 - notes - INFO - Note created with ID: e7e0cfd4-f2e1-42c7-beb0-50911551aff0
+2025-01-02 22:14:49,962 - __main__ - INFO - Connection from ('192.168.1.200', 33226)
+2025-01-02 22:19:40,571 - db_manager - INFO - MongoDB connection closed

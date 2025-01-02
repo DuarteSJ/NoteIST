@@ -287,17 +287,21 @@ or
 An unexpected error occured: Failed to read and decrypt file: Decryption failed. It is likely that your file has been tampered with. Details: Padding is incorrect.
 ```
 
+#### Request replaying
+
+If someone tries to resend a request you have send in the past, the server will identify that the request was performed by an attacker by using the timestamp. Below we can see a picture of the server receiving 2 exact same requests and identifying that one is stale.
+
+![](img/replay-attack.png)
+
+#### Request tampering
+
+If someone catches your request on the network and tries to change any of the data on it, the signature check will fail on the server side and reply with:
+
+```
+{"status": "error", "message": "Signature verification failed"}
+```
 
 
-
-
-When an attack is performed, pulling from the server will solve the attacks and getting your versions back
-
-*(replace with actual commands)*
-
-*(IMPORTANT: show evidence of the security mechanisms in action; show message payloads, print relevant messages, perform simulated attacks to show the defenses in action, etc.)*
-
-This concludes the demonstration.
 
 ## Additional Information
 
@@ -353,6 +357,3 @@ This concludes the demonstration.
 ### License
 This project is licensed under the MIT License - see the [LICENSE.txt](LICENSE.txt) for details.
 
-
-----
-END OF README
