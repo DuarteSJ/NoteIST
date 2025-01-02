@@ -81,7 +81,6 @@ AES in CBC mode is used to encrypt sensitive fields (`title` and `note`), since 
 **File Structure:**
 
 Encrypted files include metadata such as IV and HMAC, sensitive encrypted data (note and title) and non-sensitive unencrypted data. The unencrypted data is mainly used for client-side information display. Below is an example of how the notes are being stored:
-TODO explicar o porquê da so encriptar o title e o content (o resto e chill se alguem mudar a mao e nao e sensitive info)
 
 **Example JSON Format (Encrypted):**
 
