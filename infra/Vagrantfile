@@ -119,9 +119,9 @@ Vagrant.configure("2") do |config|
     end
 
     # App server security configuration
+    app.vm.provision "shell", path: "scripts/setup_app.sh", privileged: true
     app.vm.provision "shell", path: "scripts/secure_app_server.sh"
 
-    app.vm.provision "shell", path: "scripts/setup_app.sh", privileged: true
   end
 
   # Database Server (Private Network)
@@ -157,9 +157,9 @@ Vagrant.configure("2") do |config|
     end
 
     # Database server security configuration
+    db.vm.provision "shell", path: "scripts/setup_db.sh", privileged: true
     db.vm.provision "shell", path: "scripts/secure_db_server.sh"
 
-    db.vm.provision "shell", path: "scripts/setup_db.sh", privileged: true
   
   end
 end
